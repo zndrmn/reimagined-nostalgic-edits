@@ -8,7 +8,7 @@ if (blockEntityId > 1) {
                     emission = color.g * 4.0;
                 }
             } else if (blockEntityId == 60000) { // End Portal, End Gateway
-                #include "/lib/materials/specificMaterials/others/endPortalEffect.glsl"
+                    #include "/lib/materials/specificMaterials/others/endPortalEffect.glsl"
             }
         } else {
             if (blockEntityId == 60004) { // Signs
@@ -42,7 +42,7 @@ if (blockEntityId > 1) {
                 if (color.g > color.r || color.b > color.g)
                     emission = pow2(factor) * 20.0;
                 emission += 0.35;
-                
+
                 #ifdef COATED_TEXTURES
                     noiseFactor = 0.66;
                 #endif

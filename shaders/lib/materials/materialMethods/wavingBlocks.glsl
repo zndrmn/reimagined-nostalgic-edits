@@ -1,5 +1,5 @@
 vec3 GetWave(in vec3 pos, float waveSpeed) {
-    float wind = frameTimeCounter * waveSpeed;
+    float wind = frameTimeCounter * waveSpeed * WAVE_SPEED;
 
     float magnitude = sin(wind * 0.0027 + pos.z + pos.y) * 0.04 + 0.04;
     float d0 = sin(wind * 0.0127);
@@ -10,7 +10,7 @@ vec3 GetWave(in vec3 pos, float waveSpeed) {
     wave.z = sin(wind*0.0224 + d1 + d2 + pos.x - pos.z + pos.y) * magnitude;
     wave.y = sin(wind*0.0015 + d2 + d0 + pos.z + pos.y - pos.y) * magnitude;
 
-    #ifdef NO_WAVING_INDOORS
+    #if defined NO_WAVING_INDOORS
         wave *= clamp(lmCoord.y - 0.87, 0.0, 0.1);
     #else
         wave *= 0.1;
@@ -20,13 +20,14 @@ vec3 GetWave(in vec3 pos, float waveSpeed) {
 }
 
 void DoWave_Foliage(inout vec3 playerPos, vec3 worldPos) {
+
     worldPos.y *= 0.5;
 
     vec3 wave = GetWave(worldPos, 170.0);
     wave.x = wave.x * 8.0 + wave.y * 4.0;
     wave.y = 0.0;
     wave.z = wave.z * 3.0;
-
+    
     playerPos.xyz += wave;
 }
 
@@ -68,7 +69,7 @@ void DoWave(inout vec3 playerPos, int mat) {
 
     #if defined GBUFFERS_TERRAIN || defined SHADOW
         #ifdef WAVING_FOLIAGE
-            if (mat == 10004) { // Grounded Waving Foliage
+            if (mat == 10004 || mat == 10005) { // Grounded Waving Foliage
                 DoWave_GroundedFoliage(playerPos.xyz, worldPos);
             } else if (mat == 10020) { // Upper Layer Waving Foliage
                 DoWave_Foliage(playerPos.xyz, worldPos);
@@ -97,4 +98,26 @@ void DoWave(inout vec3 playerPos, int mat) {
             }
         #endif
     #endif
+}
+void DoInteractiveWave(inout vec3 playerPos, int mat){
+    if (mat == 10004 || mat == 10005 || mat == 10020 || mat == 10017 || mat == 10628 || mat == 10632) { 
+        float lPos = clamp(length(playerPos.xyz), 0.0, 1.0);
+        playerPos.xz += 1.0 - lPos * (4.0 - lPos * 3.0);
+        // if (length(playerPos) < 2.0) playerPos.xz += playerPos.xz*max(5.0/pow(max(length(playerPos*vec3(8.0,2.0,8.0)-vec3(0.0,2.0,0.0)),2.0),1.0)-0.625,0.0) * 1.3;
+    }
+}
+
+float WavingLava(vec3 newPos) {
+    newPos += cameraPosition.xyz;
+    float animate = sin(newPos.x * frameTimeCounter * 0.002 + newPos.z + frameTimeCounter * 0.9);
+    #ifdef OVERWORLD
+        animate *= 0.5;
+    #endif
+    return animate;
+}
+
+void DoWaveEverything(inout vec3 playerPos, int mat) {
+    vec3 worldPos = playerPos.xyz + cameraPosition.xyz;
+    DoWave_Leaves(playerPos.xyz, worldPos);
+    DoWave_Foliage(playerPos.xyz, worldPos);
 }

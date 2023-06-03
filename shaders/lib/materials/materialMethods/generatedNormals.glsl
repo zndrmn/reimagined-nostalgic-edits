@@ -22,8 +22,8 @@ float GetDif(float lOriginalAlbedo, vec2 offsetCoord) {
     #endif
 
     #ifndef GBUFFERS_WATER
-        if (dif > 0.0) dif = max(dif - normalThreshold, 0.0);
-        else           dif = min(dif + normalThreshold, 0.0);
+        if (dif > 0.0) dif = max(dif + NORMAL_THRESHOLD, 0.0);
+        else           dif = min(dif - NORMAL_THRESHOLD, 0.0);
     #endif
 
     return clamp(dif, -normalClamp, normalClamp);
@@ -46,7 +46,7 @@ void GenerateNormals(inout vec3 normalM, vec3 color) {
     #else
         vec2 offsetR = max(absMidCoordPos2.x, absMidCoordPos2.y) * vec2(float(atlasSizeM.y) / float(atlasSizeM.x), 1.0);
     #endif
-    offsetR /= packSizeGN;
+    offsetR /= NORMAL_RES;
 
     vec2 midCoord = texCoord - midCoordPos;
     vec2 maxOffsetCoord = midCoord + absMidCoordPos;

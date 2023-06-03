@@ -105,7 +105,7 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
                 skyReflection += specularHighlight * highlightColor * shadowMult * highlightMult * invRainFactor;
             #endif
         #elif defined END
-            #ifdef DEFERRED1
+            #if defined DEFERRED1 && defined END_BEAMS
                 vec3 skyReflection = (endSkyColor + 0.4 * DrawEnderBeams(RVdotU, playerPos)) * skyLightFactor;
             #else
                 vec3 skyReflection = endSkyColor * shadowMult;

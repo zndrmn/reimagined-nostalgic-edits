@@ -19,15 +19,13 @@ flat in vec4 glColor;
 
 //Uniforms//
 uniform int isEyeInWater;
+uniform int blockEntityId;
 
 uniform vec3 cameraPosition;
 
 uniform sampler2D tex;
 uniform sampler2D noisetex;
 
-#if WATER_STYLE >= 3
-	uniform float frameTimeCounter;
-#endif
 
 //Pipeline Constants//
 
@@ -142,9 +140,10 @@ uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
 
 #if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX
-	uniform float frameTimeCounter;
-
 	uniform vec3 cameraPosition;
+	uniform sampler2D noisetex;
+#elif defined WORLD_CURVATURE
+	uniform sampler2D noisetex;
 #endif
 
 //Attributes//
@@ -164,8 +163,12 @@ attribute vec4 mc_Entity;
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
 
-#if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX
+#if defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE || defined WAVING_WATER_VERTEX
 	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
+#endif
+
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
 #endif
 
 //Program//
@@ -178,7 +181,15 @@ void main() {
 
 	mat = int(mc_Entity.x + 0.5);
 
-	position = shadowModelViewInverse * shadowProjectionInverse * ftransform();
+	#if defined WORLD_CURVATURE
+		position = shadowModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+	#else
+		position = shadowModelViewInverse * shadowProjectionInverse * ftransform();
+	#endif
+
+	#ifdef WORLD_CURVATURE
+		position.y += doWorldCurvature(position.xz);
+	#endif
 
 	#if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX
 		#ifdef NO_WAVING_INDOORS
@@ -189,7 +200,7 @@ void main() {
 	#endif
 
 	#ifdef PERPENDICULAR_TWEAKS
-		if (mat == 10004 || mat == 10016) { // Foliage
+		if (mat == 10004 || mat == 10005 || mat == 10016 || mat == 10017) { // Foliage
 			vec2 midCoord = (gl_TextureMatrix[0] * mc_midTexCoord).st;
 			vec2 texMinMidCoord = texCoord - midCoord;
 			if (texMinMidCoord.y < 0.0) {
@@ -199,7 +210,14 @@ void main() {
 		}
 	#endif
 
-	gl_Position = shadowProjection * shadowModelView * position;
+	#if defined WORLD_CURVATURE
+		gl_Position = gl_ProjectionMatrix * shadowModelView * position;
+	#else
+		gl_Position = shadowProjection * shadowModelView * position;
+	#endif
+
+	// if (mat == 10008) gl_Position = vec4(0.0); // disable leave shadows
+	
 
 	float lVertexPos = sqrt(gl_Position.x * gl_Position.x + gl_Position.y * gl_Position.y);
 	float distortFactor = lVertexPos * shadowMapBias + (1.0 - shadowMapBias);

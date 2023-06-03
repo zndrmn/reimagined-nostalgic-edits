@@ -1,3 +1,7 @@
+#if defined THUNDER_LIGHTING && defined OVERWORLD
+	#include "/lib/colors/lightAndAmbientColors.glsl"
+#endif
+
 const float regularEdge = 20.0;
 const float extraEdgeMult = 3.0;
 
@@ -89,6 +93,10 @@ void DoTAA(inout vec3 color, inout vec3 temp, float depth) {
 	float velocityFactor = dot(velocity, velocity) * 10.0;
 	blendFactor *= max(exp(-velocityFactor) * blendVariable + blendConstant - length(cameraOffset) * edge, blendMinimum);
 	
+	#if defined THUNDER_LIGHTING && defined OVERWORLD
+	if (rainFactor > 0.75 && float(rainAmbientColor) > 0.20) blendFactor = 0.0;
+	#endif
+
 	color = mix(color, tempColor, blendFactor);
 	temp = color;
 

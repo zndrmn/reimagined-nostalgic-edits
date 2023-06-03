@@ -32,16 +32,18 @@ in vec4 glColor;
 	in vec4 vTexCoordAM;
 #endif
 
+in vec3 midUV;
+
 //Uniforms//
 uniform int isEyeInWater;
 uniform int frameCounter;
+uniform int blockEntityId;
 
 uniform float near;
 uniform float far;
 uniform float nightVision;
 uniform float blindness;
 uniform float darknessFactor;
-uniform float frameTimeCounter;
 
 uniform vec3 fogColor;
 uniform vec3 skyColor;
@@ -88,6 +90,22 @@ uniform sampler2D noisetex;
 	uniform sampler2D specular;
 #endif
 
+#if OVERWORLD_BEAMS_CONDITION == 0
+	uniform int moonPhase;
+#endif
+
+uniform float isSnowy;
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex8;
+	uniform sampler2D colortex9;
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//
@@ -132,8 +150,13 @@ float GetLinearDepth(float depth) {
 //Includes//
 #include "/lib/util/dither.glsl"
 #include "/lib/util/spaceConversion.glsl"
+#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 #include "/lib/atmospherics/fog/mainFog.glsl"
+
+#ifdef OVERWORLD_BEAMS
+	float vlFactor = 0.0;
+#endif
 
 #ifdef OVERWORLD
 	#include "/lib/atmospherics/sky.glsl"
@@ -161,6 +184,14 @@ float GetLinearDepth(float depth) {
 
 #ifdef ATM_COLOR_MULTS
     #include "/lib/colors/colorMultipliers.glsl"
+#endif
+
+#if !defined ATMOSPHERIC_FOG && !defined BORDER_FOG
+	#include "/lib/colors/skyColors.glsl"
+#endif
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#include "/lib/lighting/coloredBlocklight.glsl"
 #endif
 
 //Program//
@@ -226,7 +257,7 @@ void main() {
 	#else
 		if (mat == 31000) { // Water
 			#include "/lib/materials/specificMaterials/translucents/water.glsl"
-		} 
+		}
 		#ifdef CUSTOM_PBR
 			else {
 				float smoothnessD, materialMask;
@@ -241,6 +272,18 @@ void main() {
 		translucentMult = vec4(mix(vec3(1.0), normalize(pow2(color.rgb)) * pow2(color.rgb), sqrt1(color.a)) * (1.0 - pow(color.a, 64.0)), 1.0);
 
 	translucentMult.rgb = mix(translucentMult.rgb, vec3(1.0), min1(pow2(pow2(lViewPos / far))));
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		vec3 opaquelightAlbedo = texture2D(colortex8, screenPos.xy).rgb;
+		opaquelightAlbedo *= translucentMult.rgb;
+
+		vec3 lightAlbedo = color.rgb + 0.00001;
+
+		lightAlbedo = normalize(lightAlbedo + 0.00001) * emission;
+		lightAlbedo = mix(opaquelightAlbedo, lightAlbedo, color.a);
+
+		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+	#endif
 
 	// Lighting
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
@@ -328,6 +371,14 @@ void main() {
 	#if WATER_QUALITY >= 3
 		/* DRAWBUFFERS:031 */
 		gl_FragData[2] = vec4(0.0, materialMask, 0.0, 1.0);
+
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			/* DRAWBUFFERS:0318 */
+			gl_FragData[3] = vec4(lightAlbedo, 1.0);
+		#endif
+	#elif defined MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:038 */
+		gl_FragData[2] = vec4(lightAlbedo, 1.0);
 	#endif
 }
 
@@ -347,6 +398,8 @@ out vec3 viewVector;
 
 out vec4 glColor;
 
+out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of a block
+
 #if WATER_STYLE >= 2 || RAIN_PUDDLES >= 1 && WATER_STYLE == 1 || defined GENERATED_NORMALS || defined CUSTOM_PBR
 	flat out vec3 binormal, tangent;
 #endif
@@ -360,21 +413,34 @@ out vec4 glColor;
 	out vec4 vTexCoordAM;
 #endif
 
+#if SEASONS == 1 || SEASONS == 4 
+	flat out ivec2 pixelTexSize;
+#endif
+
 //Uniforms//
 #ifdef TAA
 	uniform float viewWidth, viewHeight;
 #endif
 
-#ifdef WAVING_WATER_VERTEX
-	uniform float frameTimeCounter;
-
-	uniform vec3 cameraPosition;
-
+#if defined WAVING_WATER_VERTEX || defined WORLD_CURVATURE
 	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#if defined WORLD_CURVATURE
+	uniform sampler2D noisetex;
+#endif
+
+#if defined WAVING_WATER_VERTEX
+	uniform vec3 cameraPosition;
+#endif
+
+#if SEASONS == 1 || SEASONS == 4 
+	uniform ivec2 atlasSize;
 #endif
 
 //Attributes//
 attribute vec4 mc_Entity;
+attribute vec3 at_midBlock;
 attribute vec4 mc_midTexCoord;
 attribute vec4 at_tangent;
 
@@ -387,7 +453,11 @@ attribute vec4 at_tangent;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#ifdef WAVING_WATER_VERTEX
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#if defined WAVING_WATER_VERTEX
 	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
@@ -395,15 +465,22 @@ attribute vec4 at_tangent;
 void main() {
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmCoord  = GetLightMapCoordinates();
+	midUV = 0.5 - at_midBlock / 64.0;
 
 	glColor = gl_Color;
 
 	mat = int(mc_Entity.x + 0.5);
 
-	#ifdef WAVING_WATER_VERTEX
+	#if defined WAVING_WATER_VERTEX || defined WORLD_CURVATURE
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
 
-		DoWave(position.xyz, mat);
+		#ifdef WAVING_WATER_VERTEX
+			DoWave(position.xyz, mat);
+		#endif
+
+		#ifdef WORLD_CURVATURE
+			position.y += doWorldCurvature(position.xz);
+		#endif
 		
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#else
@@ -446,6 +523,10 @@ void main() {
 			vTexCoordAM.zw  = abs(texMinMidCoord) * 2;
 			vTexCoordAM.xy  = min(texCoord, midCoord - texMinMidCoord);
 		#endif
+	#endif
+
+	#if SEASONS == 1 || SEASONS == 4 
+		ivec2 pixelTexSize = ivec2(absMidCoordPos * 2.0 * atlasSize);
 	#endif
 
 	gl_Position.z -= 0.0001;

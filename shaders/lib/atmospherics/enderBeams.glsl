@@ -3,9 +3,9 @@
 
 #include "/lib/colors/lightAndAmbientColors.glsl"
 
-vec3 endOrangeCol = vec3(1.0, 0.3, 0.0);
-vec3 beamPurple = normalize(ambientColor * ambientColor * ambientColor) * (2.5 - 1.0 * vlFactor);
-vec3 beamOrange = endOrangeCol * (300.0 + 700.0 * vlFactor);
+vec3 endDragonCol = vec3(E_DRAGON_BEAM_R, E_DRAGON_BEAM_G, E_DRAGON_BEAM_B) / 255.0 * E_DRAGON_BEAM_I;
+vec3 beamCol = normalize(endColorBeam * endColorBeam * endColorBeam) * (2.5 - 1.0 * vlFactor) * E_BEAM_I;
+vec3 beamDragon = endDragonCol * (300.0 + 700.0 * vlFactor);
 
 vec2 wind = vec2(syncedTime * 0.00);
 
@@ -28,17 +28,24 @@ vec3 DrawEnderBeams(float VdotU, vec3 playerPos) {
         vec2 planeCoord = (playerPos.xz + cameraPosition.xz) * (1.0 + i * 6.0 / sampleCount) * 0.0014;
 
         float noise = BeamNoise(planeCoord, wind);
-              noise = max(0.75 - 1.0 / abs(noise - (4.0 + VdotUM * 2.0)), 0.0) * 3.0;
+            #ifndef BEAMS_NEAR_PLAYER
+                noise = max(0.75 - 1.0 / abs(noise - (4.0 + VdotUM * 2.0)), 0.0) * 3.0;
+            #else
+                noise = max(0.75 - 1.0 / abs(noise - (4.0 + dot(upVec, upVec) * 2.0)), 0.0) * 3.0;
+            #endif
+
 
         if (noise > 0.0) {
             noise *= 0.65;
             float fireNoise = texture2D(noisetex, abs(planeCoord * 0.2) - wind).b;
             noise *= 0.5 * fireNoise + 0.75;
             noise = noise * noise * 3.0 / sampleCount;
-            noise *= VdotUM2;
+            #ifndef BEAMS_NEAR_PLAYER
+                noise *= VdotUM2;
+            #endif
 
-            vec3 beamColor = beamPurple;
-            beamColor += beamOrange * pow2(pow2(fireNoise - 0.5));
+            vec3 beamColor = beamCol;
+            beamColor += beamDragon * pow2(pow2(fireNoise - 0.5));
             beamColor *= gradientMix / sampleCount;
 
             noise *= exp2(-6.0 * i / float(sampleCount));

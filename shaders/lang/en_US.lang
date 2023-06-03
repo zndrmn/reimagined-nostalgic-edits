@@ -1,11 +1,11 @@
 #shaders/lang/en_us.lang
 
 #Profiles
-profile.POTATO=§4Potato
+profile.POTATO=§cPotato
 profile.LOW=§eLow
 profile.MEDIUM=§aMedium
 profile.HIGH=§bHigh (Default)
-profile.VERYHIGH=§9Very High
+profile.VERYHIGH=§6Very High
 profile.ULTRA=§dUltra
 profile.comment=Shader profiles change performance settings with the most optimised visual fidelity to performance ratio. §e[*]§r It's recommended to use one of these profiles for your settings unless you know what you are doing. §e[*]§r All affected settings can all be found in the "Main Performance Settings" menu.
 
@@ -13,6 +13,14 @@ profile.comment=Shader profiles change performance settings with the most optimi
 option.CMPR=Complementary
 option.CMPR.comment=Complementary Reimagined is a creation of love and care, meant to complement the unique Minecraft experience in the best way possible. I hope you enjoy your time with Complementary Reimagined as much as I enjoyed developing it. Please feel free to join the lovely Complementary community here: www.complementary.dev/discord
 value.CMPR.0=§bReimagined
+value.CMPR.1=§bEuphoria Patches
+value.CMPR.2=§bNostalgic Edits
+value.CMPR.3=§dReimagined
+value.CMPR.4=§dEuphoria Patches
+value.CMPR.5=§dNostalgic Edits
+value.CMPR.6=§6Reimagined
+value.CMPR.7=§6Euphoria Patches
+value.CMPR.8=§6Nostalgic Edits
 
 #Style
 option.SHADER_STYLE=Visual Style
@@ -98,9 +106,9 @@ value.WATER_QUALITY.2=§aMedium
 value.WATER_QUALITY.3=§bHigh
 
 option.WATER_REFLECT_QUALITY=Water Reflection Quality
-option.WATER_REFLECT_QUALITY.comment=Adjusts the visual quality of reflections that appear on translucents. §aMedium§r: Screenspace ray-traced reflections on water and translucents. §4Potato§r: Replaces water and translucent reflections with a faster method, may look incorrect in some situations. §cOFF§r: No reflections.
+option.WATER_REFLECT_QUALITY.comment=Adjusts the visual quality of reflections that appear on translucents. §aMedium§r: Screenspace ray-traced reflections on water and translucents. §cPotato§r: Replaces water and translucent reflections with a faster method, may look incorrect in some situations. §cOFF§r: No reflections.
 value.WATER_REFLECT_QUALITY.0=§cOFF
-value.WATER_REFLECT_QUALITY.1=§4Potato
+value.WATER_REFLECT_QUALITY.1=§cPotato
 value.WATER_REFLECT_QUALITY.2=§aMedium
 
 option.BLOCK_REFLECT_QUALITY=Block Reflection Quality §e[*]§r
@@ -119,7 +127,7 @@ option.SHADOW_QUALITY.comment=Adjusts the quality of shadows. Every tier further
 value.SHADOW_QUALITY.1=§eLow
 value.SHADOW_QUALITY.2=§aMedium
 value.SHADOW_QUALITY.3=§bHigh
-value.SHADOW_QUALITY.4=§9Very High
+value.SHADOW_QUALITY.4=§6Very High
 value.SHADOW_QUALITY.5=§dUltra
 
 option.LIGHTSHAFT_QUALITY=Light Shaft Quality
@@ -128,7 +136,7 @@ value.LIGHTSHAFT_QUALITY.0=§cOFF
 value.LIGHTSHAFT_QUALITY.1=§eLow
 value.LIGHTSHAFT_QUALITY.2=§aMedium
 value.LIGHTSHAFT_QUALITY.3=§bHigh
-value.LIGHTSHAFT_QUALITY.4=§9Very High
+value.LIGHTSHAFT_QUALITY.4=§6Very High
 
 option.shadowDistance=Shadow Distance
 option.shadowDistance.comment=Adjusts the distance from the player which real-time shadows are rendered. §e[*]§r The value is internally capped at Render Distance. §c[-]§r Lower values may cause excessive Light Shaft leaking.
@@ -251,10 +259,31 @@ option.WATER_REFRACTION_INTENSITY.comment=Adjusts the intensity of water refract
 option.SUN_ANGLE=Sun/Moon Angle
 option.SUN_ANGLE.comment=Adjusts the angle of sun/moon relative to the world during noon. §a[+]§r Reimagined's lighting model is specially designed to make the "0" sun angle work just as well as others.
 value.SUN_ANGLE.-1=Default Style
+value.SUN_ANGLE.60=60
+value.SUN_ANGLE.55=55
+value.SUN_ANGLE.50=50
+value.SUN_ANGLE.45=45
+value.SUN_ANGLE.40=40
+value.SUN_ANGLE.35=35
+value.SUN_ANGLE.30=30
+value.SUN_ANGLE.25=25
+value.SUN_ANGLE.20=20
+value.SUN_ANGLE.15=15
+value.SUN_ANGLE.10=10
+value.SUN_ANGLE.5=5
 value.SUN_ANGLE.0=0 §a[+]
+value.SUN_ANGLE.-5=-5
+value.SUN_ANGLE.-10=-10
+value.SUN_ANGLE.-15=-15
 value.SUN_ANGLE.-20=-20
+value.SUN_ANGLE.-25=-25
 value.SUN_ANGLE.-30=-30
+value.SUN_ANGLE.-35=-35
 value.SUN_ANGLE.-40=-40
+value.SUN_ANGLE.-45=-45
+value.SUN_ANGLE.-50=-50
+value.SUN_ANGLE.-55=-55
+value.SUN_ANGLE.-60=-60
 
 option.SUN_MOON_STYLE_DEFINE=Sun/Moon Style
 option.SUN_MOON_STYLE_DEFINE.comment=Determines the style of sun/moon. §e[*]§r This setting might interact incorrectly with some resource packs due to the limitations of sun/moon/skybox differentiation.
@@ -541,3 +570,176 @@ option.ATM_END_R=Atmosphere Red Multiplier
 option.ATM_END_G=Atmosphere Green Multiplier
 option.ATM_END_B=Atmosphere Blue Multiplier
 option.ATM_END_I=Atmosphere Intensity Multiplier
+
+#Euphoria Patches
+screen.EUPHORIA_SETTINGS=Euphoria Patches Settings
+screen.EUPHORIA_SETTINGS.comment=Settings that are added by Euphoria Patches.
+
+    screen.SKY_SETTINGS=Sky Settings
+	    screen.AURORA_SETTINGS=Aurora Borealis
+	    screen.AURORA_SETTINGS.comment=Settings that relate to the Aurora Borealis.
+		    screen.AURORA_COLOR_SETTINGS=Aurora Color Settings
+		    screen.AURORA_COLOR_SETTINGS.comment=Settings that relate to the color of the Aurora Borealis.
+        screen.CLOUDS=Clouds
+        screen.CLOUDS.comment=Fluffy things in the sky.
+        screen.END_BEAMS_SETTINGS=Ender Beam Settings
+        screen.END_BEAMS_SETTINGS.comment=Settings that relate to the Ender Beams.
+        screen.STAR_SETTINGS=Star Settings
+        screen.STAR_SETTINGS.comment=Settings that relate to the Stars.
+
+    screen.BLOCKLIGHT=Blocklight Settings
+    screen.BLOCKLIGHT.comment=Settings that relate to blocklight color.
+
+    screen.EUPHORIA_MATERIAL_SETTINGS=Material Settings
+    screen.EUPHORIA_MATERIAL_SETTINGS.comment=Settings that relate to materials.
+
+option.AURORA_COLOR_PRESET=Color Preset
+option.AURORA_COLOR_PRESET.comment=Choose between default preset/custom colored auroras.\n§e[*]§r Monthly Preset changes the preset every in-game month.\n§a[*]§r Complementary Reimagined is the default preset.
+value.AURORA_COLOR_PRESET.0=Custom Preset
+value.AURORA_COLOR_PRESET.1=Monthly Preset §e[*]§r
+value.AURORA_COLOR_PRESET.2=Reimagined §a[*]§r
+value.AURORA_COLOR_PRESET.3=Euphoria
+value.AURORA_COLOR_PRESET.4=Legacy
+value.AURORA_COLOR_PRESET.5=Peridot Lights
+value.AURORA_COLOR_PRESET.6=Aquamarine Lights
+value.AURORA_COLOR_PRESET.7=Red Aventurine Lights
+value.AURORA_COLOR_PRESET.8=Malachite Lights
+value.AURORA_COLOR_PRESET.9=Amethyst Lights
+
+option.RGB_AURORA=RGB Aurora
+option.RGB_AURORA.comment=Be an Epic Gamer with §4R§2G§9B §rAuroras.
+
+option.AURORA_UP_R=Upper Section - Red
+option.AURORA_UP_G=Upper Section - Green
+option.AURORA_UP_B=Upper Section - Blue
+option.AURORA_UP_I=Upper Section - Intensity
+
+option.AURORA_DOWN_R=Lower Section - Red
+option.AURORA_DOWN_G=Lower Section - Green
+option.AURORA_DOWN_B=Lower Section - Blue
+option.AURORA_DOWN_I=Lower Section - Intensity
+
+option.AURORA_SIZE=Aurora Density
+option.AURORA_SIZE.comment=Density controls the apparent height and the size of the Aurora.
+
+option.AURORA_DRAW_DISTANCE=Aurora Draw Distance
+option.AURORA_DRAW_DISTANCE.comment=Draw Distance controls the distance boundary of the Aurora.
+
+option.BLOCKLIGHT_PROFILE=Blocklight profile
+option.BLOCKLIGHT_PROFILE.comment=Change between the blocklight presets from Reimagined and your own custom blocklight colors.
+value.BLOCKLIGHT_PROFILE.0=Reimagined
+value.BLOCKLIGHT_PROFILE.1=Custom
+option.BLOCKLIGHT_R=Blocklight - Red
+option.BLOCKLIGHT_G=Blocklight - Green
+option.BLOCKLIGHT_B=Blocklight - Blue
+option.BLOCKLIGHT_I=Blocklight - Intensity
+option.BLOCKLIGHT_SATURATION=Blocklight - Saturation
+option.RANDOM_BLOCKLIGHT=Random Colored Blocklight
+option.RANDOM_BLOCKLIGHT_SIZE=Random Colored Blocklight Size
+
+option.BLOCKLIGHT_FLICKER=Blocklight Flickering
+option.BLOCKLIGHT_FLICKER.comment=Adds flickering effect to blocklight.
+option.BLOCKLIGHT_FLICKER_STRENGTH=Blocklight Flickering Strength
+option.BLOCKLIGHT_FLICKER_STRENGTH.comment=Determines how noticable blocklight flicker is going to be.
+
+option.MULTICOLORED_BLOCKLIGHT=Multi-Colored Blocklight
+option.MULTICOLORED_BLOCKLIGHT.comment=Enables screen space multi-colored blocklight. §e[*]§rOnly works on 1.16.5 and above, non-Mac devices.
+option.MCBL_INFLUENCE=Multi-Colored Blocklight Influence
+option.MCBL_INFLUENCE.comment=Controls how much the multi-colored blocklight affects the default blocklight color.
+
+option.CLOUD_DRAW_DISTANCE=Cloud Draw Distance
+option.CLOUD_WIDTH=Cloud Width
+option.CLOUD_STRETCH=Cloud Height
+option.CLOUD_SPEED=Cloud Speed
+option.CLOUD_TRANSPARENCY=Cloud Transparency
+option.CLOUD_MINECRAFT_TEXTURE=Minecraft Cloud Texture
+option.CLOUD_COLOR_I=Cloud Color Intensity
+
+option.END_BEAMS=Ender Beams
+option.END_BEAMS.comment=Setting which enables nebula like beams in the End.
+option.E_BEAMS_AMBIENT_INFLUENCE=Ambient Color Influence
+option.E_BEAMS_AMBIENT_INFLUENCE.comment=The beams will have the ambient color at 0.00 and the user defined color at 1.00. Doesn't apply to Dragon Ender Beams.
+option.E_BEAM_R=Ender Beams - Red
+option.E_BEAM_G=Ender Beams - Green
+option.E_BEAM_B=Ender Beams - Blue
+option.E_BEAM_I=Ender Beams - Intensity
+option.E_DRAGON_BEAM_R=Dragon Ender Beams - Red
+option.E_DRAGON_BEAM_R.comment=The Ender Beam color during the dragon fight - Red.
+option.E_DRAGON_BEAM_G=Dragon Ender Beams - Green
+option.E_DRAGON_BEAM_G.comment=The Ender Beam color during the dragon fight - Green.
+option.E_DRAGON_BEAM_B=Dragon Ender Beams - Blue
+option.E_DRAGON_BEAM_B.comment=The Ender Beam color during the dragon fight - Blue.
+option.E_DRAGON_BEAM_I=Dragon Ender Beams - Intensity
+option.E_DRAGON_BEAM_I.comment=The Ender Beam color during the dragon fight - Intensity.
+option.BEAMS_NEAR_PLAYER=End Beams Near Player
+option.BEAMS_NEAR_PLAYER.comment=Enables or disables end beams near the player.
+
+option.END_STARS=End Stars
+option.END_STARS.comment=Enable or disable the stars in the End.
+option.END_STAR_BRIGHTNESS=End Star Brightness
+option.END_STAR_SIZE=End Star Size
+option.END_STAR_AMOUNT=End Star Amount
+value.END_STAR_AMOUNT.0=Low
+value.END_STAR_AMOUNT.1=Normal
+value.END_STAR_AMOUNT.2=High
+value.END_STAR_AMOUNT.3=Very High
+
+option.GREEN_BLUE_SCREEN=Green & Blue Screen
+option.GREEN_BLUE_SCREEN.comment=Changes lime concrete, lime wool, blue concrete and blue wool to green and blue screens. §e[*]§r Pro tip: Put light sources under lime or blue carpets for lighting. §e[*]§r RP Support option must be set to Integrated PBR+
+value.GREEN_BLUE_SCREEN.0=OFF
+value.GREEN_BLUE_SCREEN.1=§aGreen
+value.GREEN_BLUE_SCREEN.2=§9Blue
+value.GREEN_BLUE_SCREEN.3=§aGreen §r& §9Blue
+
+option.RAIN_PARTICLE_TRANSPARENCY=Rain Transparency
+option.SNOW_PARTICLE_TRANSPARENCY=Snow Transparency
+
+option.STAR_BRIGHTNESS=Star Brightness
+option.STAR_BRIGHTNESS.comment=Setting to adjust the star brightness.
+
+option.MORE_STARS_OVERWORLD=More Overworld Stars
+option.MORE_STARS_OVERWORLD.comment=Overwrites Reimagined's star amount and sets it to a higher one. Applies to Overworld
+option.MORE_STARS_END=More End Stars
+option.MORE_STARS_END.comment=Overwrites Reimagined's star amount and sets it to a higher one. Applies to End
+
+option.TWINKLING_STARS=Twinkling Overworld Stars
+option.TWINKLING_STARS.comment=Make the stars twinkle at you.
+option.END_TWINKLING_STARS=Twinkling End Stars
+option.END_TWINKLING_STARS.comment=Make the stars twinkle at you.
+
+option.STAR_SIZE=Star Size
+option.STAR_SIZE.comment=Change the size of your stars.
+
+option.LAVA_VARIATION=Lava Preset
+option.LAVA_VARIATION.comment=Hot presets in your area. Choose Now! §e[*]§r RP Support option must be set to Integrated PBR+
+value.LAVA_VARIATION.0=Reimagined
+value.LAVA_VARIATION.1=Dark Islands
+value.LAVA_VARIATION.2=Sunshine
+value.LAVA_VARIATION.3=Blushing Hotness
+value.LAVA_VARIATION.4=Molten Cheese
+
+option.LAVA_VERTEX_WAVES=Lava Displacement
+option.LAVA_VERTEX_WAVES.comment=Creates waves by displacing the lava plane.
+option.LAVA_COLUMN_NOISE=Noisy Flowing Lava
+option.LAVA_COLUMN_NOISE.comment=Make the Lava Preset also apply to downward flowing lava, for example the lava columns in the Nether. Blushing Hotness Preset is unaffected.
+option.LAVA_TEMPERATURE=Lava Temperature
+option.LAVA_TEMPERATURE.comment=Change the temperature of lava, make it more red or white. §e[*]§r RP Support option must be set to Integrated PBR+
+
+option.LETTERBOXING=Letterboxing
+option.LETTERBOXING.comment=Adds black bars to the top and bottom of the window.
+option.ASPECT_RATIO=Letterboxing Aspect Ratio
+option.ASPECT_RATIO.comment=Change the ratio between the width and height of the cropped image.
+option.EXCLUDE_ENTITIES=Exclude Entities
+option.EXCLUDE_ENTITIES.comment=Change whether entities should be excluded from Letterboxing or not.
+
+option.INTERACTIVE_FOLIAGE=Interactive Foliage
+option.WAVE_SPEED=Foliage Waving Speed
+option.WAVE_SPEED.comment=Waving Speed for foliage and leaves.
+
+option.THUNDER_LIGHTING=Better Thunderstorm
+option.THUNDER_LIGHTING.comment=Makes the terrain light up when a lightning strikes.
+
+option.WORLD_CURVATURE=World Curvature
+option.OVERWORLD_CURVATURE_SIZE=Overworld Curvature Size
+option.NETHER_CURVATURE_SIZE=Nether Curvature Size
+option.END_CURVATURE_SIZE=End Curvature Size

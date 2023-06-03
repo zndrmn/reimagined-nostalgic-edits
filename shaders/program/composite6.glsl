@@ -9,6 +9,7 @@
 #ifdef FRAGMENT_SHADER
 
 noperspective in vec2 texCoord;
+// in vec3 sunVec;
 
 //Uniforms//
 uniform float viewWidth, viewHeight;
@@ -24,12 +25,24 @@ uniform sampler2D colortex2;
 uniform sampler2D colortex1;
 uniform sampler2D depthtex1;
 
+#if defined THUNDER_LIGHTING && defined OVERWORLD
+    uniform vec3 skyColor;
+#endif
+
 //Pipeline Constants//
 #include "/lib/pipelineSettings.glsl"
 
 const bool colortex3MipmapEnabled = true;
 
 //Common Variables//
+
+#if defined THUNDER_LIGHTING && defined OVERWORLD
+    // float SdotU = dot(sunVec, upVec);
+    // float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
+    // float sunVisibility2 = sunVisibility * sunVisibility;
+    const float sunVisibility = 0.0;
+    const float sunVisibility2 = 0.0;
+#endif
 
 //Common Functions//
 float GetLinearDepth(float depth) {
@@ -63,6 +76,9 @@ void main() {
         /*DRAWBUFFERS:326*/
         gl_FragData[2] = vec4(depth, 0.0, 0.0, 1.0);
 	#endif
+    // if (ivec2(texCoord * vec2(viewWidth, viewHeight)) == ivec2(X, Y)) {
+    //     gl_FragData[1] = vec4(sunVec * 0.5 + 0.5, 1.0);
+    // }
 }
 
 #endif
@@ -71,6 +87,7 @@ void main() {
 #ifdef VERTEX_SHADER
 
 noperspective out vec2 texCoord;
+// out vec3 sunVec;
 
 //Uniforms//
 
@@ -84,6 +101,7 @@ noperspective out vec2 texCoord;
 
 //Program//
 void main() {
+    // sunVec = GetSunVector();
 	gl_Position = ftransform();
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

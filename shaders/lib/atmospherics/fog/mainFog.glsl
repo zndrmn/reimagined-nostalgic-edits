@@ -5,7 +5,7 @@
 #ifdef BORDER_FOG
     #ifdef OVERWORLD
         #include "/lib/atmospherics/sky.glsl"
-    #elif defined NETHER
+    #elif defined NETHER || defined END
         #include "/lib/colors/skyColors.glsl"
     #endif
 
@@ -96,12 +96,13 @@
             #ifdef CAVE_FOG
                 fog *= 0.2 + 0.8 * sqrt2(eyeBrightnessM);
                 fog *= 1.0 - GetCaveFactor();
+                fog *= 1.00; // Cave fog density
             #else
                 fog *= eyeBrightnessM;
             #endif
         #endif
 
-        fog *= altitudeFactor * 0.9 + 0.1;
+    fog *= altitudeFactor * 0.9 + 0.1;
 
         if (fog > 0.0) {
             fog = clamp(fog, 0.0, 1.0);
@@ -111,11 +112,11 @@
                 float dayNightFogBlend = pow(1.0 - nightFactor, 4.0 - VdotS - 2.5 * sunVisibility2);
                 vec3 clearFogColor = mix(
                     nightUpSkyColor * (nightFogMult - dayNightFogBlend * nightFogMult),
-                    sqrt(dayDownSkyColor) * (0.9 + noonFactor * 0.5),
+                    sqrt(dayDownSkyColor) * (0.9 + vec3(0.22, 0.46, 0.48) * 0.2),
                     dayNightFogBlend
                 );
 
-                vec3 rainFogColor = mix(normalize(nightMiddleSkyColor) * 0.15, dayMiddleSkyColor * 1.1, dayNightFogBlend);
+                vec3 rainFogColor = mix(vec3(0.09, 0.12, 0.12) * vec3(0.10, 0.11, 0.14), dayMiddleSkyColor * 1.1, dayNightFogBlend);
 
                 vec3 fogColorM = mix(clearFogColor, rainFogColor, rainFactor);
             #else

@@ -105,11 +105,11 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		viewPos /= viewPos.w;
 		vec4 wpos = gbufferModelViewInverse * viewPos;
 		vec3 playerPos = wpos.xyz / wpos.w;
-		#ifdef END
+		#if defined END && defined END_BEAMS
 			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0);
 			enderBeamSample /= sampleCount;
 		#endif
-		
+
 		float shadowSample = 1.0;
 		vec3 vlSample = vec3(1.0);
 		#ifdef REALTIME_SHADOWS
@@ -152,9 +152,11 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		if (currentDist > depth0) vlSample *= translucentMult;
 
 		#ifdef OVERWORLD
-			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
+		volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
 		#else
-			volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
+			#ifdef END_BEAMS
+				volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
+			#endif
 		#endif
 	}
 

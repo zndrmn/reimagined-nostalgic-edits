@@ -307,6 +307,22 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         lightmapXM = pow(lightmapXMSteep + lightmapXMCalm, 1.5);
     } else lightmapXM = lightmap.x * lightmap.x * 3.0;
 
+    #ifdef RANDOM_BLOCKLIGHT
+		float RandR = texture2D(noisetex, 0.00016 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r;
+		float RandG = texture2D(noisetex, 0.00029 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r;
+		float RandB = texture2D(noisetex, 0.00034 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r;
+		vec3 blocklightCol = vec3(RandR, RandG, RandB) * BLOCKLIGHT_I / 2;
+	#endif
+    
+    #ifdef BLOCKLIGHT_FLICKER
+    float frametimeM = frameTimeCounter * 0.5;
+    float lightFlicker = min(((1 - clamp(sin(fract(frametimeM*2.7) + frametimeM*4.0) - 0.75, 0.0, 0.25) * BLOCKLIGHT_FLICKER_STRENGTH)
+                * max(fract(frametimeM*1.4), (1 - BLOCKLIGHT_FLICKER_STRENGTH * 0.25))) / (1.0 - BLOCKLIGHT_FLICKER_STRENGTH * 0.2)
+                , 0.8) * 1.25
+                * 0.9 + 0.2 * clamp((cos(fract(frametimeM*0.47) * fract(frametimeM*1.17) + fract(frametimeM*2.17))) * 1.5, 1.0 - BLOCKLIGHT_FLICKER_STRENGTH * 0.25, 1.0);
+    lightmapXM *= lightFlicker;
+	#endif
+    
     // Minimum Light
     #if !defined END && MINIMUM_LIGHT_MODE > 0
         #if MINIMUM_LIGHT_MODE == 1
@@ -396,14 +412,15 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
 
     // Combine Lighting
-    vec3 blockLighting = lightmapXM * blocklightCol;
+    vec3 gray = vec3(dot(vec3(0.2125, 0.7154, 0.0721), blocklightCol));
+    vec3 blockLighting = lightmapXM * mix(gray, blocklightCol, BLOCKLIGHT_SATURATION);
     vec3 sceneLighting = shadowLighting * shadowMult + ambientColor * ambientMult;
     float dotSceneLighting = dot(sceneLighting, sceneLighting);
 
     #ifdef LIGHT_COLOR_MULTS
         sceneLighting *= lightColorMult;
     #endif
-    
+
     // Vanilla Ambient Occlusion
     float vanillaAO = 1.0;
     if (subsurfaceMode != 0) vanillaAO = min1(glColor.a * 1.15);

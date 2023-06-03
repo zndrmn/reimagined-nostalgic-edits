@@ -146,6 +146,11 @@ flat out vec4 glColor;
 
 //Uniforms//
 
+#if defined WORLD_CURVATURE
+	uniform sampler2D noisetex;
+	uniform mat4 gbufferModelViewInverse;
+#endif
+
 //Attributes//
 
 //Common Variables//
@@ -153,6 +158,10 @@ flat out vec4 glColor;
 //Common Functions//
 
 //Includes//
+
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
+#endif
 
 //Program//
 void main() {
@@ -166,6 +175,14 @@ void main() {
 	#ifdef OVERWORLD
 		//Vanilla Star Dedection by Builderb0y
 		vanillaStars = float(glColor.r == glColor.g && glColor.g == glColor.b && glColor.r > 0.0 && glColor.r < 0.51);
+	#endif
+
+	#if defined WORLD_CURVATURE
+		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef WORLD_CURVATURE
+			position.y += doWorldCurvature(position.xz);
+		#endif
+		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 }
 

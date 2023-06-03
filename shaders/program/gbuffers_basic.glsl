@@ -34,8 +34,13 @@ uniform mat4 shadowProjection;
 
 uniform sampler2D noisetex;
 
-#if SELECT_OUTLINE == 2
-	uniform float frameTimeCounter;
+#ifdef MULTICOLORED_BLOCKLIGHT
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex9;
 #endif
 
 //Pipeline Constants//
@@ -61,10 +66,15 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
+#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #ifdef TAA
 	#include "/lib/util/jitter.glsl"
+#endif
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#include "/lib/lighting/coloredBlocklight.glsl"
 #endif
 
 //Program//
@@ -81,6 +91,10 @@ void main() {
 	vec3 playerPos = ViewToPlayer(viewPos);
 
 	vec3 shadowMult = vec3(1.0);
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+	#endif
 
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
 	           false, false, false, false,
@@ -103,6 +117,11 @@ void main() {
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(0.0, 0.0, 0.0, 1.0);
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:018 */
+		gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0);
+	#endif
 }
 
 #endif
@@ -122,6 +141,11 @@ flat out vec4 glColor;
 	uniform float viewWidth, viewHeight;
 #endif
 
+#if defined WORLD_CURVATURE
+	uniform sampler2D noisetex;
+	uniform mat4 gbufferModelViewInverse;
+#endif
+
 //Attributes//
 
 //Common Variables//
@@ -131,6 +155,10 @@ flat out vec4 glColor;
 //Includes//
 #ifdef TAA
 	#include "/lib/util/jitter.glsl"
+#endif
+
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
 #endif
 
 //Program//
@@ -157,6 +185,14 @@ void main() {
 
 	#ifdef TAA
 		gl_Position.xy = TAAJitter(gl_Position.xy, gl_Position.w);
+	#endif
+
+	#if defined WORLD_CURVATURE
+		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef WORLD_CURVATURE
+			position.y += doWorldCurvature(position.xz);
+		#endif
+		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 
 	lmCoord  = GetLightMapCoordinates();

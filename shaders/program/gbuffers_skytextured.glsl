@@ -41,6 +41,9 @@ uniform sampler2D tex;
 
 //Includes//
 #include "/lib/colors/lightAndAmbientColors.glsl"
+#ifdef END
+	#include "/lib/colors/skyColors.glsl"
+#endif
 
 //Program//
 void main() {

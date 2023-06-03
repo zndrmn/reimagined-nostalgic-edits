@@ -53,6 +53,15 @@ uniform sampler2D noisetex;
 	uniform sampler2D gaux1;
 #endif
 
+#ifdef MULTICOLORED_BLOCKLIGHT
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex9;
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//
@@ -76,6 +85,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
+#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 #include "/lib/util/dither.glsl"
 
@@ -85,6 +95,10 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 #ifdef ATM_COLOR_MULTS
     #include "/lib/colors/colorMultipliers.glsl"
+#endif
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#include "/lib/lighting/coloredBlocklight.glsl"
 #endif
 
 //Program//
@@ -97,6 +111,10 @@ void main() {
 	vec3 viewPos = ScreenToView(screenPos);
 	float lViewPos = length(viewPos);
     vec3 playerPos = ViewToPlayer(viewPos);
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+	#endif
 	
 	float dither = Bayer64(gl_FragCoord.xy);
 	#ifdef TAA
@@ -141,6 +159,7 @@ void main() {
 				emission = 2.0;
 				color.b *= 0.5;
 				color.r *= 1.2;
+				color.rgb += vec3(min(pow2(pow2(emission * 0.35)), 0.4)) * LAVA_TEMPERATURE * 0.5;
 			}
 		}
 		//color.rgb = vec3(fract(float(frameCounter) * 0.01), fract(float(frameCounter) * 0.015), fract(float(frameCounter) * 0.02));
@@ -171,6 +190,11 @@ void main() {
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(0.0, materialMask, 0.0, 1.0);
 	gl_FragData[2] = vec4(1.0 - translucentMult, 1.0);
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:0138 */
+		gl_FragData[3] = vec4(0.0, 0.0, 0.0, 1.0);
+	#endif
 }
 
 #endif
@@ -196,6 +220,11 @@ flat out vec4 glColor;
 
 //Uniforms//
 
+#if defined WORLD_CURVATURE
+	uniform sampler2D noisetex;
+	uniform mat4 gbufferModelViewInverse;
+#endif
+
 //Attributes//
 
 //Common Variables//
@@ -203,6 +232,10 @@ flat out vec4 glColor;
 //Common Functions//
 
 //Includes//
+
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
+#endif
 
 //Program//
 void main() {
@@ -227,6 +260,14 @@ void main() {
 		#if SUN_ANGLE != 0
 			northVec = normalize(gbufferModelView[2].xyz);
 		#endif
+	#endif
+
+	#if defined WORLD_CURVATURE
+		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef WORLD_CURVATURE
+			position.y += doWorldCurvature(position.xz);
+		#endif
+		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 }
 

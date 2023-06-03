@@ -31,7 +31,7 @@ if (mat < 31008) {
                 highlightMult = 3.5;
             } else /*if (mat == 30020)*/ { // Nether Portal
                 #ifdef FANCY_NETHERPORTAL
-                    #include "/lib/materials/specificMaterials/translucents/netherPortal.glsl"
+                #include "/lib/materials/specificMaterials/translucents/netherPortal.glsl"
                 #endif
             }
         } else {

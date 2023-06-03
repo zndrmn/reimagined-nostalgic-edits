@@ -11,6 +11,8 @@
 in vec2 texCoord;
 in vec2 lmCoord;
 
+flat in int mat;
+
 flat in vec3 upVec, sunVec, northVec, eastVec;
 in vec3 normal;
 
@@ -39,7 +41,6 @@ uniform int frameCounter;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
-uniform float frameTimeCounter;
 
 uniform vec3 fogColor;
 uniform vec3 skyColor;
@@ -60,6 +61,17 @@ uniform sampler2D noisetex;
 #ifdef CUSTOM_PBR
 	uniform sampler2D normals;
 	uniform sampler2D specular;
+#endif
+
+uniform float isSnowy;
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex9;
 #endif
 
 //Pipeline Constants//
@@ -94,6 +106,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
 #include "/lib/util/dither.glsl"
+#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #ifdef TAA
@@ -116,6 +129,10 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#include "/lib/lighting/coloredBlocklight.glsl"
+#endif
+
 //Program//
 void main() {
 	vec4 color = texture2D(tex, texCoord);
@@ -123,6 +140,10 @@ void main() {
 		vec3 colorP = color.rgb;
 	#endif
 	color *= glColor;
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		vec3 lightAlbedo = color.rgb;
+	#endif
 
 	vec3 screenPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z);
 	#ifdef TAA
@@ -158,6 +179,15 @@ void main() {
 		}
 	#endif
 
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		float lightEmission = clamp01(emission);
+		lightAlbedo = normalize(mix(lightAlbedo, color.rgb, lightEmission)) * lightEmission;
+
+		if (blockEntityId == 60000) lightAlbedo = normalize(color.rgb * 20.0 + 0.00001);
+
+		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+	#endif
+
 	#ifdef GENERATED_NORMALS
 		GenerateNormals(normalM, colorP);
 	#endif
@@ -177,6 +207,14 @@ void main() {
 	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE >= 2
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
+
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			/* DRAWBUFFERS:0158 */
+			gl_FragData[3] = vec4(lightAlbedo, 1.0);
+		#endif
+	#elif defined MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:018 */
+		gl_FragData[2] = vec4(lightAlbedo, 1.0);
 	#endif
 }
 
@@ -187,6 +225,8 @@ void main() {
 
 out vec2 texCoord;
 out vec2 lmCoord;
+
+flat out int mat;
 
 flat out vec3 upVec, sunVec, northVec, eastVec;
 out vec3 normal;
@@ -219,6 +259,12 @@ out vec4 glColor;
 	uniform vec3 cameraPosition;
 
 	uniform mat4 gbufferModelViewInverse;
+#elif defined WORLD_CURVATURE
+	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#if defined WORLD_CURVATURE
+	uniform sampler2D noisetex;
 #endif
 
 //Attributes//
@@ -230,6 +276,9 @@ out vec4 glColor;
 	attribute vec4 at_tangent;
 #endif
 
+attribute vec3 at_midBlock;
+attribute vec4 mc_Entity;
+
 //Common Variables//
 
 //Common Functions//
@@ -237,6 +286,10 @@ out vec4 glColor;
 //Includes//
 #ifdef TAA
 	#include "/lib/util/jitter.glsl"
+#endif
+
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
 #endif
 
 //Program//
@@ -251,6 +304,12 @@ void main() {
 	lmCoord  = GetLightMapCoordinates();
 
 	glColor = gl_Color;
+
+	#if SEASONS > 0
+		midUV = 0.5 - at_midBlock / 64.0;
+	#endif
+
+	mat = int(mc_Entity.x + 0.5);
 
 	normal = normalize(gl_NormalMatrix * gl_Normal);
 
@@ -273,6 +332,10 @@ void main() {
 		absMidCoordPos  = abs(texMinMidCoord);
 	#endif
 
+	#if SEASONS == 1 || SEASONS == 4 
+		ivec2 pixelTexSize = ivec2(absMidCoordPos * 2.0 * atlasSize);
+	#endif
+
 	#if defined GENERATED_NORMALS || defined CUSTOM_PBR
 		binormal = normalize(gl_NormalMatrix * cross(at_tangent.xyz, gl_Normal.xyz) * at_tangent.w);
 		tangent  = normalize(gl_NormalMatrix * at_tangent.xyz);
@@ -289,6 +352,14 @@ void main() {
 
 		vTexCoordAM.zw  = abs(texMinMidCoord) * 2;
 		vTexCoordAM.xy  = min(texCoord, midCoord - texMinMidCoord);
+	#endif
+
+	#if defined WORLD_CURVATURE
+		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef WORLD_CURVATURE
+			position.y += doWorldCurvature(position.xz);
+		#endif
+		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 }
 

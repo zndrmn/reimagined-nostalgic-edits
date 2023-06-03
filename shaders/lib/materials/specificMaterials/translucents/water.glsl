@@ -134,36 +134,38 @@
             color.a *= 0.25 + 0.75 * waterFog;
         
             // Water Foam
-            if (NdotU > 0.99) {
-                vec3 matrixM = vec3(
-                    gbufferModelViewInverse[0].y,
-                    gbufferModelViewInverse[1].y,
-                    gbufferModelViewInverse[2].y
-                );
-                float playerPosTY = dot(matrixM, viewPosT) + gbufferModelViewInverse[3].y;
-                float yPosDif = playerPosTY - playerPos.y;
+            #if !(defined WORLD_CURVATURE)
+                if (NdotU > 0.99) {
+                    vec3 matrixM = vec3(
+                        gbufferModelViewInverse[0].y,
+                        gbufferModelViewInverse[1].y,
+                        gbufferModelViewInverse[2].y
+                    );
+                    float playerPosTY = dot(matrixM, viewPosT) + gbufferModelViewInverse[3].y;
+                    float yPosDif = playerPosTY - playerPos.y;
 
-                #if WATER_STYLE < 3 && MC_VERSION >= 11300
-                    float dotColorPM = dot(colorPM, colorPM);
-                    float foamThreshold = min(pow2(dotColorPM) * 1.6, 1.2);
-                #else
-                    float foamThreshold = pow2(texture2D(noisetex, waterPos * 4.0 + wind * 0.5).g) * 1.2;
-                #endif
-                float foam = pow2(clamp((foamThreshold + yPosDif) / foamThreshold, 0.0, 1.0));
-                #ifndef END
-                    foam *= 0.4 + 0.25 * lmCoord.y;
-                #else
-                    foam *= 0.6;
-                #endif
-                foam *= clamp((fract(worldPos.y) - 0.7) * 10.0, 0.0, 1.0);
+                    #if WATER_STYLE < 3 && MC_VERSION >= 11300
+                        float dotColorPM = dot(colorPM, colorPM);
+                        float foamThreshold = min(pow2(dotColorPM) * 1.6, 1.2);
+                    #else
+                        float foamThreshold = pow2(texture2D(noisetex, waterPos * 4.0 + wind * 0.5).g) * 1.2;
+                    #endif
+                    float foam = pow2(clamp((foamThreshold + yPosDif) / foamThreshold, 0.0, 1.0));
+                    #ifndef END
+                        foam *= 0.4 + 0.25 * lmCoord.y;
+                    #else
+                        foam *= 0.6;
+                    #endif
+                    foam *= clamp((fract(worldPos.y) - 0.7) * 10.0, 0.0, 1.0);
 
-                color = mix(color, vec4(0.9, 0.95, 1.05, 1.0), foam);
-                reflectMult = 1.0 - foam;
-            }
+                    color = mix(color, vec4(0.9, 0.95, 1.05, 1.0), foam);
+                    reflectMult = 1.0 - foam;
+                }
+            #endif
         } else {
             noDirectionalShading = true;
 
-            reflectMult = 0.5;
+            reflectMult = FRESNEL_MULTIPLIER;
             //shadowMult = vec3(2.0);
             //color.a *= 0.5;
 

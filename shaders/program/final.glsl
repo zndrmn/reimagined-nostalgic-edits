@@ -17,8 +17,16 @@ uniform sampler2D colortex3;
 
 #ifdef UNDERWATER_DISTORTION
 	uniform int isEyeInWater;
+#endif
 
-	uniform float frameTimeCounter;
+#if defined EXCLUDE_ENTITIES || defined BAD_APPLE
+	uniform sampler2D colortex1;
+#endif
+
+#if CMPR == 1
+    uniform float aspectRatio;
+
+	uniform sampler2D depthtex2;
 #endif
 
 //Pipeline Constants//
@@ -63,10 +71,28 @@ void main() {
 
 	#ifdef UNDERWATER_DISTORTION
 		if (isEyeInWater == 1)
-			texCoordM += WATER_REFRACTION_INTENSITY * 0.00035 * sin((texCoord.x + texCoord.y) * 25.0 + frameTimeCounter * 3.0);
+			texCoordM += WATER_REFRACTION_INTENSITY * 0.00035 * sin((texCoord.x + texCoord.y) * 25.0 + frameTimeCounter * UNDERWATER_DISTORTION_STRENGTH);
+	#endif
+
+	#ifdef LETTERBOXING
+		float margin = 0.5 - viewWidth / (2 * viewHeight * ASPECT_RATIO);
 	#endif
 
 	vec3 color = texture2D(colortex3, texCoordM).rgb;
+	
+	#ifdef LETTERBOXING
+		if (texCoord.y > 1.0 - margin || texCoord.y < margin) {
+			#ifdef EXCLUDE_ENTITIES
+				if (int(texelFetch(colortex1, texelCoord, 0).g * 255.1) != 254) color *= 0.0;
+			#else
+				color *= 0.0;
+			#endif
+		}
+	#endif
+
+	#ifdef BAD_APPLE
+		color = vec3((int(texelFetch(colortex1, texelCoord, 0).g * 255.1) != 254) ? 0.0 : 1.0);
+	#endif
 
 	#if IMAGE_SHARPENING > 0
 		SharpenImage(color, texCoordM);
@@ -98,6 +124,18 @@ void main() {
 			_A, _n, _i, _s, _o, _t, _r, _o, _p, _i, _c, _space, _F, _i, _l, _t, _e, _r, _i, _n, _g, _dot
 		));
 		endText(color.rgb);
+	#endif
+
+	#if CMPR == 1
+        vec2 textCoord = vec2(0.05); 	// margin
+		const float a = (472/112); 		// watermark aspectRatio
+
+        if (aspectRatio < 3) textCoord += vec2(3 * texCoord.x - 3, 1.0 - 3 * a * texCoord.y / aspectRatio); 
+        else 				 textCoord += vec2(texCoord.x * aspectRatio - aspectRatio, 1.0 - a * texCoord.y);
+
+        vec4 EuphoriaPatchesText = texture2D(depthtex2, textCoord);
+        if (textCoord.x > -1 && textCoord.x < 0 && textCoord.y > 0 && textCoord.y < 1)
+		    color.rgb = mix(color.rgb, EuphoriaPatchesText.rgb, EuphoriaPatchesText.a);
 	#endif
 
 	/* DRAWBUFFERS:0 */

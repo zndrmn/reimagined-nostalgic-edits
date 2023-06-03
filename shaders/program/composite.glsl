@@ -26,8 +26,7 @@ uniform sampler2D colortex0;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 
-#if defined LIGHTSHAFTS_ACTIVE || WATER_QUALITY >= 3
-	uniform float frameTimeCounter;
+#if defined LIGHTSHAFTS_ACTIVE || WATER_QUALITY >= 3 || defined MULTICOLORED_BLOCKLIGHT
 	uniform float far, near;
 
 	uniform mat4 gbufferProjection;
@@ -61,8 +60,31 @@ uniform sampler2D depthtex1;
 	uniform sampler2D colortex1;
 #endif
 
+#if OVERWORLD_BEAMS_CONDITION == 0
+	uniform int moonPhase;
+#endif
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#ifndef LIGHTSHAFTS_ACTIVE
+		uniform float viewWidth, viewHeight;
+		uniform int frameCounter;
+	#endif
+
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex8;
+	uniform sampler2D colortex9;
+#endif
+
 //Pipeline Constants//
 //const bool colortex0MipmapEnabled = true;
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	const bool colortex9Clear = false;
+#endif
 
 //Common Variables//
 float SdotU = dot(sunVec, upVec);
@@ -86,6 +108,52 @@ float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(S
 #endif
 
 //Common Functions//
+#ifdef MULTICOLORED_BLOCKLIGHT
+	float GetLinearDepth(float depth) {
+    	return (2.0 * near) / (far + near - depth * (far - near));
+	}
+
+	vec2 Reprojection(vec3 pos) {
+		pos = pos * 2.0 - 1.0;
+
+		vec4 viewPosPrev = gbufferProjectionInverse * vec4(pos, 1.0);
+		viewPosPrev /= viewPosPrev.w;
+		viewPosPrev = gbufferModelViewInverse * viewPosPrev;
+
+		vec3 cameraOffset = cameraPosition - previousCameraPosition;
+		cameraOffset *= float(pos.z > 0.56);
+
+		vec4 previousPosition = viewPosPrev + vec4(cameraOffset, 0.0);
+		previousPosition = gbufferPreviousModelView * previousPosition;
+		previousPosition = gbufferPreviousProjection * previousPosition;
+		return previousPosition.xy / previousPosition.w * 0.5 + 0.5;
+	}
+
+	vec2 OffsetDist(float x) {
+		float n = fract(x * 16.2) * 2 * pi;
+    	return vec2(cos(n), sin(n)) * x;
+	}
+
+	vec3 GetMultiColoredBlocklight(vec2 coord, float z, float dither) {
+		vec2 prevCoord = Reprojection(vec3(coord, z));
+		float lz = GetLinearDepth(z);
+
+		float distScale = clamp((far - near) * lz + near, 4.0, 128.0);
+		float fovScale = gbufferProjection[1][1] / 1.37;
+
+		vec2 blurstr = vec2(1.0 / (viewWidth / viewHeight), 1.0) * fovScale / distScale;
+		vec3 lightAlbedo = texture2D(colortex8, coord).rgb;
+		vec3 previousColoredLight = vec3(0.0);
+
+		float mask = clamp(2.0 - 2.0 * max(abs(prevCoord.x - 0.5), abs(prevCoord.y - 0.5)), 0.0, 1.0);
+
+		vec2 offset = OffsetDist(dither) * blurstr;
+		previousColoredLight += texture2D(colortex9, prevCoord.xy + offset).rgb;
+		previousColoredLight *= previousColoredLight * mask;
+
+		return sqrt(mix(previousColoredLight, lightAlbedo * lightAlbedo / clamp(previousColoredLight.r + previousColoredLight.g + previousColoredLight.b, 0.01, 1.0), 0.01));
+	}
+#endif
 
 //Includes//
 #include "/lib/atmospherics/fog/waterFog.glsl"
@@ -95,7 +163,7 @@ float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(S
 #endif
 
 #ifdef LIGHTSHAFTS_ACTIVE
-	#ifdef END
+	#if defined END && defined END_BEAMS
 		#include "/lib/atmospherics/enderBeams.glsl"
 	#endif
 	#include "/lib/atmospherics/volumetricLight.glsl"
@@ -124,6 +192,17 @@ void main() {
 		float lViewPos = length(viewPos.xyz);
 	#endif
 
+	#if defined LIGHTSHAFTS_ACTIVE || defined MULTICOLORED_BLOCKLIGHT
+		float dither = texture2D(noisetex, texCoord * vec2(viewWidth, viewHeight) / 128.0).b;
+		#ifdef TAA
+			dither = fract(dither + 1.61803398875 * mod(float(frameCounter), 3600.0));
+		#endif
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			float lightZ = z1 >= 1.0 ? z0 : z1;
+			vec3 coloredLight = GetMultiColoredBlocklight(texCoord, lightZ, dither);
+		#endif
+	#endif
+
 	#if WATER_QUALITY >= 3
 		DoRefraction(color, z0, z1, viewPos.xyz, lViewPos);
 	#endif
@@ -141,11 +220,6 @@ void main() {
 
 		float VdotL = dot(nViewPos, lightVec);
 		float VdotU = dot(nViewPos, upVec);
-
-		float dither = texture2D(noisetex, texCoord * view / 128.0).b;
-		#ifdef TAA
-			dither = fract(dither + 1.61803398875 * mod(float(frameCounter), 3600.0));
-		#endif
 
 		vec4 screenPos1 = vec4(texCoord, z1, 1.0);
 		vec4 viewPos1 = gbufferProjectionInverse * (screenPos1 * 2.0 - 1.0);
@@ -178,7 +252,13 @@ void main() {
 		volumetricLight.rgb *= 0.0;
 	}
 	
-	color = pow(color, vec3(2.2));
+	#if TONEMAP > 0
+		// convert rgb to linear:
+		const vec3 a = vec3(0.055f);
+		color = mix(pow((color.rgb + a)/(vec3(1.0f) + a), vec3(2.4)), color.rgb / 12.92f, lessThan(color.rgb, vec3(0.04045f)));
+	#else
+		color = pow(color, vec3(2.2));
+	#endif
 	
 	#ifdef LIGHTSHAFTS_ACTIVE
 		#ifndef OVERWORLD
@@ -197,6 +277,14 @@ void main() {
 	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END // Can't use LIGHTSHAFTS_ACTIVE on Optifine
 		/* DRAWBUFFERS:04 */
 		gl_FragData[1] = vec4(vlFactorM, 0.0, 0.0, 1.0);
+
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			/* DRAWBUFFERS:049 */
+			gl_FragData[2] = vec4(coloredLight, 1.0);
+		#endif
+	#elif defined MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:09 */
+		gl_FragData[1] = vec4(coloredLight, 1.0);
 	#endif
 }
 

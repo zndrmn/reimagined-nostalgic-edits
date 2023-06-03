@@ -12,8 +12,8 @@ vec4 GetClouds(inout float cloudLinearDepth, float skyFade, vec3 playerPos, vec3
     vec4 clouds = vec4(0.0);
 
     #ifdef CLOUDS_REIMAGINED
-        const float threshold1 = 1000.0;
-        const float threshold2 = 1000.0;
+        const float threshold1 = CLOUD_DRAW_DISTANCE;
+        const float threshold2 = CLOUD_DRAW_DISTANCE;
 
         vec3 nPlayerPos = normalize(playerPos);
         float lViewPosM = lViewPos < far * 1.5 ? lViewPos - 1.0 : 1000000000.0;

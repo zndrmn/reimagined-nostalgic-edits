@@ -9,6 +9,10 @@ const int colortex5Format = RGBA8_SNORM;    //normalM & scene image for water re
 const int colortex6Format = R16;		    //previous depth
 const int colortex7Format = RGBA16F;		//*cloud map on gbuffers* & temporal filter
 #endif
+#ifdef MULTICOLORED_BLOCKLIGHT
+const int colortex8Format = RGB8;           //colored light
+const int colortex9Format = RGB16;          //colored light
+#endif
 */
 
 const bool colortex0Clear = true;

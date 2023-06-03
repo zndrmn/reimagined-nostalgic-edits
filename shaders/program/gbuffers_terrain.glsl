@@ -15,6 +15,7 @@ in vec2 lmCoord;
 in vec2 signMidCoordPos;
 flat in vec2 absMidCoordPos;
 flat in vec2 midCoord;
+in vec3 midUV;
 
 flat in vec3 upVec, sunVec, northVec, eastVec;
 in vec3 normal;
@@ -34,11 +35,11 @@ in vec4 glColor;
 //Uniforms//
 uniform int isEyeInWater;
 uniform int frameCounter;
+uniform int blockEntityId;
 
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
-uniform float frameTimeCounter;
 
 uniform vec3 fogColor;
 uniform vec3 skyColor;
@@ -55,6 +56,8 @@ uniform sampler2D noisetex;
 #if defined IPBR || defined POM
 	uniform ivec2 atlasSize;
 #endif
+
+uniform float darknessFactor;
 
 #if RAIN_PUDDLES >= 1
 	#if RAIN_PUDDLES < 3
@@ -76,9 +79,21 @@ uniform sampler2D noisetex;
 	uniform int heldBlockLightValue2;
 #endif
 
+
+uniform float isSnowy;
+
 #ifdef CUSTOM_PBR
 	uniform sampler2D normals;
 	uniform sampler2D specular;
+#endif
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex9;
 #endif
 
 //Pipeline Constants//
@@ -141,6 +156,7 @@ float GetMaxColorDif(vec3 color) {
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
+#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #ifdef TAA
@@ -163,6 +179,10 @@ float GetMaxColorDif(vec3 color) {
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#include "/lib/lighting/coloredBlocklight.glsl"
+#endif
+
 //Program//
 void main() {
 	vec4 color = texture2D(tex, texCoord);
@@ -176,6 +196,10 @@ void main() {
 
 	vec3 colorP = color.rgb;
 	color.rgb *= glColor.rgb;
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		vec3 lightAlbedo = color.rgb + 0.00001;
+	#endif
 	
 	vec3 screenPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z);
 	#ifdef TAA
@@ -200,6 +224,7 @@ void main() {
 	float smoothnessG = 0.0, highlightMult = 1.0, emission = 0.0, noiseFactor = 1.0, snowMinNdotU = 0.0;
 	vec2 lmCoordM = lmCoord;
 	vec3 shadowMult = vec3(1.0);
+
 	#ifdef IPBR
 		vec3 maRecolor = vec3(0.0);
 		#include "/lib/materials/materialHandling/terrainMaterials.glsl"
@@ -218,7 +243,7 @@ void main() {
 
 		if (mat == 10000) { // No directional shading
 			noDirectionalShading = true;
-		} else if (mat == 10004) { // Grounded Waving Foliage
+		} else if (mat == 10004 || mat == 10005) { // Grounded Waving Foliage
 			subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
 			DoFoliageColorTweaks(color.rgb, shadowMult, snowMinNdotU, lViewPos);
 		} else if (mat == 10008) { // Leaves
@@ -226,7 +251,7 @@ void main() {
 		} else if (mat == 10012) { // Vine
 			shadowMult = vec3(1.7);
 			centerShadowBias = true;
-		} else if (mat == 10016) { // Non-waving Foliage
+		} else if (mat == 10016 || mat == 10017) { // Non-waving Foliage
 			subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
 		} else if (mat == 10020) { // Upper Waving Foliage
 			subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
@@ -292,7 +317,7 @@ void main() {
 
 			#if RAIN_PUDDLES == 1 || RAIN_PUDDLES == 3
 				vec2 puddlePosForm = puddlePosNormal * 0.05;
-				float pFormNoise  = texture2D(noisetex, puddlePosForm).b   * 3.0;
+				float pFormNoise  = texture2D(noisetex, puddlePosForm).b * 3.0;
 						pFormNoise += texture2D(noisetex, puddlePosForm * 0.5).b  * 5.0;
 						pFormNoise += texture2D(noisetex, puddlePosForm * 0.25).b * 8.0;
 						pFormNoise *= sqrt1(wetness) * 0.5625 + 0.4375;
@@ -315,12 +340,21 @@ void main() {
 		#include "/lib/misc/showLightLevels.glsl"
 	#endif
 
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+	#endif
+
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 				noSmoothLighting, noDirectionalShading, noVanillaAO, centerShadowBias,
 				subsurfaceMode, smoothnessG, highlightMult, emission);
 
 	#ifdef IPBR
 		color.rgb += maRecolor;
+	#endif
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		float lightEmission = clamp01(emission);
+		lightAlbedo = normalize(mix(lightAlbedo, color.rgb, lightEmission)) * lightEmission;
 	#endif
 
 	#ifdef PBR_REFLECTIONS
@@ -338,6 +372,14 @@ void main() {
 	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE != 0
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
+
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			/* DRAWBUFFERS:0158 */
+			gl_FragData[3] = vec4(lightAlbedo, 1.0);
+		#endif
+	#elif defined MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:018 */
+		gl_FragData[2] = vec4(lightAlbedo, 1.0);
 	#endif
 }
 
@@ -353,6 +395,7 @@ out vec2 lmCoord;
 out vec2 signMidCoordPos;
 flat out vec2 absMidCoordPos;
 flat out vec2 midCoord;
+out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of a block
 
 flat out vec3 upVec, sunVec, northVec, eastVec;
 out vec3 normal;
@@ -374,17 +417,16 @@ out vec4 glColor;
 	uniform float viewWidth, viewHeight;
 #endif
 
-#ifdef WAVING_ANYTHING_TERRAIN
-	uniform float frameTimeCounter;
-
+#if defined WAVING_ANYTHING_TERRAIN || defined WORLD_CURVATURE || defined LAVA_VERTEX_WAVES
 	uniform vec3 cameraPosition;
-
 	uniform mat4 gbufferModelViewInverse;
+	uniform sampler2D noisetex;
 #endif
 
 //Attributes//
 attribute vec4 mc_Entity;
 attribute vec4 mc_midTexCoord;
+attribute vec3 at_midBlock;
 
 #if RAIN_PUDDLES >= 1 || defined GENERATED_NORMALS || defined CUSTOM_PBR
 	attribute vec4 at_tangent;
@@ -399,14 +441,19 @@ attribute vec4 mc_midTexCoord;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#ifdef WAVING_ANYTHING_TERRAIN
+#if defined WAVING_ANYTHING_TERRAIN || defined LAVA_VERTEX_WAVES || defined INTERACTIVE_FOLIAGE
 	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
+#endif
+
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
 #endif
 
 //Program//
 void main() {
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmCoord  = GetLightMapCoordinates();
+	midUV = 0.5 - at_midBlock / 64.0;
 
 	glColor = gl_Color;
 	if (glColor.a < 0.1) glColor.a = 1.0;
@@ -424,15 +471,26 @@ void main() {
 
 	mat = int(mc_Entity.x + 0.5);
 
-	#ifdef WAVING_ANYTHING_TERRAIN
+	#if defined WORLD_CURVATURE || defined LAVA_VERTEX_WAVES || defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-
-		DoWave(position.xyz, mat);
-
-		#ifdef FLICKERING_FIX
-			//position.y += max0(0.002 - abs(mat - 10256.0)); // Iron Bars
+		#ifdef WORLD_CURVATURE
+			position.y += doWorldCurvature(position.xz);
 		#endif
-
+		#ifdef WAVING_ANYTHING_TERRAIN
+			DoWave(position.xyz, mat);
+		#endif
+		#ifdef INTERACTIVE_FOLIAGE
+			DoInteractiveWave(position.xyz, mat);
+		#endif
+		if (mat == 10068 || mat == 10069){ // lava, flowing lava
+			#ifdef LAVA_VERTEX_WAVES
+				#ifdef NETHER
+					position.y += WavingLava(position.xyz) * 0.05;
+				#else
+					position.y += WavingLava(position.xyz) * 0.035;
+				#endif
+			#endif
+		}
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#else
 		gl_Position = ftransform();
@@ -441,6 +499,8 @@ void main() {
 			//if (mat == 10256) gl_Position.z -= 0.00001; // Iron Bars
 		#endif
 	#endif
+
+	// if (mat == 10008) gl_Position = vec4(0.0); // disable leaves
 
 	#ifdef TAA
 		gl_Position.xy = TAAJitter(gl_Position.xy, gl_Position.w);

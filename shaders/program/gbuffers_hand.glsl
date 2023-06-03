@@ -65,6 +65,15 @@ uniform sampler2D noisetex;
 	uniform int heldItemId2;
 #endif
 
+#ifdef MULTICOLORED_BLOCKLIGHT
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex9;
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//
@@ -96,6 +105,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
+#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #if defined GENERATED_NORMALS || defined COATED_TEXTURES
@@ -114,12 +124,17 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#include "/lib/lighting/coloredBlocklight.glsl"
+#endif
+
 //Program//
 void main() {
 	vec4 color = texture2D(tex, texCoord);
 
 	float smoothnessD = 0.0, skyLightFactor = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
 	vec3 normalM = normal;
+
 	if (color.a > 0.00001) {
 		#ifdef GENERATED_NORMALS
 			vec3 colorP = color.rgb;
@@ -149,6 +164,10 @@ void main() {
 			#endif
 		#endif
 
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+		#endif
+
 		DoLighting(color, shadowMult, playerPos, viewPos, 0.0, normalM, lmCoordM,
 				   true, false, false, false,
 				   0, smoothnessG, highlightMult, emission);
@@ -161,6 +180,14 @@ void main() {
 	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE >= 2
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
+
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			/* DRAWBUFFERS:0158 */
+			gl_FragData[3] = vec4(0.0, 0.0, 0.0, 1.0);
+		#endif
+	#elif defined MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:018 */
+		gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0);
 	#endif
 }
 
@@ -193,9 +220,6 @@ out vec4 glColor;
 #endif
 
 //Uniforms//
-#if HAND_SWAYING > 0
-	uniform float frameTimeCounter;
-#endif
 
 //Attributes//
 #if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM

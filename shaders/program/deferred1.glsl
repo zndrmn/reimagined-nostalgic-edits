@@ -24,7 +24,10 @@ uniform float far, near;
 uniform float viewWidth, viewHeight;
 uniform float blindness;
 uniform float darknessFactor;
-uniform float frameTimeCounter;
+
+#ifdef NETHER_NOISE
+	uniform float eyeAltitude;
+#endif
 
 uniform vec3 fogColor;
 uniform vec3 skyColor;
@@ -54,7 +57,7 @@ uniform sampler2D noisetex;
 	uniform sampler2D colortex5;
 #endif
 
-#if AURORA_STYLE > 0
+#if AURORA_STYLE > 0 || defined OVERWORLD_BEAMS
 	uniform int moonPhase;
 
 	uniform float isSnowy;
@@ -476,7 +479,8 @@ flat out vec3 upVec, sunVec;
 	
 		uniform float frameTimeSmooth;
 		uniform float far;
-
+	#endif
+	#if defined END || (defined OVERWORLD && defined OVERWORLD_BEAMS)
 		uniform vec3 cameraPosition;
 	#endif
 #endif

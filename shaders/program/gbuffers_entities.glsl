@@ -31,6 +31,8 @@ in vec4 glColor;
 	in vec4 vTexCoordAM;
 #endif
 
+flat in int mat;
+
 //Uniforms//
 uniform int isEyeInWater;
 uniform int entityId;
@@ -40,7 +42,6 @@ uniform int frameCounter;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
-uniform float frameTimeCounter;
 
 uniform ivec2 atlasSize;
 
@@ -57,10 +58,20 @@ uniform mat4 shadowProjection;
 
 uniform sampler2D tex;
 uniform sampler2D noisetex;
+uniform float isSnowy;
 
 #ifdef CUSTOM_PBR
 	uniform sampler2D normals;
 	uniform sampler2D specular;
+#endif
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	uniform vec3 previousCameraPosition;
+
+	uniform mat4 gbufferPreviousModelView;
+	uniform mat4 gbufferPreviousProjection;
+
+	uniform sampler2D colortex9;
 #endif
 
 //Pipeline Constants//
@@ -95,6 +106,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 //Includes//
 #include "/lib/util/dither.glsl"
 #include "/lib/util/spaceConversion.glsl"
+#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #if defined GENERATED_NORMALS || defined COATED_TEXTURES
@@ -113,6 +125,14 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
+#ifdef TAA
+	#include "/lib/util/jitter.glsl"
+#endif
+
+#ifdef MULTICOLORED_BLOCKLIGHT
+	#include "/lib/lighting/coloredBlocklight.glsl"
+#endif
+
 //Program//
 void main() {
 	vec4 color = texture2D(tex, texCoord);
@@ -120,8 +140,6 @@ void main() {
 		vec3 colorP = color.rgb;
 	#endif
 	color *= glColor;
-
-	color.rgb = mix(color.rgb, entityColor.rgb, entityColor.a);
 
 	float smoothnessD = 0.0, skyLightFactor = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
 	vec3 normalM = normal;
@@ -132,6 +150,8 @@ void main() {
 		vec3 nViewPos = normalize(viewPos);
 		vec3 playerPos = ViewToPlayer(viewPos);
 		float lViewPos = length(viewPos);
+
+	color.rgb = mix(color.rgb, entityColor.rgb, entityColor.a);
 
 		bool noSmoothLighting = atlasSize.x < 600.0; // To fix fire looking too dim
 		
@@ -162,6 +182,10 @@ void main() {
 
 		normalM = gl_FrontFacing ? normalM : -normalM; // Inverted Normal Workaround
 
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+		#endif
+
 		DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 				   noSmoothLighting, false, false, true,
 				   0, smoothnessG, highlightMult, emission);
@@ -182,6 +206,14 @@ void main() {
 	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE >= 2
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
+
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			/* DRAWBUFFERS:0158 */
+			gl_FragData[3] = vec4(0.0, 0.0, 0.0, 1.0);
+		#endif
+	#elif defined MULTICOLORED_BLOCKLIGHT
+		/* DRAWBUFFERS:018 */
+		gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0);
 	#endif
 }
 
@@ -213,13 +245,21 @@ out vec4 glColor;
 	out vec4 vTexCoordAM;
 #endif
 
+flat out int mat;
+
 //Uniforms//
-#ifdef FLICKERING_FIX
+#if defined FLICKERING_FIX
 	uniform int entityId;
 
 	uniform vec3 cameraPosition;
 
 	uniform mat4 gbufferModelViewInverse;
+#elif defined WORLD_CURVATURE
+	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#if defined WORLD_CURVATURE
+	uniform sampler2D noisetex;
 #endif
 
 //Attributes//
@@ -236,6 +276,10 @@ out vec4 glColor;
 //Common Functions//
 
 //Includes//
+
+#if defined WORLD_CURVATURE
+	#include "/lib/misc/distortWorld.glsl"
+#endif
 
 //Program//
 void main() {
@@ -302,6 +346,14 @@ void main() {
 		#ifndef REALTIME_SHADOWS
 			if (glColor.a < 0.5) gl_Position.z += 0.0005;
 		#endif
+	#endif
+
+	#if defined WORLD_CURVATURE
+		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef WORLD_CURVATURE
+			position.y += doWorldCurvature(position.xz);
+		#endif
+		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 }
 

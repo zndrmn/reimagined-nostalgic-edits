@@ -20,8 +20,6 @@ uniform int frameCounter;
 uniform float viewWidth, viewHeight;
 uniform float darknessFactor;
 
-uniform float frameTimeCounter;
-
 uniform sampler2D colortex0;
 uniform sampler2D noisetex;
 
@@ -63,6 +61,92 @@ void DoBSLTonemap(inout vec3 color) {
 	color = pow(color, mix(vec3(T_LOWER_CURVE), vec3(T_UPPER_CURVE), sqrt(color)));
 	
 	color = pow(color, vec3(1.0 / 2.2));
+}
+
+void linearToRGB(inout vec3 color) {
+	const vec3 k = vec3(0.055);
+	color = mix((vec3(1.0) + k) * pow(color, vec3(1.0 / 2.4)) - k, 12.92 * color, lessThan(color, vec3(0.0031308)));
+}
+
+void LottesTonemap(inout vec3 color) {
+	// Lottes 2016, "Advanced Techniques and Optimization of HDR Color Pipelines"
+	// http://32ipi028l5q82yhj72224m8j.wpengine.netdna-cdn.com/wp-content/uploads/2016/03/GdcVdrLottes.pdf
+    const vec3 a 	  = vec3(1.3);
+    const vec3 d 	  = vec3(0.95);
+    const vec3 hdrMax = vec3(8.0);
+    const vec3 midIn  = vec3(0.25);
+    const vec3 midOut = vec3(0.25);
+
+	const vec3 a_d = a * d;
+    const vec3 hdrMaxA = pow(hdrMax, a);
+    const vec3 hdrMaxAD = pow(hdrMax, a_d);
+    const vec3 midInA = pow(midIn, a);
+    const vec3 midInAD = pow(midIn, a_d);
+	const vec3 HM1 = hdrMaxA * midOut;
+	const vec3 HM2 = hdrMaxAD - midInAD;
+
+    const vec3 b = (-midInA + HM1) / (HM2 * midOut);
+    const vec3 c = (hdrMaxAD * midInA - HM1 * midInAD) / (HM2 * midOut);
+
+    color = pow(color, a) / (pow(color, a_d) * b + c);
+
+	linearToRGB(color);
+}
+
+// From https://github.com/godotengine/godot/blob/master/servers/rendering/renderer_rd/shaders/effects/tonemap.glsl
+// Adapted from https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
+// (MIT License).
+void ACESTonemap(inout vec3 color) {
+	float white = ACES_WHITE;	
+	const float exposure_bias = ACES_EXPOSURE;
+	const float A = 0.0245786f;
+	const float B = 0.000090537f;
+	const float C = 0.983729f;
+	const float D = 0.432951f;
+	const float E = 0.238081f;
+
+	const mat3 rgb_to_rrt = mat3(
+			vec3(0.59719f * exposure_bias, 0.35458f * exposure_bias, 0.04823f * exposure_bias),
+			vec3(0.07600f * exposure_bias, 0.90834f * exposure_bias, 0.01566f * exposure_bias),
+			vec3(0.02840f * exposure_bias, 0.13383f * exposure_bias, 0.83777f * exposure_bias));
+
+	const mat3 odt_to_rgb = mat3(
+			vec3(1.60475f, -0.53108f, -0.07367f),
+			vec3(-0.10208f, 1.10813f, -0.00605f),
+			vec3(-0.00327f, -0.07276f, 1.07602f));
+
+	color *= rgb_to_rrt;
+	vec3 color_tonemapped = (color * (color + A) - B) / (color * (C * color + D) + E);
+	color_tonemapped *= odt_to_rgb;
+
+	white *= exposure_bias;
+	float white_tonemapped = (white * (white + A) - B) / (white * (C * white + D) + E);
+
+	color = color_tonemapped / white_tonemapped;
+	color = clamp(color, vec3(0.0), vec3(1.0));
+
+	linearToRGB(color);
+}
+
+// Filmic tonemapping operator made by Jim Hejl and Richard Burgess
+// Modified by Tech to not lose color information below 0.004
+void BurgessTonemap(inout vec3 rgb) {
+   	rgb = rgb * min(vec3(1.0), 1.0 - 0.8 * exp(1.0/-0.004 * rgb));
+    rgb = (rgb * (6.2 * rgb + 0.5)) / (rgb * (6.2 * rgb + 1.7) + 0.06);
+}
+
+// Filmic tonemapping operator made by John Hable for Uncharted 2
+void Uncharted2Tonemap(inout vec3 color) {
+	const float a = 0.15;
+	const float b = 0.50;
+	const float c = 0.10;
+	const float d = 0.20;
+	const float e = 0.02;
+	const float f = 0.30;
+
+	color = ((color * (a * color + (c * b)) + (d * e)) / (color * (a * color + b) + d * f)) - e / f;
+
+	linearToRGB(color);
 }
 
 void DoBSLColorSaturation(inout vec3 color) {
@@ -165,7 +249,17 @@ void main() {
 		color *= 0.01;
 	#endif
 
-	DoBSLTonemap(color);
+	#if TONEMAP == 1
+		ACESTonemap(color);
+	#elif TONEMAP == 2
+		BurgessTonemap(color);
+	#elif TONEMAP == 3
+		LottesTonemap(color);
+	#elif TONEMAP == 4
+		Uncharted2Tonemap(color);
+	#else
+		DoBSLTonemap(color);
+	#endif
 	
 	DoBSLColorSaturation(color);
 

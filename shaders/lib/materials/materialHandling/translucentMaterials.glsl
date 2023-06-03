@@ -14,7 +14,7 @@ if (mat < 31008) {
             } else /*if (mat == 30012)*/ { // Slime Block
                 translucentMultCalculated = true;
                 reflectMult = 0.25;
-                translucentMult.rgb = pow2(color.rgb) * 0.2;
+                translucentMult = vec4(pow2(color.rgb) * 0.2, 1.0);
 
                 smoothnessG = color.g * 0.5;
                 highlightMult = 3.5;
@@ -25,13 +25,13 @@ if (mat < 31008) {
             if (mat == 30016) { // Honey Block
                 translucentMultCalculated = true;
                 reflectMult = 0.25;
-                translucentMult.rgb = pow2(color.rgb) * 0.2;
+                translucentMult = vec4(pow2(color.rgb) * 0.2, 1.0);
 
                 smoothnessG = color.r * 0.7;
                 highlightMult = 3.5;
             } else /*if (mat == 30020)*/ { // Nether Portal
                 #ifdef FANCY_NETHERPORTAL
-                #include "/lib/materials/specificMaterials/translucents/netherPortal.glsl"
+                    #include "/lib/materials/specificMaterials/translucents/netherPortal.glsl"
                 #endif
             }
         } else {
@@ -57,10 +57,8 @@ if (mat < 31008) {
             }
         } else {
             if (mat == 31016) { // Beacon
-                lmCoordM.x = 0.88;
-                
                 translucentMultCalculated = true;
-                translucentMult = vec4(0.0, 0.0, 0.0, 1.0);
+                lmCoordM.x = 0.88;
                 
                 if (color.b > 0.5) {
                     if (color.g - color.b < 0.01 && color.g < 0.99) {

@@ -28,7 +28,7 @@ flat in vec4 glColor;
 uniform int isEyeInWater;
 uniform int frameCounter;
 
-uniform float far;
+uniform float near, far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
@@ -40,33 +40,40 @@ uniform ivec2 atlasSize;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+#if BL_SHADOW_MODE == 1
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferPreviousModelView;
+#endif
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
 uniform sampler2D tex;
-uniform sampler2D noisetex;
 
 #ifdef CLOUDS_REIMAGINED
 	uniform sampler2D gaux1;
 #endif
 
-#ifdef MULTICOLORED_BLOCKLIGHT
-	uniform vec3 previousCameraPosition;
+#ifdef CLOUD_SHADOWS
+	uniform sampler2D gaux3;
+#endif
 
-	uniform mat4 gbufferPreviousModelView;
-	uniform mat4 gbufferPreviousProjection;
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
+	#define ATLASTEX tex
+#endif
 
-	uniform sampler2D colortex9;
+#if HELD_LIGHTING_MODE >= 1
+	uniform int heldItemId;
+	uniform int heldItemId2;
 #endif
 
 //Pipeline Constants//
 
 //Common Variables//
 float NdotU = dot(normal, upVec);
-float NdotUmax0 = max(NdotU, 0.0);
 float SdotU = dot(sunVec, upVec);
 float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
 float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
@@ -85,20 +92,11 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 #include "/lib/util/dither.glsl"
 
 #if MC_VERSION >= 11500
 	#include "/lib/atmospherics/fog/mainFog.glsl"
-#endif
-
-#ifdef ATM_COLOR_MULTS
-    #include "/lib/colors/colorMultipliers.glsl"
-#endif
-
-#ifdef MULTICOLORED_BLOCKLIGHT
-	#include "/lib/lighting/coloredBlocklight.glsl"
 #endif
 
 //Program//
@@ -111,18 +109,10 @@ void main() {
 	vec3 viewPos = ScreenToView(screenPos);
 	float lViewPos = length(viewPos);
     vec3 playerPos = ViewToPlayer(viewPos);
-
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
-	#endif
 	
 	float dither = Bayer64(gl_FragCoord.xy);
 	#ifdef TAA
 		dither = fract(dither + 1.61803398875 * mod(float(frameCounter), 3600.0));
-	#endif
-
-	#ifdef ATM_COLOR_MULTS
-		atmColorMult = GetAtmColorMult();
 	#endif
 
 	#ifdef CLOUDS_REIMAGINED
@@ -132,13 +122,14 @@ void main() {
 		if (pow2(cloudLinearDepth + OSIEBCA * dither) * far < min(lViewPos, far)) discard;
 	#endif
 
-	float emission = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
-	vec2 lmCoordM = lmCoord;
 	vec3 shadowMult = vec3(1.0);
+	vec2 lmCoordM = lmCoord;
+	float emission = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
+
 	#ifdef IPBR
 	if (atlasSize.x < 900.0) { // We don't want to detect particles from the block atlas
 		if (color.b > 1.15 * (color.r + color.g) && color.g > color.r * 1.25 && color.g < 0.425 && color.b > 0.75) { // Water Particle
-			color.rgb = sqrt3(color.rgb) * 0.45;
+			color.rgb = sqrt3(color.rgb) * 0.35;
 		} else if (color.r == color.g && color.r - 0.5 * color.b < 0.06) { // Underwater Particle
 			if (isEyeInWater == 1) {
 				color.rgb = sqrt2(color.rgb) * 0.35;
@@ -159,19 +150,19 @@ void main() {
 				emission = 2.0;
 				color.b *= 0.5;
 				color.r *= 1.2;
-				color.rgb += vec3(min(pow2(pow2(emission * 0.35)), 0.4)) * LAVA_TEMPERATURE * 0.5;
 			}
 		}
 		//color.rgb = vec3(fract(float(frameCounter) * 0.01), fract(float(frameCounter) * 0.015), fract(float(frameCounter) * 0.02));
 	}
+
 	bool noSmoothLighting = false;
 	#else
 	bool noSmoothLighting = true;
 	#endif
 
-	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoordM,
-	           noSmoothLighting, false, true, false,
-			   0, 0.0, 1.0, emission);
+	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoordM,
+	           noSmoothLighting, false, true, false, 0,
+			   0.0, 1.0, emission, 0);
 
 	#if MC_VERSION >= 11500
 		vec3 nViewPos = normalize(viewPos);
@@ -184,17 +175,13 @@ void main() {
 	#endif
 
 	// Blending
-	vec3 translucentMult = mix(vec3(1.0), normalize(pow2(color.rgb)) * pow2(color.rgb), sqrt1(color.a)) * (1.0 - pow(color.a, 64.0));
+	vec3 translucentMult = mix(vec3(1.0), color.rgb, sqrt1(color.a)) * (1.0 - pow(color.a, 64.0));
+	translucentMult.r += OSIEBCA;
 	
 	/* DRAWBUFFERS:013 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(0.0, materialMask, 0.0, 1.0);
-	gl_FragData[2] = vec4(1.0 - translucentMult, 1.0);
-
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		/* DRAWBUFFERS:0138 */
-		gl_FragData[3] = vec4(0.0, 0.0, 0.0, 1.0);
-	#endif
+	gl_FragData[2] = vec4(translucentMult, 1.0);
 }
 
 #endif
@@ -220,11 +207,6 @@ flat out vec4 glColor;
 
 //Uniforms//
 
-#if defined WORLD_CURVATURE
-	uniform sampler2D noisetex;
-	uniform mat4 gbufferModelViewInverse;
-#endif
-
 //Attributes//
 
 //Common Variables//
@@ -232,10 +214,6 @@ flat out vec4 glColor;
 //Common Functions//
 
 //Includes//
-
-#if defined WORLD_CURVATURE
-	#include "/lib/misc/distortWorld.glsl"
-#endif
 
 //Program//
 void main() {
@@ -260,14 +238,6 @@ void main() {
 		#if SUN_ANGLE != 0
 			northVec = normalize(gbufferModelView[2].xyz);
 		#endif
-	#endif
-
-	#if defined WORLD_CURVATURE
-		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-		#ifdef WORLD_CURVATURE
-			position.y += doWorldCurvature(position.xz);
-		#endif
-		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 }
 

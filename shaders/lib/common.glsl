@@ -4,60 +4,161 @@
          | || |\/| | |_) | | | | |_) || | / _ \ |  \| | | |  
          | || |  | |  __/| |_| |  _ < | |/ ___ \| |\  | | |  
         |___|_|  |_|_|    \___/|_| \_\|_/_/   \_\_| \_| |_|  
-         
+         .
   -> -> -> EDITING THIS FILE HAS A HIGH CHANCE TO BREAK THE SHADERPACK
   -> -> -> DO NOT CHANGE ANYTHING UNLESS YOU KNOW WHAT YOU ARE DOING
   -> -> -> DO NOT EXPECT SUPPORT AFTER MODIFYING SHADER FILES
 ---------------------------------------------------------------------*/
-uniform float frameTimeCounter;
 
 //User Settings//
-    #define CMPR 0 //[0 1 2 3 4 5 6 7 8]
+
+//voxel settings//
+
+    #define SHADOWRES 1024 //[512 1024 2048 4096]
+
+    #if SHADOWRES == 512
+        const int shadowMapResolution = 512;
+    #elif SHADOWRES == 1024
+        const int shadowMapResolution = 1024;
+    #elif SHADOWRES == 2048
+        const int shadowMapResolution = 2048;
+    #else
+        const int shadowMapResolution = 4096;
+    #endif
+    
+    #define VXHEIGHT 8 //[4 6 8 12 16]
+    #define OCCLUSION_CASCADE_COUNT 5 //[1 2 3 4 5]
+
+    #define BLOCKLIGHT_STRENGTH 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.5 1.7 2.0]
+    #define BLOCKLIGHT_STEEPNESS 2.0 //[1.0 1.3 1.5 1.7 2.0]
+    #define BLOCKLIGHT_SHAFT_STRENGTH 0.1 //[0.01 0.02 0.03 0.05 0.07 0.1 0.15 0.2 0.25 0.3 0.4 0.5 0.7 1.0 1.2 1.5 2 2.5 3]
+
+    #define OCCLUSION_FILTER 1 //[0 1 2]
+    #define OCCLUSION_BLEED_PREVENTION
+    #define CAVE_SUNLIGHT_FIX 2 // [0 1 2]
+    #define SMOOTH_LIGHTING 1 //[0 1]
+    #define BL_SHADOW_MODE 1 //[0 1 2]
+
+    #if BL_SHADOW_MODE == 2
+        #define PP_BL_SHADOWS
+    #endif
+  //#define PP_SUN_SHADOWS
+  //#define CORRECT_CUBOID_OFFSETS
+    #define BLOCKLIGHT_SOURCE_SIZE 0.1 //[0.0 0.02 0.05 0.1 0.2 0.3 0.5]
+  //#define INST_LP
+    #define BIG_LIGHTS
+    #define BLOCKLIGHT_CHECK_INTERVAL 17 //[4 5 7 10 15 17 20 30]
+    #define VBL_NETHER_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
+    #define VBL_END_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
+    #define VBL_INTPOL
+    #define ADVANCED_LIGHT_TRACING 1 //[0 1]
+    #define FF_PROP_MUL 0.9999
+    #define FF_PROP_SUB 0.003 //[0.0001 0.0003 0.0005 0.001 0.002 0.003 0.005 0.007 0.01]
+    #define BFF_ABSORBTION_AMOUNT 0.05
+    #define GI_STRENGTH 3 //[0 1 2 3 4 5 10]
+    #if GI_STRENGTH != 0
+        #define GI
+    #endif
+    #define TRANSLUCENT_GI_TINT
+    #define TRANSLUCENT_LIGHT_TINT 0.5 // [0.1 0.15 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+    #define TRANSLUCENT_LIGHT_CONDUCTION 1.0 // [0.9 1.0 1.1 1.2 1.3 1.5]
+    #if SHADOWRES == 512
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 64.0;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 42.0;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 32.0;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 21.0;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 16.0;
+        #else
+            const float shadowDistance = 50.0;
+        #endif
+    #elif SHADOWRES == 1024
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 128.0;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 85.0;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 64.0;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 42.0;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 32.0;
+        #else
+            const float shadowDistance = 70.0;
+        #endif
+    #elif SHADOWRES == 2048
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 256.0;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 170.0;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 128.0;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 85.0;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 64.0;
+        #else
+            const float shadowDistance = 120.0;
+        #endif
+    #elif SHADOWRES == 4096
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 512.0;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 341.0;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 256.0;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 170.0;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 128.0;
+        #else
+            const float shadowDistance = 200.0;
+        #endif
+    #else
+        const float shadowDistance = 100.0;
+    #endif
+    #if (defined PP_SUN_SHADOWS || defined VOXEL_REFLECTIONS)
+        #define DISTANCE_FIELD
+    #endif
+//regular settings//
+
+    #define CMPR 3 //[0 1 2 3 4 5]
 
     #define SHADER_STYLE 1 //[1 4]
 
     #define RP_MODE 1 //[0 1 2 3]
+
     #if RP_MODE == 1
-    #define IPBR
-    //#define GENERATED_NORMALS
-    //#define COATED_TEXTURES
+        #define IPBR
+        //#define GENERATED_NORMALS
+        //#define COATED_TEXTURES
     #endif
+
     #if RP_MODE >= 2
-    #define CUSTOM_PBR
-    #define POM
+        #define CUSTOM_PBR
     #endif
 
     #define REALTIME_SHADOWS
-    #define SHADOW_QUALITY 2 //[1 2 3 4 5]
-    const float shadowDistance = 192.0; //[64.0 80.0 96.0 112.0 128.0 160.0 192.0 224.0 256.0 320.0 384.0 512.0 768.0 1024.0]
-    //#define ENTITY_SHADOWS
-    #define SSAO 2 //[0 2 1]
-    #define WATER_QUALITY 2 //[1 2 3]
+    #define SHADOW_QUALITY 2 //[0 1 2 3 4 5]
+    #define ENTITY_SHADOWS
+    #define SSAO
+    #define WATER_QUALITY 2 //[1 2]
+    #define REFLECTION_QUALITY 3 //[0 1 2 3]
     #define LIGHTSHAFT_QUALITY 3 //[0 1 2 3 4]
-    #define WATER_REFLECT_QUALITY 2 //[0 1 2]
-    #define BLOCK_REFLECT_QUALITY 2 //[0 2 3]
-    #if BLOCK_REFLECT_QUALITY >= 3
-    #define TEMPORAL_FILTER
-    #endif
 
-    #define WATER_STYLE_DEFINE -1 //[-1 1 2 3]
-    #define WATER_BUMPINESS 1.25 //[0.15 0.20 0.25 0.30 0.40 0.50 0.65 0.80 1.00 1.25 1.50 2.00 2.50]
-    #define WATER_REFRACTION_INTENSITY 2.0 //[1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0]
+    #define WATER_STYLE_DEFINE -1 //[-1 1 2 3 4]
     #define PIXEL_SHADOW 0 //[0 8 16 32 64 128]
     #define HAND_SWAYING 0 //[0 1 2 3]
     //#define LESS_LAVA_FOG
     #define SHOW_LIGHT_LEVEL 0 //[0 1 2 3]
-    #define RAIN_PUDDLES 0 //[0 1 2 3 4]
-    //#define SNOWY_WORLD
-
-    #define SELECT_OUTLINE 1 //[0 1 2 3]
-    #define SELECT_OUTLINE_I 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define SELECT_OUTLINE_R 1.35 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define SELECT_OUTLINE_G 0.35 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define SELECT_OUTLINE_B 1.75 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-
     //#define WORLD_OUTLINE
-    #define WORLD_OUTLINE_THICKNESS 1 //[1 2 3 4]
+    #define RAIN_PUDDLES 0 //[0 1 2]
+    #define SELECTION_OUTLINE 0 //[0 1 2 3 4 5 6 7 8]
+    //#define SNOWY_WORLD
 
     #define AURORA_STYLE_DEFINE -1 //[-1 0 1 2]
     #define AURORA_CONDITION 3 //[0 1 2 3 4]
@@ -67,7 +168,6 @@ uniform float frameTimeCounter;
     #define CLOUD_STYLE_DEFINE -1 //[-1 0 1 2 3]
     //#define CLOUD_SHADOWS
     #define CLOUD_HIGH_QUALITY 1 //[1 2]
-    #define CLOUD_CLOSED_AREA_CHECK
     #define CLOUD_ALT1 192.0 //[8.0 12.0 16.0 20.0 22.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 254.0 256.0 272.0 274.0 276.0 278.0 280.0 282.0 284.0 286.0 288.0 290.0 292.0 294.0 296.0 298.0 300.0 302.0 306.0 308.0 310.0 312.0 314.0 316.0 318.0 320.0 322.0 324.0 326.0 328.0 330.0 332.0 334.0 336.0 338.0 340.0 342.0 344.0 346.0 348.0 350.0 352.0 354.0 356.0 358.0 360.0 362.0 364.0 366.0 368.0 370.0 372.0 374.0 376.0 378.0 380.0 382.0 384.0 388.0 392.0 396.0 400.0]
     #define CLOUD_ALT2 288.0 //[8.0 12.0 16.0 20.0 22.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 254.0 256.0 272.0 274.0 276.0 278.0 280.0 282.0 284.0 286.0 288.0 290.0 292.0 294.0 296.0 298.0 300.0 302.0 306.0 308.0 310.0 312.0 314.0 316.0 318.0 320.0 322.0 324.0 326.0 328.0 330.0 332.0 334.0 336.0 338.0 340.0 342.0 344.0 346.0 348.0 350.0 352.0 354.0 356.0 358.0 360.0 362.0 364.0 366.0 368.0 370.0 372.0 374.0 376.0 378.0 380.0 382.0 384.0 388.0 392.0 396.0 400.0]
 
@@ -80,27 +180,27 @@ uniform float frameTimeCounter;
     #define FXAA
     #define IMAGE_SHARPENING 3 //[0 1 2 3 4 5 6 7 8 9 10]
     //#define MOTION_BLURRING
-    #define MOTION_BLURRING_STRENGTH 1.00 //[0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
+    #define MOTION_BLURRING_STRENGTH 1.00 //[0.01 0.02 0.03 0.05 0.07 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00 2.10 2.20 2.30 2.40 2.50 2.60 2.70 2.80 2.90 3.00 3.25 3.50 3.75 4.00 4.50 5.00 6.00 7.50 10.00]
     #define VIGNETTE_R
+    #define T_EXPOSURE 1.40 //[0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90]
+    #define TM_WHITE_CURVE 2.0 //[1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
+    #define T_LOWER_CURVE 1.20 //[0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
+    #define T_UPPER_CURVE 1.30 //[0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
+    #define T_SATURATION 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
+    #define T_VIBRANCE 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
 
-    #define ENTITY_GN_AND_CT
     #define GLOWING_ORES 0 //[0 1 2]
+    //#define GLOWING_MINERAL_BLOCKS
     //#define FANCY_GLASS
     //#define EMISSIVE_REDSTONE_BLOCK
-    //#define EMISSIVE_LAPIS_BLOCK
 
     #define NORMAL_MAP_STRENGTH 100 //[0 10 15 20 30 40 60 80 100 120 140 160 180 200]
     #define CUSTOM_EMISSION_INTENSITY 100 //[0 5 7 10 15 20 25 30 35 40 45 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 225 250]
-    #define POM_DEPTH 0.80 //[0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define POM_QUALITY 128 //[16 32 64 128 256 512]
-    #define POM_DISTANCE 32 //[16 24 32 48 64 128 256 512 1024]
-    #define POM_LIGHTING_MODE 2 //[1 2]
-    //#define POM_ALLOW_CUTOUT
-    #define DIRECTIONAL_BLOCKLIGHT 0 //[0 3 7 11]
 
     #define BLOCKLIGHT_COLOR_MODE 10 //[9 10 11]
     #define MINIMUM_LIGHT_MODE 2 //[0 1 2 3 4]
-    #define HELD_LIGHTING_MODE 2 //[0 1 2]
+    #define HELD_LIGHTING_MODE 1 //[0 1 2]
+  //#define HELD_LIGHT_OCCLUSION_CHECK
 
     #define NO_WAVING_INDOORS
     #define WAVING_FOLIAGE
@@ -109,198 +209,25 @@ uniform float frameTimeCounter;
 
     #define SUN_ANGLE -1 //[-1 0 -20 -30 -40]
 
-    #define T_EXPOSURE 1.40 //[0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00 2.10 2.20 2.30 2.40 2.50 2.60 2.70 2.80]
-    #define TM_WHITE_CURVE 2.0 //[1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
-    #define T_LOWER_CURVE 1.20 //[0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define T_UPPER_CURVE 1.30 //[0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define T_SATURATION 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define T_VIBRANCE 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    //#define COLORGRADING
-    #define GR_RR 100 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_RG 0 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_RB 0 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_RC 1.00 //[0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00 2.20 2.40 2.60 2.80 3.00 3.25 3.50 3.75 4.00 4.50 5.00]
-    #define GR_GR 0 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_GG 100 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_GB 0 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_GC 1.00 //[0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00 2.20 2.40 2.60 2.80 3.00 3.25 3.50 3.75 4.00 4.50 5.00]
-    #define GR_BR 0 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_BG 0 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_BB 100 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
-    #define GR_BC 1.00 //[0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00 2.20 2.40 2.60 2.80 3.00 3.25 3.50 3.75 4.00 4.50 5.00]
-
-    #define LIGHT_COLOR_MULTS
-    #define ATM_COLOR_MULTS
-    #define LIGHT_MORNING_R 1.10 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_MORNING_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_MORNING_B 0.85 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_MORNING_I 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_MORNING_R 1.50 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_MORNING_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_MORNING_B 0.85 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_MORNING_I 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NOON_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NOON_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NOON_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NOON_I 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NOON_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NOON_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NOON_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NOON_I 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NIGHT_R 0.90 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NIGHT_G 1.30 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NIGHT_B 1.40 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NIGHT_I 1.00 //[0.01 0.03 0.05 0.07 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NIGHT_R 0.85 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NIGHT_G 1.60 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NIGHT_B 1.70 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NIGHT_I 1.00 //[0.01 0.03 0.05 0.07 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_RAIN_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_RAIN_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_RAIN_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_RAIN_I 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_RAIN_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_RAIN_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_RAIN_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_RAIN_I 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NETHER_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NETHER_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NETHER_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_NETHER_I 1.00 //[0.01 0.03 0.05 0.07 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NETHER_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NETHER_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NETHER_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_NETHER_I 1.00 //[0.01 0.03 0.05 0.07 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_END_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_END_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_END_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define LIGHT_END_I 1.00 //[0.01 0.03 0.05 0.07 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_END_R 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_END_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_END_B 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-    #define ATM_END_I 1.00 //[0.01 0.03 0.05 0.07 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
-
-//Euphoria Patches User Settings//
-
-    #define AURORA_COLOR_PRESET 0 //[0 1 2 3 4 5 6 7 8 9] // 0 is manual and default, 1 is monthly and 2 is one color preset same with all numbers after
-
-    #define AURORA_UP_R 112 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120 124 128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252 255]
-    #define AURORA_UP_G 36 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120 124 128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252 255]
-    #define AURORA_UP_B 192 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120 124 128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252 255]
-    #define AURORA_UP_I 33 //[0 3 5 8 10 13 15 18 20 23 25 28 30 33 35 38 40 43 45 48 50 53 55 58 60 63 65 68 70 73 75 78 80 83 85 88 90 93 95 98 100]
-
-    #define AURORA_DOWN_R 96 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120 124 128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252 255]
-    #define AURORA_DOWN_G 255 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120 124 128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252 255]
-    #define AURORA_DOWN_B 192 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120 124 128 132 136 140 144 148 152 156 160 164 168 172 176 180 184 188 192 196 200 204 208 212 216 220 224 228 232 236 240 244 248 252 255]
-    #define AURORA_DOWN_I 33 //[0 3 5 8 10 13 15 18 20 23 25 28 30 33 35 38 40 43 45 48 50 53 55 58 60 63 65 68 70 73 75 78 80 83 85 88 90 93 95 98 100]
-
-    #define AURORA_SIZE 0.65 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    #define AURORA_DRAW_DISTANCE 0.65 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-
-    //#define RGB_AURORA
-
-    #define BLOCKLIGHT_PROFILE 0 //[0 1]
-
-    #define BLOCKLIGHT_R 109.65 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 109.65 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define BLOCKLIGHT_G 81.6 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 81.6 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define BLOCKLIGHT_B 66.3 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 66.3 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define BLOCKLIGHT_I 0.875 //[0.200 0.225 0.250 0.275 0.300 0.325 0.350 0.375 0.400 0.425 0.450 0.475 0.500 0.525 0.550 0.575 0.600 0.625 0.650 0.675 0.700 0.725 0.750 0.775 0.800 0.825 0.850 0.875 0.900 0.925 0.950 0.975 1.000 1.025 1.050 1.075 1.100 1.125 1.150 1.175 1.200 1.225 1.250 1.275 1.300 1.325 1.350 1.375 1.400 1.425 1.450 1.475 1.500]
-    #define BLOCKLIGHT_SATURATION 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-
-    //#define MULTICOLORED_BLOCKLIGHT
-    #define MCBL_INFLUENCE 1.00 //[0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-
-    //#define RANDOM_BLOCKLIGHT
-    #define RANDOM_BLOCKLIGHT_SIZE 1.0 //[0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
-
-    //#define BLOCKLIGHT_FLICKER
-    #define BLOCKLIGHT_FLICKER_STRENGTH 0.80 //[0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00 1.50 2.00 3.00 4.00]
-
-    #define CLOUD_DRAW_DISTANCE 1000.0 //[0.0 250.0 500.0 750.0 1000.0 1250.0 1500.0 1750.0 2000.0 2250.0 2500.0 2750.0 3000.0 3250.0 3500.0 3750.0 4000.0 4500.0 5000.0 6000.0 7000.0 8000.0 9000.0 10000.0]
-    #define CLOUD_COLOR_I 1.0 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
-    //#define CLOUD_MINECRAFT_TEXTURE
-    #define CLOUD_SPEED 1.0 //[0.75 1.0 1.5 2.0 3.0 4.0]
-    #define CLOUD_STRETCH 5.5 //[2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5]
-    #define CLOUD_TRANSPARENCY 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0]
-    #define CLOUD_WIDTH 0.05 //[0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075]
-
-    #define END_BEAMS
-    #define E_BEAM_R 255.0 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define E_BEAM_G 255.0 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define E_BEAM_B 255.0 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define E_BEAM_I 1.0 // [0.1 0.25 0.5 0.75 1.0 1.5 2.0]
-    #define E_BEAMS_AMBIENT_INFLUENCE 0.00 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-    #define E_DRAGON_BEAM_R 255.0 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define E_DRAGON_BEAM_G 76.5 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 76.5 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define E_DRAGON_BEAM_B 0.0 //[0.0 4.0 8.0 12.0 16.0 20.0 24.0 28.0 32.0 36.0 40.0 44.0 48.0 52.0 56.0 60.0 64.0 68.0 72.0 76.0 80.0 84.0 88.0 92.0 96.0 100.0 104.0 108.0 112.0 116.0 120.0 124.0 128.0 132.0 136.0 140.0 144.0 148.0 152.0 156.0 160.0 164.0 168.0 172.0 176.0 180.0 184.0 188.0 192.0 196.0 200.0 204.0 208.0 212.0 216.0 220.0 224.0 228.0 232.0 236.0 240.0 244.0 248.0 252.0 255.0]
-    #define E_DRAGON_BEAM_I 1.0 // [0.1 0.25 0.5 0.75 1.0 1.5 2.0]
-    #define BEAMS_NEAR_PLAYER
-
-    #define END_STARS
-    #define END_STAR_BRIGHTNESS 1.00 //[0.10 0.25 0.50 1.00 1.50 2.00 2.50 3.00 3.50 4.00 4.50 5.00]
-    #define END_STAR_SIZE 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-    #define END_STAR_AMOUNT 1 //[0 1 2 3]
-    //#define END_TWINKLING_STARS
-
-    #define STAR_BRIGHTNESS 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-    //#define TWINKLING_STARS
-    //#define MORE_STARS_OVERWORLD
-    //#define MORE_STARS_END
-    #define STAR_SIZE 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-
-    #define GREEN_BLUE_SCREEN 0 //[0 1 2 3]
-
-    //#define INTERACTIVE_FOLIAGE
-
-    #define LAVA_VARIATION 0 //[0 1 2 3 4]
-    //#define LAVA_COLUMN_NOISE
-    //#define LAVA_VERTEX_WAVES
-    #define LAVA_TEMPERATURE 0.0 //[-1.0 -0.8 -0.6 -0.4 -0.2 0.0 0.2 0.4 0.6 0.8 1.0]
-
-    //#define LETTERBOXING
-    #define ASPECT_RATIO 2.37 //[1.62 1.70 1.78 1.84 1.90 1.95 2.00 2.04 2.08 2.12 2.15 2.18 2.21 2.23 2.26 2.28 2.30 2.32 2.34 2.35 2.37 2.39 2.40 2.41]
-    //#define EXCLUDE_ENTITIES
-
-    #define RAIN_PARTICLE_TRANSPARENCY 0.25 //[0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 1.00 1.25]
-    #define SNOW_PARTICLE_TRANSPARENCY 1.00 //[0.25 0.50 0.75 1.00 1.25 1.50 1.75 2.00 3.00]
-
-    //#define THUNDER_LIGHTING
-
-    #define WAVE_SPEED 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-
-    //#define WORLD_CURVATURE
-    #define OVERWORLD_CURVATURE_SIZE -2048 //[-16 -32 -64 -128 -256 -512 -1024 -2048 -4096 -8192 -16384 -32768 0 32768 16384 8192 4096 2048 1024 512 256]
-    #define NETHER_CURVATURE_SIZE -2048 //[-16 -32 -64 -128 -256 -512 -1024 -2048 -4096 -8192 -16384 -32768 0 32768 16384 8192 4096 2048 1024 512 256]
-    #define END_CURVATURE_SIZE -2048 //[-16 -32 -64 -128 -256 -512 -1024 -2048 -4096 -8192 -16384 -32768 0 32768 16384 8192 4096 2048 1024 512 256]
-
 //Internal Settings//
-
-    //#define DAYLIGHT_CYCLE_COMPAT
-
-    #define UNDERWATER_DISTORTION_STRENGTH 3.0 //[0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
-    #define FRESNEL_MULTIPLIER 0.5 //[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-
-    #define NORMAL_RES 128.0 //[80.0 96.0 112.0 128.0 144.0 160.0 176.0 192.0 208.0 224.0 240.0 256.0]
-    #define NORMAL_THRESHOLD -0.05 //[-0.05 -0.0375 -0.025 -0.0125 0.00 0.0125 0.025 0.0375 0.05]
-
-    #define LIGHTSHAFT_STRENGTH 1.0 // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
-
     #define SIDE_SHADOWING
 
-    #define FANCY_NETHERPORTAL
-
     #define GLASS_OPACITY 0.25
+    #define FANCY_NETHERPORTAL
+    #define TRANSLUCENT_BLEND_FALLOFF_MULT 0.01
     
     #define SHADOW_FILTERING
-    const int shadowMapResolution = 2048;
 
     #define LIGHT_HIGHLIGHT
     #define DIRECTIONAL_SHADING
+    #define SSAO_QUALITY 1 //[1 2 3]
 
+    #define CLOUD_STRETCH 5.5
     #define ATMOSPHERIC_FOG
     #define BLOOM_FOG
 
     #define TAA
+    //#define TEMPORAL_FILTER
 
     #define GLOWING_ENTITY_FIX
     #define FLICKERING_FIX
@@ -344,13 +271,21 @@ uniform float frameTimeCounter;
     // Thanks to SpacEagle17 and isuewo for the sun angle handling
     #if SUN_ANGLE == -1
         #if SHADER_STYLE == 1
-            const float sunPathRotation = 0.0;
+            #ifdef PP_SUN_SHADOWS
+                const float sunPathRotation = 1.0;
+            #else
+                const float sunPathRotation = 0.0;
+            #endif
             #define PERPENDICULAR_TWEAKS
         #elif SHADER_STYLE == 4
             const float sunPathRotation = -40.0;
         #endif
     #elif SUN_ANGLE == 0
-        const float sunPathRotation = 0.0;
+        #ifdef PP_SUN_SHADOWS
+            const float sunPathRotation = 1.0;
+        #else
+            const float sunPathRotation = 0.0;
+        #endif
         #define PERPENDICULAR_TWEAKS
     #elif SUN_ANGLE == -20
         const float sunPathRotation = -20.0;
@@ -369,11 +304,14 @@ uniform float frameTimeCounter;
     #endif
     #ifdef NETHER
         #undef ATMOSPHERIC_FOG
+        #undef SHADOW_QUALITY
     #endif
     #ifdef END
         #undef BLOOM_FOG
     #endif
-
+    #if !defined REALTIME_SHADOWS || !defined OVERWORLD
+        #undef CAVE_SUNLIGHT_FIX
+    #endif
     #if defined GBUFFERS_TEXTURED || defined GBUFFERS_BASIC
         #undef LIGHT_HIGHLIGHT
         #undef DIRECTIONAL_SHADING
@@ -391,22 +329,16 @@ uniform float frameTimeCounter;
         #undef GBUFFERS_ENTITIES_GLOWING
     #endif
 
-    #if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
-        #define LIGHTSHAFTS_ACTIVE
-    #endif
-
     #if defined OVERWORLD && CLOUD_STYLE > 0
         #define CLOUDS_ACTIVATE
     #endif
     #if defined OVERWORLD && (CLOUD_STYLE == 1 || CLOUD_STYLE == 2)
         #define CLOUDS_REIMAGINED
+    #else
+        #undef CLOUD_SHADOWS
     #endif
 
-    #if SEASONS > 0
-        #undef SNOWY_WORLD
-    #endif
-
-    #if RP_MODE >= 1 && BLOCK_REFLECT_QUALITY >= 1
+    #if RP_MODE >= 1 && REFLECTION_QUALITY >= 3
         #define PBR_REFLECTIONS
     #endif
 
@@ -414,22 +346,8 @@ uniform float frameTimeCounter;
         #define WAVING_ANYTHING_TERRAIN
     #endif
 
-    #ifdef IS_IRIS
-        #undef FANCY_GLASS
-    #endif
-
 //Activate Settings//
     #ifdef ENTITY_SHADOWS
-    #endif
-    #ifdef POM_ALLOW_CUTOUT
-    #endif
-    #ifdef ATM_COLOR_MULTS
-    #endif
-    #ifdef CLOUD_CLOSED_AREA_CHECK
-    #endif
-    #ifdef CLOUD_MINECRAFT_TEXTURE
-    #endif
-    #ifdef WATER_VETRTEX_WAVES
     #endif
 
 //Very Common Uniforms//
@@ -445,6 +363,9 @@ uniform float frameTimeCounter;
     #endif
 
 //Very Common Variables//
+    //infinite... almost
+    #define INF 100000.0
+
     const float shadowMapBias = 1.0 - 25.6 / shadowDistance;
     float timeAngle = worldTime / 24000.0;
     float noonFactor = sqrt(max(sin(timeAngle*6.28318530718),0.0));
@@ -454,16 +375,11 @@ uniform float frameTimeCounter;
     float invRainFactor = 1.0 - rainFactor;
     float invRainFactorSqrt = 1.0 - rainFactor * rainFactor;
     float invNoonFactor = 1.0 - noonFactor;
-    float invNoonFactor2 = invNoonFactor * invNoonFactor;
 
     float vsBrightness = clamp(screenBrightness, 0.0, 1.0);
 
     int modifiedWorldDay = int(mod(worldDay, 100) + 5.0);
-    #ifndef DAYLIGHT_CYCLE_COMPAT
-        float syncedTime = (worldTime + modifiedWorldDay * 24000) * 0.05;
-    #else
-        float syncedTime = frameTimeCounter;
-    #endif
+    float syncedTime = (worldTime + modifiedWorldDay * 24000) * 0.05;
 
     const float pi = 3.14159265359;
     const float OSIEBCA = 1.0 / 255.0; // One Step In Eight Bit Color Attachment
@@ -475,14 +391,28 @@ uniform float frameTimeCounter;
         OSIEBCA * 4.0 = 
         OSIEBCA * 5.0 = Redstone Fresnel
     PBR Independant: (Limited to 241 and above)
-        OSIEBCA * 241.0 = Water
-        .
         OSIEBCA * 253.0 = Reduced Edge TAA
         OSIEBCA * 254.0 = No SSAO, No TAA
         OSIEBCA * 255.0 = Unused as 1.0 is the clear color
     */
 
-    const float oceanAltitude = 61.9;
+    const float blocklightColMult = 0.875;
+    #if BLOCKLIGHT_COLOR_MODE == 9
+        const vec3 blocklightCol = vec3(0.40, 0.32, 0.29) * blocklightColMult;
+    #elif BLOCKLIGHT_COLOR_MODE == 10
+        const vec3 blocklightCol = vec3(0.43, 0.32, 0.26) * blocklightColMult; // Default
+    #elif BLOCKLIGHT_COLOR_MODE == 11
+        const vec3 blocklightCol = vec3(0.44, 0.31, 0.22) * blocklightColMult;
+    #endif
+
+    const vec3 caveFogColorRaw = vec3(0.13, 0.13, 0.15);
+    #if MINIMUM_LIGHT_MODE <= 1
+        vec3 caveFogColor = caveFogColorRaw * 0.7;
+    #elif MINIMUM_LIGHT_MODE == 2
+        vec3 caveFogColor = caveFogColorRaw * (0.7 + 0.3 * vsBrightness); // Default
+    #elif MINIMUM_LIGHT_MODE >= 3
+        vec3 caveFogColor = caveFogColorRaw;
+    #endif
 
     #if LIGHTSHAFT_QUALITY > 0 && defined REALTIME_SHADOWS
         vec3 waterFogColor = vec3(0.07, 0.08, 0.11) * vec3(1.0 + vsBrightness);
@@ -490,12 +420,40 @@ uniform float frameTimeCounter;
         vec3 waterFogColor = vec3(0.15, 0.26, 0.3) * vec3(1.0 + 0.5 * vsBrightness);
     #endif
 
+    vec3 endSkyColor = vec3(0.095, 0.07, 0.15) * 1.5;
 
     #ifdef FRAGMENT_SHADER
         ivec2 texelCoord = ivec2(gl_FragCoord.xy);
     #endif
 
 //Very Common Functions//
+
+    //Hashing function by David Hoskins (https://www.shadertoy.com/view/4djSRW)
+    // MIT License...
+    /* Copyright (c)2014 David Hoskins.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.*/
+    
+    #define HASH33
+        #include "/lib/util/noise.glsl"
+    #undef HASH33
+
     #ifdef VERTEX_SHADER
         vec2 GetLightMapCoordinates() {
             vec2 lmCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
@@ -711,24 +669,5 @@ uniform float frameTimeCounter;
     float smoothstep1(float x) {
         return x * x * (3.0 - 2.0 * x);
     }
-
-    mat2 rotate(float angle) 
-    {
-        float s = sin(angle), c = cos(angle);
-        return mat2(c, -s, s, c);
-    }
-
-    #define UI0 1597334673U
-    #define UI1 3812015801U
-    #define UI3 uvec3(UI0, UI1, 2798796415U)
-    #define UIF (1.0 / float(0xffffffffU))
-
-    vec3 hash33(const in uvec3 p) {
-        uvec3 q = p * UI3;
-        q = (q.x ^ q.y ^ q.z) * UI3;
-    return -1.0 + 2.0 * vec3(q) * UIF;
-    }
-
-    vec3 hash33(const in vec3 p) {return hash33(uvec3(p));}
 
 // 62 75 74 20 74 68 4F 73 65 20 77 68 6F 20 68 6F 70 65 20 69 6E 20 74 68 65 20 6C 69 6D 69 4E 61 6C 0A 77 69 6C 6C 20 72 65 6E 65 77 20 74 68 65 69 72 20 73 54 72 65 6E 67 74 48 2E 0A 74 68 65 79 20 77 69 6C 6C 20 73 6F 41 72 20 6F 6E 20 65 6C 79 54 72 61 73 20 6C 69 6B 65 20 70 68 61 6E 74 6F 6D 73 3B 0A 74 68 65 79 20 77 69 6C 6C 20 72 75 6E 20 61 6E 44 20 6E 6F 74 20 67 72 6F 77 20 77 65 41 72 79 2C 0A 74 68 65 59 20 77 69 6C 6C 20 77 61 6C 6B 20 61 6E 64 20 6E 6F 74 20 62 65 20 66 61 69 6E 74 2E

@@ -1,6 +1,8 @@
 // Volumetric tracing from Robobo1221, highly modified
 
 #include "/lib/colors/lightAndAmbientColors.glsl"
+#include "/lib/vx/getLighting.glsl"
+
 
 float GetDepth(float depth) {
 	return 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
@@ -21,10 +23,12 @@ vec4 DistortShadow(vec4 shadowpos, float distortFactor) {
 vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewPos, vec3 nViewPos, float VdotL, float VdotU, vec2 texCoord, float z0, float z1, float dither) {
 	if (max(blindness, darknessFactor) > 0.1) return vec4(0.0);
 	vec4 volumetricLight = vec4(0.0);
+	vec3 volumetricBlockLight = vec3(0.0);
+	vec3 vlColorReducer = vec3(1.0);
 
 	#ifdef OVERWORLD
 		vec3 vlColor = lightColor;
-		vec3 vlColorReducer = vec3(1.0);
+
 		float vlSceneIntensity = isEyeInWater != 1 ? vlFactor : 1.0;
 		float vlMult = 1.0;
 
@@ -105,72 +109,66 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		viewPos /= viewPos.w;
 		vec4 wpos = gbufferModelViewInverse * viewPos;
 		vec3 playerPos = wpos.xyz / wpos.w;
-		#if defined END && defined END_BEAMS
+		#ifdef END
 			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0);
 			enderBeamSample /= sampleCount;
 		#endif
-
-		float shadowSample = 1.0;
-		vec3 vlSample = vec3(1.0);
-		#ifdef REALTIME_SHADOWS
-			wpos = shadowModelView * wpos;
-			wpos = shadowProjection * wpos;
-			wpos /= wpos.w;
-			float distb = sqrt(wpos.x * wpos.x + wpos.y * wpos.y);
-			float distortFactor = 1.0 - shadowMapBias + distb * shadowMapBias;
-			vec4 shadowPosition = DistortShadow(wpos,distortFactor);
-			//shadowPosition.z += 0.0001;
-			
-			#ifdef OVERWORLD
-				float percentComplete = currentDist / maxDist;
-				float sampleMult = mix(percentComplete * 3.0, sampleMultIntense, max(rainFactor, vlSceneIntensity));
-				if (currentDist < 5.0) sampleMult *= smoothstep1(clamp(currentDist / 5.0, 0.0, 1.0));
-				sampleMult /= sampleCount;
-			#endif
-
-			if (length(shadowPosition.xy * 2.0 - 1.0) < 1.0) {
-				shadowSample = shadow2D(shadowtex0, shadowPosition.xyz).z;
-				vlSample = vec3(shadowSample);
-
-				if (shadowSample == 0.0) {
-					float testsample = shadow2D(shadowtex1, shadowPosition.xyz).z;
-					if (testsample == 1.0) {
-						vec3 colsample = texture2D(shadowcolor1, shadowPosition.xy).rgb * 4.0;
-						colsample *= colsample;
-						vlSample = colsample * (1.0 - vlSample) + vlSample;
-						#ifdef OVERWORLD
-							vlSample *= vlColorReducer;
-						#endif
-					}
-				} else {
-					//if (translucentMult != vec3(1.0) && playerPos.y + cameraPosition.y > oceanAltitude) vlSample *= 0.25;
-					if (isEyeInWater == 1 && translucentMult == vec3(1.0)) vlSample = vec3(0.0);
-				}
-			}
-		#endif
-		
-		if (currentDist > depth0) vlSample *= translucentMult;
-
+		float blSampleMult = 1.0 / sampleCount;
 		#ifdef OVERWORLD
-		volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
+			float percentComplete = currentDist / maxDist;
+			float sampleMult = mix(percentComplete * 3.0, sampleMultIntense, max(rainFactor, vlSceneIntensity));
+			if (currentDist < 5.0) sampleMult *= smoothstep1(clamp(currentDist / 5.0, 0.0, 1.0));
+			sampleMult /= sampleCount;
+		#elif defined NETHER
+			blSampleMult *= VBL_NETHER_MULT;
 		#else
-			#ifdef END_BEAMS
+			blSampleMult *= VBL_END_MULT;
+		#endif
+
+		vec3 blSample = vec3(0.0);
+		vec3 vxPos = getVxPos(playerPos);
+		if (isInRange(vxPos, 2)) {
+			blSample = getBlockLight(vxPos);
+		}
+		#ifdef REALTIME_SHADOWS
+			float shadowSample = 1.0;
+			vec3 vlSample = vec3(1.0);
+			vec3 prevVxPos = getPreviousVxPos(playerPos);
+			if (isInRange(prevVxPos, 2)) {
+				vlSample = getSunLight(prevVxPos, true);
+			#ifndef END
+				} else {
+					vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
+			#endif
+			}
+			vlSample *= vlSample + 0.1;
+			shadowSample = dot(vlSample, vec3(1)) > 0.5 ? 1.0 : 0.0;
+		#endif
+		if (currentDist > depth0)  {
+			#ifdef REALTIME_SHADOWS
+				vlSample *= translucentMult;
+			#endif
+			blSample *= translucentMult;
+		}
+		volumetricBlockLight += blSample * blSampleMult;
+
+		#ifdef REALTIME_SHADOWS
+			#ifdef OVERWORLD
+				volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
+			#elif defined END
 				volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
 			#endif
 		#endif
 	}
 
-	#if defined OVERWORLD && LIGHTSHAFT_BEHAVIOUR == 1
+	#if defined OVERWORLD && LIGHTSHAFT_BEHAVIOUR == 1 && defined REALTIME_SHADOWS
 		if (viewWidth + viewHeight - gl_FragCoord.x - gl_FragCoord.y < 1.5) {
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps
 				if (eyeBrightness.y < 180) {
 					vec4 wpos = vec4(shadowModelView[3][0], shadowModelView[3][1], shadowModelView[3][2], shadowModelView[3][3]);
-					wpos = shadowProjection * wpos;
+					wpos = shadowModelViewInverse * wpos;
 					wpos /= wpos.w;
-					vec4 shadowPosition = DistortShadow(wpos, 1.0 - shadowMapBias);
-					shadowPosition.z -= 0.0005;
-					float shadowSample = shadow2D(shadowtex0, shadowPosition.xyz).z;
-
+					float shadowSample = length(getSunLight(getPreviousVxPos(wpos.xyz))) > 0.3 ? 1.0 : 0.0;
 					if (shadowSample < 0.5) {
 						int salsX = 8;
 						int salsY = 5;
@@ -200,7 +198,9 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 	#ifdef OVERWORLD
 		volumetricLight.rgb *= vlMult * pow(vlColor, vec3(0.5 + 0.5 * mix(invNoonFactor, (1.0 + sunFactor), rainFactor)));
 	#endif
-	
+
+	volumetricLight.rgb += BLOCKLIGHT_SHAFT_STRENGTH * volumetricBlockLight;	
+
 	volumetricLight = max(volumetricLight, vec4(0.0));
 	volumetricLight.a = min(volumetricLight.a, 1.0);
 

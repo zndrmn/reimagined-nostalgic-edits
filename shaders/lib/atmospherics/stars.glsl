@@ -1,7 +1,5 @@
 #include "/lib/colors/skyColors.glsl"
 
-uniform sampler2D noisetex;
-
 float GetStarNoise(vec2 pos) {
     return fract(sin(dot(pos, vec2(12.9898, 4.1414))) * 43758.54953);
 }
@@ -16,7 +14,7 @@ vec3 GetStars(vec3 viewPos, float VdotU, float VdotS) {
 	vec3 moonCoord = moonPos / (moonPos.y + length(moonPos.xz));
 	starCoord.xz -= moonCoord.xz;
 
-    vec2 starCoord2 = starCoord.xz * 0.2 / STAR_SIZE;
+    vec2 starCoord2 = starCoord.xz * 0.2;
     float starFactor = 1024.0;
     starCoord2 = floor(starCoord2 * starFactor) / starFactor;
 
@@ -25,16 +23,12 @@ vec3 GetStars(vec3 viewPos, float VdotU, float VdotS) {
     star *= GetStarNoise(starCoord2.xy+0.1);
     star *= GetStarNoise(starCoord2.xy+0.23);
 
-    #ifdef MORE_STARS_OVERWORLD
-        star -= 0.5;
-        star *= 0.55;
-    #elif NIGHT_STAR_AMOUNT == 2
+    #if NIGHT_STAR_AMOUNT == 2
         star -= 0.7;
     #else
         star -= 0.6;
         star *= 0.65;
     #endif
-
     star = max0(star);
     star *= star;
 
@@ -42,11 +36,7 @@ vec3 GetStars(vec3 viewPos, float VdotU, float VdotS) {
     star *= starFogFactor * (1.0 - sunVisibility);
     star *= max0(1.0 - pow(abs(VdotS) * 1.002, 100.0));
 
-    vec3 stars = 40.0 * star * vec3(0.38, 0.4, 0.5) * invRainFactor * STAR_BRIGHTNESS;
-
-    #ifdef TWINKLING_STARS
-        stars *= clamp(abs(texture2D(noisetex, starCoord2 + frameTimeCounter * 0.004).r - 0.5) * 10, 0.5, 1.0);
-    #endif
+    vec3 stars = 40.0 * star * vec3(0.38, 0.4, 0.5) * invRainFactor;
 
     return stars;
 }

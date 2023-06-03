@@ -41,9 +41,6 @@ uniform sampler2D tex;
 
 //Includes//
 #include "/lib/colors/lightAndAmbientColors.glsl"
-#ifdef END
-	#include "/lib/colors/skyColors.glsl"
-#endif
 
 //Program//
 void main() {
@@ -83,12 +80,7 @@ void main() {
 
 			color.rgb *= GetHorizonFactor(VdotU);
 		} else { // Custom Sky
-			#if MC_VERSION >= 11300
-				color.rgb *= color.rgb * smoothstep1(sqrt1(max0(VdotU)));
-			#else
-				discard;
-				// Old mc custom skyboxes are weirdly broken, so we discard.
-			#endif
+			color.rgb *= color.rgb * smoothstep1(sqrt1(max0(VdotU)));
 		}
 
 		if (isEyeInWater == 1) color.rgb *= 0.25;

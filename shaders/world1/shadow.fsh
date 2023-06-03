@@ -1,7 +1,5 @@
-#version 130 
+#version 330 compatibility 
 
-#define FRAGMENT_SHADER
-#define END
-#define SHADOW
+#extension GL_ARB_shader_image_load_store : enable
 
-#include "/program/shadow.glsl"
+#include "/program/shadow_fsh.glsl"

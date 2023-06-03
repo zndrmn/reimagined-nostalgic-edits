@@ -26,28 +26,42 @@ uniform float nightVision;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
+uniform ivec2 atlasSize;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+#if BL_SHADOW_MODE == 1
+uniform float near, far;
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferPreviousModelView;
+#endif
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-uniform sampler2D noisetex;
+#ifdef CLOUD_SHADOWS
+	uniform sampler2D gaux3;
+#endif
 
-#ifdef MULTICOLORED_BLOCKLIGHT
-	uniform vec3 previousCameraPosition;
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
+	uniform sampler2D tex;
+	#define ATLASTEX tex
+#endif
 
-	uniform mat4 gbufferPreviousModelView;
-	uniform mat4 gbufferPreviousProjection;
+#if SELECTION_OUTLINE == 1
+	uniform float frameTimeCounter;
+#endif
 
-	uniform sampler2D colortex9;
+#if HELD_LIGHTING_MODE >= 1
+	uniform int heldItemId;
+	uniform int heldItemId2;
 #endif
 
 //Pipeline Constants//
 
 //Common Variables//
 float NdotU = dot(normal, upVec);
-float NdotUmax0 = max(NdotU, 0.0);
 float SdotU = dot(sunVec, upVec);
 float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
 float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
@@ -66,15 +80,10 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #ifdef TAA
 	#include "/lib/util/jitter.glsl"
-#endif
-
-#ifdef MULTICOLORED_BLOCKLIGHT
-	#include "/lib/lighting/coloredBlocklight.glsl"
 #endif
 
 //Program//
@@ -91,36 +100,40 @@ void main() {
 	vec3 playerPos = ViewToPlayer(viewPos);
 
 	vec3 shadowMult = vec3(1.0);
+	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
+	           false, false, false, false, 0,
+			   0.0, 0.0, 0.0, 0);
 
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
-	#endif
-
-	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
-	           false, false, false, false,
-			   0, 0.0, 0.0, 0.0);
-
-	#if SELECT_OUTLINE != 1
+	#if SELECTION_OUTLINE > 0
 	if (abs(color.a - 0.4) + dot(color.rgb, color.rgb) < 0.01) {
-		#if SELECT_OUTLINE == 0
-			discard;
-		#elif SELECT_OUTLINE == 2 // Rainbow
+		#if SELECTION_OUTLINE == 1 // Rainbow
 			float posFactor = playerPos.x + playerPos.y + playerPos.z + cameraPosition.x + cameraPosition.y + cameraPosition.z;
 			color.rgb = clamp(abs(mod(fract(frameTimeCounter*0.25 + posFactor*0.2) * 6.0 + vec3(0.0,4.0,2.0), 6.0) - 3.0) - 1.0,
-						0.0, 1.0) * vec3(3.0, 2.0, 3.0) * SELECT_OUTLINE_I;
-		#elif SELECT_OUTLINE == 3 // Select Color
-			color.rgb = vec3(SELECT_OUTLINE_R, SELECT_OUTLINE_G, SELECT_OUTLINE_B) * SELECT_OUTLINE_I;
+						0.0, 1.0) * vec3(3.0, 2.0, 3.0);
+		#elif SELECTION_OUTLINE == 2 // White
+			color.rgb = vec3(2.0);
+		#elif SELECTION_OUTLINE == 3 // Red
+			color.rgb = vec3(3.0, 0.0, 0.0);
+		#elif SELECTION_OUTLINE == 4 // Green
+			color.rgb = vec3(0.0, 2.0, 0.0);
+		#elif SELECTION_OUTLINE == 5 // Blue
+			color.rgb = vec3(0.0, 0.0, 3.0);
+		#elif SELECTION_OUTLINE == 6 // Yellow
+			color.rgb = vec3(2.0, 2.0, 0.0);
+		#elif SELECTION_OUTLINE == 7 // Cyan
+			color.rgb = vec3(0.0, 2.0, 2.5);
+		#elif SELECTION_OUTLINE == 8 // Magenta
+			color.rgb = vec3(2.0, 0.0, 2.0);
 		#endif
 	}
 	#endif
 
-	/* DRAWBUFFERS:01 */
+	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
-	gl_FragData[1] = vec4(0.0, 0.0, 0.0, 1.0);
 
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		/* DRAWBUFFERS:018 */
-		gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0);
+	#ifdef TEMPORAL_FILTER
+		/* DRAWBUFFERS:06 */
+		gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);
 	#endif
 }
 
@@ -141,11 +154,6 @@ flat out vec4 glColor;
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined WORLD_CURVATURE
-	uniform sampler2D noisetex;
-	uniform mat4 gbufferModelViewInverse;
-#endif
-
 //Attributes//
 
 //Common Variables//
@@ -155,10 +163,6 @@ flat out vec4 glColor;
 //Includes//
 #ifdef TAA
 	#include "/lib/util/jitter.glsl"
-#endif
-
-#if defined WORLD_CURVATURE
-	#include "/lib/misc/distortWorld.glsl"
 #endif
 
 //Program//
@@ -185,14 +189,6 @@ void main() {
 
 	#ifdef TAA
 		gl_Position.xy = TAAJitter(gl_Position.xy, gl_Position.w);
-	#endif
-
-	#if defined WORLD_CURVATURE
-		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-		#ifdef WORLD_CURVATURE
-			position.y += doWorldCurvature(position.xz);
-		#endif
-		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 
 	lmCoord  = GetLightMapCoordinates();

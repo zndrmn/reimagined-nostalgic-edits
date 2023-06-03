@@ -29,7 +29,7 @@ vec3 GetSky(float VdotU, float VdotS, float dither, bool doGlare, bool doGround)
         // Set sky gradient
         float VdotUM1 = pow2(1.0 - VdotUmax0);
               VdotUM1 = pow(VdotUM1, 1.0 - VdotSM2 * 0.4);
-              VdotUM1 = mix(VdotUM1, 1.0, rainFactor2 * 0.9);
+              VdotUM1 = mix(VdotUM1, 1.0, rainFactor2 * 0.2);
         vec3 finalSky = mix(upColor, middleColor, VdotUM1);
 
         // Add sunset color
@@ -58,18 +58,20 @@ vec3 GetSky(float VdotU, float VdotS, float dither, bool doGlare, bool doGround)
     // Sun/Moon Glare
     if (doGlare) {
         if (0.0 < VdotSML) {
-            float VdotSM4 = pow2(pow2(VdotS));
-            if (VdotS < 0.0) VdotSM4 *= VdotSM4;
-            float visfactor = 0.035;
+            float glareScatter = (4.0 - 3.5 * rainFactor2) * (2.0 - clamp01(VdotS * 1000.0));
+            float VdotSM4 = pow(abs(VdotS), glareScatter);
 
+            float visfactor = 0.075;
             float glare = visfactor / (1.0 - (1.0 - visfactor) * VdotSM4) - visfactor;
 
-            glare *= 0.5 - sunVisibility * invNoonFactor * 0.45;
-            glare *= invRainFactor;
+            glare *= 0.5 - sunVisibility * 0.25 + noonFactor * 0.35;
+            glare *= 1.0 - rainFactor * (0.96 - sqrt1(nightFactor) * 0.2 - 0.2 * sunVisibility);
 
-            if (isEyeInWater == 1) glare *= 10.0;
+            float glareWaterFactor = isEyeInWater * sunVisibility;
+            vec3 glareColor = mix(vec3(0.38, 0.4, 0.5) * 0.7, sqrt(lightColor * 1.4), sunVisibility);
+                 glareColor = (glareColor + glareWaterFactor * waterFogColor * 10.0) * (1.0 + glareWaterFactor * 3.0);
 
-            finalSky += glare * shadowTime * sqrt(lightColor * 1.4);
+            finalSky += glare * shadowTime * glareColor;
         }
     }
 

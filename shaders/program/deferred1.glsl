@@ -12,7 +12,7 @@ noperspective in vec2 texCoord;
 
 flat in vec3 upVec, sunVec;
 
-#if LIGHTSHAFT_BEHAVIOUR == 1 && defined LIGHTSHAFTS_ACTIVE
+#if LIGHTSHAFT_BEHAVIOUR == 1 && LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
     flat in float vlFactor;
 #endif
 
@@ -24,10 +24,7 @@ uniform float far, near;
 uniform float viewWidth, viewHeight;
 uniform float blindness;
 uniform float darknessFactor;
-
-#ifdef NETHER_NOISE
-	uniform float eyeAltitude;
-#endif
+uniform float frameTimeCounter;
 
 uniform vec3 fogColor;
 uniform vec3 skyColor;
@@ -40,24 +37,24 @@ uniform mat4 shadowProjection;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
+uniform sampler2D colortex5;
+uniform sampler2D colortex7;
 uniform sampler2D depthtex0;
 uniform sampler2D noisetex;
 
-#if SSAO > 0 || defined PBR_REFLECTIONS
+#if defined SSAO || defined PBR_REFLECTIONS
 	uniform mat4 gbufferProjection;
 #endif
 
-#if SSAO > 0 || defined WORLD_OUTLINE
+#if defined SSAO || defined WORLD_OUTLINE
 	uniform float aspectRatio;
 #endif
 
 #ifdef PBR_REFLECTIONS
 	uniform mat4 gbufferModelView;
-	
-	uniform sampler2D colortex5;
 #endif
 
-#if AURORA_STYLE > 0 || defined OVERWORLD_BEAMS
+#if AURORA_STYLE > 0
 	uniform int moonPhase;
 
 	uniform float isSnowy;
@@ -78,9 +75,6 @@ uniform sampler2D noisetex;
 
 	uniform mat4 gbufferPreviousProjection;
 	uniform mat4 gbufferPreviousModelView;
-
-	uniform sampler2D colortex6;
-	uniform sampler2D colortex7;
 #endif
 
 //Pipeline Constants//
@@ -102,11 +96,24 @@ float farMinusNear = far - near;
 	vec3 lightVec = sunVec;
 #endif
 
-#if SSAO > 0 || defined WORLD_OUTLINE
+#if defined SSAO || defined WORLD_OUTLINE
     vec2 view = vec2(viewWidth, viewHeight);
 #endif
 
-#if LIGHTSHAFT_BEHAVIOUR == 1 && defined LIGHTSHAFTS_ACTIVE
+#ifdef TEMPORAL_FILTER
+	ivec2 neighbourhoodOffsets[8] = ivec2[8](
+		ivec2(-1, -1),
+		ivec2( 0, -1),
+		ivec2( 1, -1),
+		ivec2(-1,  0),
+		ivec2( 1,  0),
+		ivec2(-1,  1),
+		ivec2( 0,  1),
+		ivec2( 1,  1)
+	);
+#endif
+
+#if LIGHTSHAFT_BEHAVIOUR == 1 && LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
 #else
 	float vlFactor = 0.0;
 #endif
@@ -116,7 +123,7 @@ float GetLinearDepth(float depth) {
 	return (2.0 * near) / (far + near - depth * farMinusNear);
 }
 
-#if SSAO > 0
+#ifdef SSAO
     vec2 OffsetDist(float x, int s) {
         float n = fract(x * 1.414) * 3.1415;
         return pow2(vec2(cos(n), sin(n)) * x / s);
@@ -153,44 +160,27 @@ float GetLinearDepth(float depth) {
         }
         ao /= samples;
         
-		#if SSAO == 2
-        	return pow(ao, 0.8);
-		#elif SSAO == 1
-        	return pow(ao, 0.4);
-		#endif
+        return pow(ao, 0.8);
     }
 #endif
 
+#ifdef PBR_REFLECTIONS
+	vec3 nvec3(vec4 pos) {
+		return pos.xyz/pos.w;
+	}
+
+	vec4 nvec4(vec3 pos) {
+		return vec4(pos.xyz, 1.0);
+	}
+
+	float cdist(vec2 coord) {
+		return max(abs(coord.s-0.5) * 1.82, abs(coord.t-0.5) * 2.0);
+	}
+#endif
+
 #ifdef TEMPORAL_FILTER
-	float GetApproxDistance(float depth) {
-		return near * far / (far - depth * far);
-	}
-
 	// Previous frame reprojection from Chocapic13
-	vec2 Reprojection(vec3 pos, vec3 cameraOffset) {
-		pos = pos * 2.0 - 1.0;
-
-		vec4 viewPosPrev = gbufferProjectionInverse * vec4(pos, 1.0);
-		viewPosPrev /= viewPosPrev.w;
-		viewPosPrev = gbufferModelViewInverse * viewPosPrev;
-
-		vec4 previousPosition = viewPosPrev + vec4(cameraOffset, 0.0);
-		previousPosition = gbufferPreviousModelView * previousPosition;
-		previousPosition = gbufferPreviousProjection * previousPosition;
-		return previousPosition.xy / previousPosition.w * 0.5 + 0.5;
-	}
-
-	vec3 FHalfReprojection(vec3 pos) {
-		pos = pos * 2.0 - 1.0;
-
-		vec4 viewPosPrev = gbufferProjectionInverse * vec4(pos, 1.0);
-		viewPosPrev /= viewPosPrev.w;
-		viewPosPrev = gbufferModelViewInverse * viewPosPrev;
-
-		return viewPosPrev.xyz;
-	}
-
-	vec2 SHalfReprojection(vec3 playerPos, vec3 cameraOffset) {
+	vec2 Reprojection(vec3 playerPos, vec3 cameraOffset) {
 		vec4 proPos = vec4(playerPos + cameraOffset, 1.0);
 		vec4 previousPosition = gbufferPreviousModelView * proPos;
 		previousPosition = gbufferPreviousProjection * previousPosition;
@@ -205,7 +195,12 @@ float GetLinearDepth(float depth) {
 #include "/lib/colors/skyColors.glsl"
 
 #ifdef PBR_REFLECTIONS
-	#include "/lib/materials/materialMethods/reflections.glsl"
+	#ifdef OVERWORLD
+		#include "/lib/atmospherics/sky.glsl"
+	#endif
+	#ifdef END
+		#include "/lib/atmospherics/enderBeams.glsl"
+	#endif
 #endif
 
 #if AURORA_STYLE > 0
@@ -224,15 +219,11 @@ float GetLinearDepth(float depth) {
 	#include "/lib/misc/worldOutline.glsl"
 #endif
 
-#ifdef ATM_COLOR_MULTS
-    #include "/lib/colors/colorMultipliers.glsl"
-#endif
-
 //Program//
 void main() {
 	vec3 color = texelFetch(colortex0, texelCoord, 0).rgb;
 	float z0   = texelFetch(depthtex0, texelCoord, 0).r;
-
+	vec3 normal = vec3(0);
 	vec4 screenPos = vec4(texCoord, z0, 1.0);
 	vec4 viewPos = gbufferProjectionInverse * (screenPos * 2.0 - 1.0);
 	viewPos /= viewPos.w;
@@ -246,10 +237,6 @@ void main() {
 		dither = fract(dither + ditherAnimate);
 	#endif
 
-	#ifdef ATM_COLOR_MULTS
-		atmColorMult = GetAtmColorMult();
-	#endif
-
 	float VdotU = dot(nViewPos, upVec);
 	float VdotS = dot(nViewPos, sunVec);
 	float skyFade = 0.0;
@@ -260,7 +247,7 @@ void main() {
 	#endif
 
 	#ifdef TEMPORAL_FILTER
-		vec4 refToWrite = vec4(0.0);
+		vec4 refAndCloudNew = vec4(0.0);
 	#endif
 
 	#ifdef CLOUDS_ACTIVATE
@@ -269,12 +256,13 @@ void main() {
 	
 	if (z0 < 1.0) {
 		vec3 texture5 = texelFetch(colortex1, texelCoord, 0).rgb;
+		normal = texelFetch(colortex5, texelCoord, 0).rgb;
 
-		#if SSAO > 0 || defined WORLD_OUTLINE
+		#if defined SSAO || defined WORLD_OUTLINE
 			float linearZ0 = GetLinearDepth(z0);
 		#endif
 
-		#if SSAO > 0
+		#ifdef SSAO
 			float ssao = DoAmbientOcclusion(z0, linearZ0, dither);
 		#else
 			float ssao = 1.0;
@@ -313,7 +301,7 @@ void main() {
 
 		#ifdef PBR_REFLECTIONS
 			float skyLightFactor = texture5.b;
-			vec3 normalM = mat3(gbufferModelView) * texelFetch(colortex5, texelCoord, 0).rgb;
+			vec3 normalM = mat3(gbufferModelView) * normal;
 
 			float fresnel = clamp(1.0 + dot(normalM, nViewPos), 0.0, 1.0);
 
@@ -335,54 +323,15 @@ void main() {
 				#endif
 				vec3 roughNoise = vec3(texture2D(noisetex, roughCoord).r, texture2D(noisetex, roughCoord + 0.1).r, texture2D(noisetex, roughCoord + 0.2).r);
 				roughNoise = vec3(0.3, 0.3, 0.3) * (roughNoise - vec3(0.5));
+				
 				roughNoise *= pow2(1.0 - smoothnessD);
-				#ifdef CUSTOM_PBR
-					if (z0 <= 0.56) roughNoise *= 0.25;
-				#endif
 
 				normalM += roughNoise;
-
-				vec4 reflection = GetReflection(normalM, viewPos.xyz, nViewPos, playerPos, lViewPos,
-				                                depthtex0, dither, skyLightFactor, fresnel,
-												smoothnessD, vec3(0.0), vec3(0.0), vec3(0.0), 0.0);
-
-				vec3 colorAdd = reflection.rgb * reflectColor;
-				float colorMultInv = (0.75 - intenseFresnel * 0.5) * max(reflection.a, skyLightFactor);
-
-				#ifndef TEMPORAL_FILTER
-					color *= 1.0 - colorMultInv * fresnelM;
-					color += colorAdd * fresnelM;
-				#else
-					vec3 cameraOffset = cameraPosition - previousCameraPosition;
-					vec2 prvCoord = SHalfReprojection(playerPos, cameraOffset);
-					vec2 prvRefCoord = Reprojection(vec3(texCoord, max(refPos.z, z0)), cameraOffset);
-
-					vec4 oldRef = texture2D(colortex7, prvRefCoord);
-					vec4 newRef = vec4(colorAdd, colorMultInv);
-
-					float blendFactor = float(prvCoord.x > 0.0 && prvCoord.x < 1.0 && prvCoord.y > 0.0 && prvCoord.y < 1.0);
-					float velocity = length(cameraOffset) * max(16.0 - lViewPos / gbufferProjection[1][1], 3.0);
-					blendFactor *= 0.7 + 0.3 * exp(-velocity);
-
-					float z1P = texture2D(colortex6, prvCoord).r;
-					vec3 disChange = playerPos - FHalfReprojection(vec3(prvCoord, z1P)) + cameraOffset;
-
-					blendFactor *= exp(-dot(disChange, disChange) * 100.0);
-
-					blendFactor = max0(blendFactor); // Prevents first frame NaN
-					//newRef = max(newRef, vec4(0.0)); // Prevents other NaN
-					refToWrite = mix(newRef, oldRef, blendFactor * 0.9);
-
-					color.rgb *= 1.0 - refToWrite.a * fresnelM;
-					color.rgb += refToWrite.rgb * fresnelM;
-				#endif
+			
+				#include "/lib/materials/materialMethods/deferredReflections.glsl"
 
 				//if (gl_FragCoord.x > 960) color = vec3(5.25,0,5.25);
 			}
-
-			#ifdef TEMPORAL_FILTER
-
-			#endif
 		#endif
 
 		#ifdef WORLD_OUTLINE
@@ -407,40 +356,58 @@ void main() {
 		#endif
 		#ifdef NETHER
 			color.rgb = netherSkyColor;
-
-			#ifdef ATM_COLOR_MULTS
-				color.rgb *= atmColorMult;
-			#endif
 		#endif
 		#ifdef END
 			color.rgb = endSkyColor;
 			color.rgb += GetEnderStars(viewPos.xyz, VdotU);
-
-			#ifdef ATM_COLOR_MULTS
-				color.rgb *= atmColorMult;
-			#endif
 		#endif
 	}
 	
 	float cloudLinearDepth = 1.0;
 
+	#ifdef TEMPORAL_FILTER
+		vec4 refAndCloudWrite = vec4(0.0);
+	#endif
+
 	if (z0 > 0.56) {
 		#ifdef CLOUDS_ACTIVATE
 			vec4 clouds = GetClouds(cloudLinearDepth, skyFade, playerPos, viewPos.xyz, lViewPos, VdotS, VdotU, dither);
-
-			#ifdef ATM_COLOR_MULTS
-				clouds.rgb *= atmColorMult;
-			#endif
 
 			#if AURORA_STYLE > 0
 				clouds.rgb += auroraBorealis * 0.1;
 			#endif
 
-			color = mix(color, clouds.rgb, clouds.a);
+			#ifndef TEMPORAL_FILTER
+				color = mix(color, clouds.rgb, clouds.a);
+			#else
+				refAndCloudNew.rgb += clouds.rgb * clouds.a;
+				refAndCloudNew.a = max(refAndCloudNew.a, clouds.a);
+			#endif
+		#endif
+
+		#ifdef TEMPORAL_FILTER
+			vec3 cameraOffset = cameraPosition - previousCameraPosition;
+			vec2 prvCoord = Reprojection(playerPos, cameraOffset);
+			vec4 refAndCloudOld = texture2D(colortex7, prvCoord);
+
+			float blendFactor = float(prvCoord.x > 0.0 && prvCoord.x < 1.0 && prvCoord.y > 0.0 && prvCoord.y < 1.0);
+			float velocity = length(cameraOffset) * max(16.0 - lViewPos / gbufferProjection[1][1], 3.0);
+			blendFactor *= max(exp(-velocity) * 0.95, 0.5);
+
+			for (int i = 0; i < 8; i++) {
+				float depthCheck = texelFetch(depthtex0, texelCoord + neighbourhoodOffsets[i] * 4, 0).r;
+				if (abs(GetLinearDepth(depthCheck) - GetLinearDepth(z0)) > 0.09) blendFactor = 0.0;
+			}
+			blendFactor *= min1(refAndCloudOld.a * 10000000.0);
+
+			refAndCloudWrite = mix(refAndCloudNew, refAndCloudOld, blendFactor);
+
+			color.rgb *= 1.0 - refAndCloudWrite.a;
+			color.rgb += refAndCloudWrite.rgb;
 		#endif
 	}
 
-	#if LIGHTSHAFT_BEHAVIOUR == 1 && defined LIGHTSHAFTS_ACTIVE
+	#if LIGHTSHAFT_BEHAVIOUR == 1 && LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
 		if (viewWidth + viewHeight - gl_FragCoord.x - gl_FragCoord.y < 1.5)
 			cloudLinearDepth = vlFactor;
 	#endif
@@ -448,10 +415,14 @@ void main() {
 	/*DRAWBUFFERS:054*/
     gl_FragData[0] = vec4(color, 1.0);
 	gl_FragData[1] = vec4(waterRefColor, 1.0 - skyFade);
-	gl_FragData[2] = vec4(cloudLinearDepth, 0.0, 0.0, 1.0);
+	#if BL_SHADOW_MODE == 1
+		gl_FragData[2] = vec4(normal * 0.5 + 0.5, cloudLinearDepth);
+	#else
+		gl_FragData[2] = vec4(0.0, 0.0, 0.0, cloudLinearDepth);
+	#endif
 	#ifdef TEMPORAL_FILTER
 		/*DRAWBUFFERS:0547*/
-		gl_FragData[3] = refToWrite;
+		gl_FragData[3] = refAndCloudWrite;
 	#endif
 }
 
@@ -464,12 +435,12 @@ noperspective out vec2 texCoord;
 
 flat out vec3 upVec, sunVec;
 
-#if LIGHTSHAFT_BEHAVIOUR == 1 && defined LIGHTSHAFTS_ACTIVE
+#if LIGHTSHAFT_BEHAVIOUR == 1 && LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
     flat out float vlFactor;
 #endif
 
 //Uniforms//
-#if LIGHTSHAFT_BEHAVIOUR == 1 && defined LIGHTSHAFTS_ACTIVE
+#if LIGHTSHAFT_BEHAVIOUR == 1 && LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
 	uniform float viewWidth, viewHeight;
 	
 	uniform sampler2D colortex4;
@@ -479,8 +450,7 @@ flat out vec3 upVec, sunVec;
 	
 		uniform float frameTimeSmooth;
 		uniform float far;
-	#endif
-	#if defined END || (defined OVERWORLD && defined OVERWORLD_BEAMS)
+
 		uniform vec3 cameraPosition;
 	#endif
 #endif
@@ -501,8 +471,8 @@ void main() {
 	upVec = normalize(gbufferModelView[1].xyz);
 	sunVec = GetSunVector();
 
-	#if LIGHTSHAFT_BEHAVIOUR == 1 && defined LIGHTSHAFTS_ACTIVE
-		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).r;
+	#if LIGHTSHAFT_BEHAVIOUR == 1 && LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
+		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).a;
 
 		#ifdef END
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps

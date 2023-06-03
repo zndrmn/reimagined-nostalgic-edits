@@ -84,11 +84,6 @@ out vec4 glColor;
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined WORLD_CURVATURE
-	uniform sampler2D noisetex;
-	uniform mat4 gbufferModelViewInverse;
-#endif
-
 //Attributes//
 
 //Common Variables//
@@ -100,10 +95,6 @@ out vec4 glColor;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#if defined WORLD_CURVATURE
-	#include "/lib/misc/distortWorld.glsl"
-#endif
-
 //Program//
 void main() {
 	gl_Position = ftransform();
@@ -112,14 +103,6 @@ void main() {
 	#endif
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-
-	#if defined WORLD_CURVATURE
-		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-		#ifdef WORLD_CURVATURE
-			position.y += doWorldCurvature(position.xz);
-		#endif
-		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
-	#endif
 
 	glColor = gl_Color;
 }

@@ -35,7 +35,6 @@ float sunVisibility2 = sunVisibility * sunVisibility;
 
 //Includes//
 #include "/lib/colors/lightAndAmbientColors.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 
 //Program//
 void main() {
@@ -44,11 +43,7 @@ void main() {
 
 	if (color.a < 0.1 || isEyeInWater == 3) discard;
 
-	if (color.r + color.g < 1.5) {
-		color.a *= RAIN_PARTICLE_TRANSPARENCY;
-	} else {
-		color.a *= SNOW_PARTICLE_TRANSPARENCY;
-	}
+	if (color.r + color.g < 1.5) color.a *= 0.25;
 	color.rgb = sqrt2(color.rgb) * (blocklightCol * lmCoord.x + ambientColor * lmCoord.y * (0.7 + 0.35 * sunFactor));
 
 	/* DRAWBUFFERS:0 */
@@ -69,11 +64,6 @@ flat out vec4 glColor;
 
 //Uniforms//
 
-#if defined WORLD_CURVATURE
-	uniform sampler2D noisetex;
-	uniform mat4 gbufferModelViewInverse;
-#endif
-
 //Attributes//
 
 //Common Variables//
@@ -81,10 +71,6 @@ flat out vec4 glColor;
 //Common Functions//
 
 //Includes//
-
-#if defined WORLD_CURVATURE
-	#include "/lib/misc/distortWorld.glsl"
-#endif
 
 //Program//
 void main() {
@@ -95,14 +81,6 @@ void main() {
 	
 	upVec = normalize(gbufferModelView[1].xyz);
 	sunVec = GetSunVector();
-
-	#if defined WORLD_CURVATURE
-		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-		#ifdef WORLD_CURVATURE
-			position.y += doWorldCurvature(position.xz);
-		#endif
-		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
-	#endif
 }
 
 #endif

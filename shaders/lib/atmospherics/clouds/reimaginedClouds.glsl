@@ -90,7 +90,7 @@ vec4 GetVolumetricClouds(float cloudAltitude, float distanceThreshold, inout flo
         if (GetCloudNoise(tracePos.xyz, cloudAltitude)) {
             float lightMult = 1.0;
 
-            #if defined CLOUD_CLOSED_AREA_CHECK && defined REALTIME_SHADOWS
+            #ifdef REALTIME_SHADOWS
                 if (GetShadowOnCloud(tracePos, cloudAltitude, lowerPlaneAltitude, higherPlaneAltitude)) {
                     if (eyeBrightness.y != 240) continue;
                     else lightMult = 0.25;
@@ -116,10 +116,10 @@ vec4 GetVolumetricClouds(float cloudAltitude, float distanceThreshold, inout flo
                   VdotSM = max0(VdotSM) * shadowTime * 0.25;
                   VdotSM += 0.5 * cloudShading + 0.08;
             cloudShading = VdotSM * light * lightMult;
-
-            vec3 colorSample = CLOUD_COLOR_I * cloudAmbientColor + cloudLightColor * (0.18 + cloudShading);
+            
+            vec3 colorSample = cloudAmbientColor + cloudLightColor * (0.07 + cloudShading);
             vec3 cloudSkyColor = GetSky(VdotU, VdotS, dither, true, false);
-            float cloudFogFactor = clamp((distanceThreshold - lTracePosXZ) / distanceThreshold, 0.0, 0.75) * CLOUD_TRANSPARENCY;
+            float cloudFogFactor = clamp((distanceThreshold - lTracePosXZ) / distanceThreshold, 0.0, 0.75);
             float skyMult1 = 1.0 - 0.2 * (1.0 - skyFade) * max(sunVisibility2, nightFactor);
             float skyMult2 = 1.0 - 0.33333 * skyFade;
             colorSample = mix(cloudSkyColor, colorSample * skyMult1, cloudFogFactor * skyMult2);

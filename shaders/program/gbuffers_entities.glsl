@@ -16,7 +16,7 @@ in vec3 normal;
 
 in vec4 glColor;
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES
 	in vec2 signMidCoordPos;
 	flat in vec2 absMidCoordPos;
 #endif
@@ -25,60 +25,64 @@ in vec4 glColor;
 	flat in vec3 binormal, tangent;
 #endif
 
-#ifdef POM
-	in vec3 viewVector;
-
-	in vec4 vTexCoordAM;
-#endif
-
-flat in int mat;
-
 //Uniforms//
 uniform int isEyeInWater;
 uniform int entityId;
 uniform int blockEntityId;
-uniform int frameCounter;
 
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
+uniform float frameTimeCounter;
 
 uniform ivec2 atlasSize;
 
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
 
 uniform vec4 entityColor;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+#if BL_SHADOW_MODE == 1
+uniform float near, far;
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferPreviousModelView;
+#endif
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
 uniform sampler2D tex;
-uniform sampler2D noisetex;
-uniform float isSnowy;
+
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
+	uniform int frameCounter;
+	#define ATLASTEX tex
+#endif
+
+#ifdef COATED_TEXTURES
+	uniform sampler2D noisetex;
+#endif
+
+#ifdef CLOUD_SHADOWS
+	uniform sampler2D gaux3;
+#endif
+
+#if HELD_LIGHTING_MODE >= 1
+	uniform int heldItemId;
+	uniform int heldItemId2;
+#endif
 
 #ifdef CUSTOM_PBR
 	uniform sampler2D normals;
 	uniform sampler2D specular;
 #endif
 
-#ifdef MULTICOLORED_BLOCKLIGHT
-	uniform vec3 previousCameraPosition;
-
-	uniform mat4 gbufferPreviousModelView;
-	uniform mat4 gbufferPreviousProjection;
-
-	uniform sampler2D colortex9;
-#endif
-
 //Pipeline Constants//
 
 //Common Variables//
 float NdotU = dot(normal, upVec);
-float NdotUmax0 = max(NdotU, 0.0);
 float SdotU = dot(sunVec, upVec);
 float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
 float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
@@ -106,7 +110,6 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 //Includes//
 #include "/lib/util/dither.glsl"
 #include "/lib/util/spaceConversion.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #if defined GENERATED_NORMALS || defined COATED_TEXTURES
@@ -125,14 +128,6 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
-#ifdef TAA
-	#include "/lib/util/jitter.glsl"
-#endif
-
-#ifdef MULTICOLORED_BLOCKLIGHT
-	#include "/lib/lighting/coloredBlocklight.glsl"
-#endif
-
 //Program//
 void main() {
 	vec4 color = texture2D(tex, texCoord);
@@ -141,79 +136,64 @@ void main() {
 	#endif
 	color *= glColor;
 
-	float smoothnessD = 0.0, skyLightFactor = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
-	vec3 normalM = normal;
-
-	if (color.a > 0.001) {
-		vec3 screenPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z);
-		vec3 viewPos = ScreenToView(screenPos);
-		vec3 nViewPos = normalize(viewPos);
-		vec3 playerPos = ViewToPlayer(viewPos);
-		float lViewPos = length(viewPos);
-
 	color.rgb = mix(color.rgb, entityColor.rgb, entityColor.a);
 
-		bool noSmoothLighting = atlasSize.x < 600.0; // To fix fire looking too dim
+	vec3 screenPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z);
+	vec3 viewPos = ScreenToView(screenPos);
+	vec3 nViewPos = normalize(viewPos);
+	vec3 playerPos = ViewToPlayer(viewPos);
+	float lViewPos = length(viewPos);
+
+	bool noSmoothLighting = atlasSize.x < 600.0; // To fix fire looking too dim
+	
+	float smoothnessD = 0.0, skyLightFactor = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
+	float smoothnessG = 0.0, highlightMult = 0.0, emission = 0.0, noiseFactor = 0.75;
+	vec2 lmCoordM = lmCoord;
+	vec3 normalM = normal;
+	vec3 shadowMult = vec3(1.0);
+	#ifdef IPBR
+		#include "/lib/materials/materialHandling/entityMaterials.glsl"
+
+		#ifdef GENERATED_NORMALS
+			GenerateNormals(normalM, colorP);
+		#endif
+
+		#ifdef COATED_TEXTURES
+			CoatTextures(color.rgb, noiseFactor, playerPos);
+		#endif
+	#else
+		#ifdef CUSTOM_PBR
+			GetCustomMaterials(normalM, NdotU, smoothnessG, smoothnessD, highlightMult, emission, materialMask);
+		#endif
 		
-		float smoothnessG = 0.0, highlightMult = 0.0, emission = 0.0, noiseFactor = 0.75;
-		vec2 lmCoordM = lmCoord;
-		vec3 shadowMult = vec3(1.0);
-		#ifdef IPBR
-			#include "/lib/materials/materialHandling/entityMaterials.glsl"
+		if (entityId == 50004) { // Lightning Bolt
+			#include "/lib/materials/specificMaterials/entities/lightningBolt.glsl"
+		} else if (entityId == 50008) { // Item Frame, Glow Item Frame
+			noSmoothLighting = true;
+		}
+	#endif
 
-			#ifdef GENERATED_NORMALS
-				GenerateNormals(normalM, colorP);
-			#endif
+	normalM = gl_FrontFacing ? normalM : -normalM; // Inverted Normal Workaround
 
-			#ifdef COATED_TEXTURES
-				CoatTextures(color.rgb, noiseFactor, playerPos);
-			#endif
+	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
+				noSmoothLighting, false, false, true, 0,
+				smoothnessG, highlightMult, emission, max(entityId, blockEntityId));
+
+	#if defined CUSTOM_PBR && defined PBR_REFLECTIONS
+		#ifdef OVERWORLD
+			skyLightFactor = pow2(max(lmCoord.y - 0.7, 0.0) * 3.33333);
 		#else
-			#ifdef CUSTOM_PBR
-				GetCustomMaterials(color, normalM, lmCoordM, NdotU, shadowMult, smoothnessG, smoothnessD, highlightMult, emission, materialMask, viewPos, lViewPos);
-			#endif
-			
-			if (entityId == 50004) { // Lightning Bolt
-				#include "/lib/materials/specificMaterials/entities/lightningBolt.glsl"
-			} else if (entityId == 50008) { // Item Frame, Glow Item Frame
-				noSmoothLighting = true;
-			}
+			skyLightFactor = dot(shadowMult, shadowMult) / 3.0;
 		#endif
-
-		normalM = gl_FrontFacing ? normalM : -normalM; // Inverted Normal Workaround
-
-		#ifdef MULTICOLORED_BLOCKLIGHT
-			blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
-		#endif
-
-		DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
-				   noSmoothLighting, false, false, true,
-				   0, smoothnessG, highlightMult, emission);
-
-		#if defined CUSTOM_PBR && defined PBR_REFLECTIONS
-			#ifdef OVERWORLD
-				skyLightFactor = pow2(max(lmCoord.y - 0.7, 0.0) * 3.33333);
-			#else
-				skyLightFactor = dot(shadowMult, shadowMult) / 3.0;
-			#endif
-		#endif
-	}
+	#endif
 
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
 
-	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE >= 2
+	#if REFLECTION_QUALITY >= 3 && RP_MODE >= 2 || BL_SHADOW_MODE == 1
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
-
-		#ifdef MULTICOLORED_BLOCKLIGHT
-			/* DRAWBUFFERS:0158 */
-			gl_FragData[3] = vec4(0.0, 0.0, 0.0, 1.0);
-		#endif
-	#elif defined MULTICOLORED_BLOCKLIGHT
-		/* DRAWBUFFERS:018 */
-		gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0);
 	#endif
 }
 
@@ -230,7 +210,7 @@ out vec3 normal;
 
 out vec4 glColor;
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES
 	out vec2 signMidCoordPos;
 	flat out vec2 absMidCoordPos;
 #endif
@@ -239,31 +219,17 @@ out vec4 glColor;
 	flat out vec3 binormal, tangent;
 #endif
 
-#ifdef POM
-	out vec3 viewVector;
-
-	out vec4 vTexCoordAM;
-#endif
-
-flat out int mat;
-
 //Uniforms//
-#if defined FLICKERING_FIX
+#ifdef FLICKERING_FIX
 	uniform int entityId;
 
 	uniform vec3 cameraPosition;
 
 	uniform mat4 gbufferModelViewInverse;
-#elif defined WORLD_CURVATURE
-	uniform mat4 gbufferModelViewInverse;
-#endif
-
-#if defined WORLD_CURVATURE
-	uniform sampler2D noisetex;
 #endif
 
 //Attributes//
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES
 	attribute vec4 mc_midTexCoord;
 #endif
 
@@ -276,10 +242,6 @@ flat out int mat;
 //Common Functions//
 
 //Includes//
-
-#if defined WORLD_CURVATURE
-	#include "/lib/misc/distortWorld.glsl"
-#endif
 
 //Program//
 void main() {
@@ -298,7 +260,7 @@ void main() {
 	northVec = normalize(gbufferModelView[2].xyz);
 	sunVec = GetSunVector();
 	
-	#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+	#if defined GENERATED_NORMALS || defined COATED_TEXTURES
 		vec2 midCoord = (gl_TextureMatrix[0] * mc_midTexCoord).st;
 		vec2 texMinMidCoord = texCoord - midCoord;
 		signMidCoordPos = sign(texMinMidCoord);
@@ -308,19 +270,6 @@ void main() {
 	#if defined GENERATED_NORMALS || defined CUSTOM_PBR
 		binormal = normalize(gl_NormalMatrix * cross(at_tangent.xyz, gl_Normal.xyz) * at_tangent.w);
 		tangent  = normalize(gl_NormalMatrix * at_tangent.xyz);
-	#endif
-
-	#ifdef POM
-		mat3 tbnMatrix = mat3(
-			tangent.x, binormal.x, normal.x,
-			tangent.y, binormal.y, normal.y,
-			tangent.z, binormal.z, normal.z
-		);
-
-		viewVector = tbnMatrix * (gl_ModelViewMatrix * gl_Vertex).xyz;
-
-		vTexCoordAM.zw  = abs(texMinMidCoord) * 2;
-		vTexCoordAM.xy  = min(texCoord, midCoord - texMinMidCoord);
 	#endif
 
 	#ifdef GBUFFERS_ENTITIES_GLOWING
@@ -346,14 +295,6 @@ void main() {
 		#ifndef REALTIME_SHADOWS
 			if (glColor.a < 0.5) gl_Position.z += 0.0005;
 		#endif
-	#endif
-
-	#if defined WORLD_CURVATURE
-		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-		#ifdef WORLD_CURVATURE
-			position.y += doWorldCurvature(position.xz);
-		#endif
-		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif
 }
 

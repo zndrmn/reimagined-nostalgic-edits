@@ -23,7 +23,6 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
 
-uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
 
@@ -96,9 +95,11 @@ void main() {
 		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
 	#endif
 
-	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
-	           false, false, false, false,
-			   0, 0.0, 0.0, 0.0);
+	#ifndef GBUFFERS_LINE
+		DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
+				false, false, false, false,
+				0, 0.0, 0.0, 0.0);
+	#endif
 
 	#if SELECT_OUTLINE != 1
 	if (abs(color.a - 0.4) + dot(color.rgb, color.rgb) < 0.01) {

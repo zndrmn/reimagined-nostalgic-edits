@@ -42,7 +42,6 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
 
-uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
 

@@ -43,6 +43,10 @@ uniform float frameTimeCounter;
     #define WATER_STYLE_DEFINE -1 //[-1 1 2 3]
     #define WATER_BUMPINESS 1.25 //[0.15 0.20 0.25 0.30 0.40 0.50 0.65 0.80 1.00 1.25 1.50 2.00 2.50]
     #define WATER_REFRACTION_INTENSITY 2.0 //[1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0]
+    #define WATERCOLOR_R 100 //[25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200 220 240 260 280 300]
+    #define WATERCOLOR_G 100 //[25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200 220 240 260 280 300]
+    #define WATERCOLOR_B 100 //[25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200 220 240 260 280 300]
+
     #define PIXEL_SHADOW 0 //[0 8 16 32 64 128]
     #define HAND_SWAYING 0 //[0 1 2 3]
     //#define LESS_LAVA_FOG
@@ -51,7 +55,7 @@ uniform float frameTimeCounter;
     //#define SNOWY_WORLD
 
     #define SELECT_OUTLINE 1 //[0 1 2 3]
-    #define SELECT_OUTLINE_I 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
+    #define SELECT_OUTLINE_I 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00 2.20 2.40 2.60 2.80 3.00 3.25 3.50 3.75 4.00 4.50 5.00]
     #define SELECT_OUTLINE_R 1.35 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
     #define SELECT_OUTLINE_G 0.35 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
     #define SELECT_OUTLINE_B 1.75 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
@@ -75,6 +79,9 @@ uniform float frameTimeCounter;
     #define ATM_FOG_MULT 0.95 //[0.50 0.65 0.80 0.95]
     #define CAVE_FOG
     #define LIGHTSHAFT_BEHAVIOUR 1 //[1 2 3]
+    #define LIGHTSHAFT_DAY_I 100 //[1 3 5 7 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200]
+    #define LIGHTSHAFT_NIGHT_I 100 //[1 3 5 7 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200]
+    #define LIGHTSHAFT_RAIN_I 100 //[1 3 5 7 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200]
 
     #define BLOOM_STRENGTH 0.12 //[0.027 0.036 0.045 0.054 0.063 0.072 0.081 0.09 0.10 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19]
     #define FXAA
@@ -84,10 +91,13 @@ uniform float frameTimeCounter;
     #define VIGNETTE_R
 
     #define ENTITY_GN_AND_CT
+    #define GENERATED_NORMAL_MULT 100 //[50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200]
+    #define COATED_TEXTURE_MULT 100 //[50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200]
     #define GLOWING_ORES 0 //[0 1 2]
     //#define FANCY_GLASS
     //#define EMISSIVE_REDSTONE_BLOCK
     //#define EMISSIVE_LAPIS_BLOCK
+    #define GLOWING_AMETHYST 1 //[0 1 2]
 
     #define NORMAL_MAP_STRENGTH 100 //[0 10 15 20 30 40 60 80 100 120 140 160 180 200]
     #define CUSTOM_EMISSION_INTENSITY 100 //[0 5 7 10 15 20 25 30 35 40 45 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 225 250]
@@ -101,6 +111,7 @@ uniform float frameTimeCounter;
     #define BLOCKLIGHT_COLOR_MODE 10 //[9 10 11]
     #define MINIMUM_LIGHT_MODE 2 //[0 1 2 3 4]
     #define HELD_LIGHTING_MODE 2 //[0 1 2]
+    #define AMBIENT_MULT 100 //[50 55 60 65 70 75 80 85 90 95 100 110 120 130 140 150 160 170 180 190 200]
 
     #define NO_WAVING_INDOORS
     #define WAVING_FOLIAGE
@@ -217,7 +228,7 @@ uniform float frameTimeCounter;
     #define BLOCKLIGHT_FLICKER_STRENGTH 0.80 //[0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00 1.50 2.00 3.00 4.00]
 
     #define CLOUD_DRAW_DISTANCE 1000.0 //[0.0 250.0 500.0 750.0 1000.0 1250.0 1500.0 1750.0 2000.0 2250.0 2500.0 2750.0 3000.0 3250.0 3500.0 3750.0 4000.0 4500.0 5000.0 6000.0 7000.0 8000.0 9000.0 10000.0]
-    #define CLOUD_COLOR_I 1.0 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
+    #define CLOUD_COLOR_I 1.00 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.05 1.10 1.15 1.20 1.25 1.30 1.35 1.40 1.45 1.50 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00]
     //#define CLOUD_MINECRAFT_TEXTURE
     #define CLOUD_SPEED 1.0 //[0.75 1.0 1.5 2.0 3.0 4.0]
     #define CLOUD_STRETCH 5.5 //[2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5]
@@ -440,6 +451,8 @@ uniform float frameTimeCounter;
     uniform float screenBrightness;
     uniform float eyeBrightnessM;
 
+    uniform vec3 fogColor;
+
     #ifdef VERTEX_SHADER
         uniform mat4 gbufferModelView;
     #endif
@@ -484,12 +497,8 @@ uniform float frameTimeCounter;
 
     const float oceanAltitude = 61.9;
 
-    #if LIGHTSHAFT_QUALITY > 0 && defined REALTIME_SHADOWS
-        vec3 waterFogColor = vec3(0.07, 0.08, 0.11) * vec3(1.0 + vsBrightness);
-    #else
-        vec3 waterFogColor = vec3(0.15, 0.26, 0.3) * vec3(1.0 + 0.5 * vsBrightness);
-    #endif
-
+    vec3 underwaterColor = pow(fogColor, vec3(0.33, 0.21, 0.26));
+    vec3 waterFogColor = underwaterColor * vec3(0.2 + 0.1 * vsBrightness);
 
     #ifdef FRAGMENT_SHADER
         ivec2 texelCoord = ivec2(gl_FragCoord.xy);

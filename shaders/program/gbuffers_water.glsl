@@ -45,7 +45,6 @@ uniform float nightVision;
 uniform float blindness;
 uniform float darknessFactor;
 
-uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
 
@@ -139,7 +138,7 @@ float GetLinearDepth(float depth) {
 }
 
 #if WATER_STYLE >= 3
-	float GetWaterHeightMap(vec2 waterPos, vec3 nViewPos, vec2 wind) {
+	float GetWaterHeightMap(vec2 waterPos, vec2 wind) {
 		vec2 noiseA = 0.5 - texture2D(noisetex, waterPos - wind * 0.6).rg;
 		vec2 noiseB = 0.5 - texture2D(noisetex, waterPos * 2.0 + wind).rg;
 
@@ -242,6 +241,7 @@ void main() {
 	#ifdef GENERATED_NORMALS
 		bool noGeneratedNormals = false;
 	#endif
+	int subsurfaceMode = 0;
 	float smoothnessG = 0.0, highlightMult = 1.0, reflectMult = 0.0, emission = 0.0;
 	vec2 lmCoordM = lmCoord;
 	vec3 normalM = VdotN > 0.0 ? -normal : normal; // Inverted Iris Water Normal Workaround
@@ -255,16 +255,15 @@ void main() {
 			if (!noGeneratedNormals) GenerateNormals(normalM, colorP.rgb * colorP.a * 1.5);
 		#endif
 	#else
-		if (mat == 31000) { // Water
+		#ifdef CUSTOM_PBR
+			float smoothnessD, materialMaskPh;
+			GetCustomMaterials(color, normalM, lmCoordM, NdotU, shadowMult, smoothnessG, smoothnessD, highlightMult, emission, materialMaskPh, viewPos, lViewPos);
+			reflectMult = smoothnessD;
+	#endif
+
+	if (mat == 31000) { // Water
 			#include "/lib/materials/specificMaterials/translucents/water.glsl"
 		}
-		#ifdef CUSTOM_PBR
-			else {
-				float smoothnessD, materialMask;
-				GetCustomMaterials(color, normalM, lmCoordM, NdotU, shadowMult, smoothnessG, smoothnessD, highlightMult, emission, materialMask, viewPos, lViewPos);
-				reflectMult = smoothnessD;
-			}
-		#endif
 	#endif
 
 	// Blending
@@ -288,7 +287,7 @@ void main() {
 	// Lighting
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 	           noSmoothLighting, noDirectionalShading, false, false,
-			   0, smoothnessG, highlightMult, emission);
+			   subsurfaceMode, smoothnessG, highlightMult, emission);
 
 	// Reflections
 	#if WATER_REFLECT_QUALITY > 0
@@ -301,7 +300,7 @@ void main() {
 		float skyLightFactor = pow2(max(lmCoordM.y - 0.7, 0.0) * 3.33333);
 
 		#if WATER_REFLECT_QUALITY >= 2
-			vec4 reflection = GetReflection(normalM, viewPos.xyz, nViewPos, playerPos, lViewPos,
+				vec4 reflection = GetReflection(normalM, viewPos.xyz, nViewPos, playerPos, lViewPos, -1.0,
 			                                depthtex1, dither, skyLightFactor, fresnel,
 											smoothnessG, geoNormal, color.rgb, shadowMult, highlightMult);
 

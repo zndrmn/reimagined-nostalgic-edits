@@ -8,6 +8,9 @@
 //////////Fragment Shader//////////Fragment Shader//////////Fragment Shader//////////
 #ifdef FRAGMENT_SHADER
 
+/*in float discarder;
+in float discarder2;*/
+
 flat in vec2 lmCoord;
 in vec2 texCoord;
 
@@ -19,7 +22,6 @@ flat in vec4 glColor;
 uniform int isEyeInWater;
 
 uniform vec3 skyColor;
-uniform vec3 fogColor;
 
 uniform sampler2D tex;
 
@@ -42,14 +44,15 @@ void main() {
 	vec4 color = texture2D(tex, texCoord);
 	color *= glColor;
 
-	if (color.a < 0.1 || isEyeInWater == 3) discard;
+	//if (color.a < 0.1 || isEyeInWater == 3) discard;
 
 	if (color.r + color.g < 1.5) {
 		color.a *= RAIN_PARTICLE_TRANSPARENCY;
 	} else {
 		color.a *= SNOW_PARTICLE_TRANSPARENCY;
 	}
-	color.rgb = sqrt2(color.rgb) * (blocklightCol * lmCoord.x + ambientColor * lmCoord.y * (0.7 + 0.35 * sunFactor));
+
+	color.rgb = sqrt2(color.rgb) * (blocklightCol * 2.0 * lmCoord.x + ambientColor * lmCoord.y * (0.7 + 0.35 * sunFactor));
 
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
@@ -60,6 +63,9 @@ void main() {
 //////////Vertex Shader//////////Vertex Shader//////////Vertex Shader//////////
 #ifdef VERTEX_SHADER
 
+/*out float discarder;
+out float discarder2;*/
+
 flat out vec2 lmCoord;
 out vec2 texCoord;
 
@@ -68,6 +74,8 @@ flat out vec3 upVec, sunVec;
 flat out vec4 glColor;
 
 //Uniforms//
+
+uniform mat4 gbufferModelViewInverse;
 
 #if defined WORLD_CURVATURE
 	uniform sampler2D noisetex;
@@ -88,10 +96,32 @@ flat out vec4 glColor;
 
 //Program//
 void main() {
-	gl_Position = ftransform();
+	vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+	glColor = gl_Color;
+
+	/*discarder = 0.0;
+	discarder2 = 1.0;
+
+	if (abs(length(position.xz) - 2.25) < 0.5) {
+		if (position.y > 0.0) {
+			position.xz *= 5.0;
+			position.y *= 0.5;
+			discarder2 = 1.0;
+		} else {
+			position.xz *= -3.0;
+			position.y = 5.0;
+			discarder2 = 0.0;
+		}
+		discarder = 1.0;
+		glColor.a *= 0.4;
+	} //else glColor.a = 0.0;
+	position.xz += (0.1 * position.y + 0.05) * vec2(sin(frameTimeCounter * 0.3) + 0.5, sin(frameTimeCounter * 0.5) * 0.5);
+	position.xz *= 1.0 - 0.08 * position.y;*/
+
+	gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
+
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmCoord  = GetLightMapCoordinates();
-	glColor = gl_Color;
 	
 	upVec = normalize(gbufferModelView[1].xyz);
 	sunVec = GetSunVector();

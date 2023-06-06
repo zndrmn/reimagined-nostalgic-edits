@@ -45,7 +45,6 @@ uniform float nightVision;
 
 uniform ivec2 atlasSize;
 
-uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
 
@@ -343,6 +342,7 @@ void main() {
 		} else if (entityId == 50084) { // Slime
 			gl_Position.z -= 0.00015;
 		}
+
 		#ifndef REALTIME_SHADOWS
 			if (glColor.a < 0.5) gl_Position.z += 0.0005;
 		#endif

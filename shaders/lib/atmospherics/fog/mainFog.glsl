@@ -108,7 +108,7 @@
             fog = clamp(fog, 0.0, 1.0);
 
             #ifdef OVERWORLD
-                float nightFogMult = 2.5 - 0.625 * pow2(pow2(altitudeFactorP));
+                float nightFogMult = 1.8 - 0.625 * pow2(pow2(altitudeFactorP));
                 float dayNightFogBlend = pow(1.0 - nightFactor, 4.0 - VdotS - 2.5 * sunVisibility2);
                 vec3 clearFogColor = mix(
                     nightUpSkyColor * (nightFogMult - dayNightFogBlend * nightFogMult),
@@ -116,7 +116,7 @@
                     dayNightFogBlend
                 );
 
-                vec3 rainFogColor = mix(vec3(0.09, 0.12, 0.12) * vec3(0.10, 0.11, 0.14), dayMiddleSkyColor * 1.1, dayNightFogBlend);
+                vec3 rainFogColor = mix(vec3(0.09, 0.10, 0.17) * vec3(0.10, 0.10, 0.23), dayMiddleSkyColor * 1.1, dayNightFogBlend);
 
                 vec3 fogColorM = mix(clearFogColor, rainFogColor, rainFactor);
             #else

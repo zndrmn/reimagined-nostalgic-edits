@@ -3,11 +3,11 @@
 
 #if defined OVERWORLD
     #ifndef COMPOSITE
-        vec3 noonClearLightColor = vec3(0.7, 0.55, 0.5) * 1.6; //ground and cloud color
+        vec3 noonClearLightColor = vec3(0.67, 0.55, 0.5) * 1.6; //ground and cloud color
     #else
         vec3 noonClearLightColor = vec3(0.4, 0.7, 1.4); //light shaft color
     #endif
-    vec3 noonClearAmbientColor = pow(skyColor, vec3(0.65)) * 0.85;
+    vec3 noonClearAmbientColor = pow(skyColor, vec3(0.55)) * 0.85;
 
     #ifndef COMPOSITE
         vec3 sunsetClearLightColor = pow(vec3(0.6, 0.41, 0.24), vec3(1.5 + invNoonFactor)) * 4.5; //ground and cloud color
@@ -21,14 +21,14 @@
     #elif defined DEFERRED1
         vec3 nightClearLightColor = vec3(0.15, 0.19, 0.29); //cloud color
     #else
-        vec3 nightClearLightColor = vec3(0.07, 0.12, 0.27); //light shaft color
+        vec3 nightClearLightColor = vec3(0.02, 0.15, 0.64); //light shaft color
     #endif
     vec3 nightClearAmbientColor   = vec3(0.11, 0.12, 0.18) * (0.48 + vsBrightness * 0.62);
 
     vec3 dayRainLightColor   = vec3(0.48, 0.52, 0.54) * (0.28 + vsBrightness * 0.15);
     vec3 dayRainAmbientColor = vec3(0.49, 0.52, 0.55) * (0.25 + vsBrightness);
 
-    vec3 nightRainLightColor   = vec3(0.10, 0.10, 0.13) / 3.44 * (0.38 + vsBrightness); //moon light color
+    vec3 nightRainLightColor   = vec3(0.10, 0.10, 0.11) / 3.44 * (0.38 + vsBrightness); //moon light color
     vec3 nightRainAmbientColor = vec3(0.09, 0.11, 0.12) / 1.38 * (0.41 + vsBrightness * 0.5); //ground color
 
     #ifndef COMPOSITE

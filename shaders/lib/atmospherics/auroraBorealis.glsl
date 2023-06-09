@@ -36,7 +36,7 @@ vec3 GetAuroraBorealis(vec3 viewPos, float VdotU, float dither) {
             vec3 auroraDown = vec3(AURORA_DOWN_R, AURORA_DOWN_G, AURORA_DOWN_B);
         #else
             vec3 auroraUpA[] = vec3[](
-                vec3(112.0, 36.0, 192.0), // [0] Monthly Reserved
+                vec3(0.0, 0.0, 0.0),      // [0] Monthly Reserved
                 vec3(112.0, 36.0, 192.0), // [2] Complementary Reimagined
                 vec3(112.0, 80.0, 255.0), // [3] Complementary Legacy
                 vec3(64.0, 255.0, 255.0), // [4] Euphoria Patches
@@ -47,7 +47,7 @@ vec3 GetAuroraBorealis(vec3 viewPos, float VdotU, float dither) {
                 vec3(76.0, 204.0, 220.0)  // [9] Malachite Lights
             );
             vec3 auroraDownA[] = vec3[](
-                vec3(96.0, 255.0, 192.0), // [0] Monthly Reserved
+                vec3(0.0, 0.0, 0.0),      // [0] Monthly Reserved
                 vec3(96.0, 255.0, 192.0), // [2] Complementary Reimagined
                 vec3(80.0, 255.0, 180.0), // [3] Complementary Legacy
                 vec3(128.0, 64.0, 128.0), // [4] Euphoria Patches

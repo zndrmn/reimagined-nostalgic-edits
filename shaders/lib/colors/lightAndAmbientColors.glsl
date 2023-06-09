@@ -44,7 +44,7 @@
 
     vec3 rainLightColor   = mix(nightRainLightColor, dayRainLightColor, sunVisibility2) * 2.5;
     #ifdef THUNDER_LIGHTING
-    vec3 rainAmbientColor = mix(nightRainAmbientColor, dayRainAmbientColor, sunVisibility2) * mix(0.9, 7.0 * float(skyColor), float(skyColor) * 0.5);
+    vec3 rainAmbientColor = mix(nightRainAmbientColor * mix(0.9, 31.0 * float(skyColor), float(skyColor) * 0.5), dayRainAmbientColor * mix(0.9, 7.0 * float(skyColor), float(skyColor) * 0.5), sunVisibility2);
     #else
     vec3 rainAmbientColor = mix(nightRainAmbientColor, dayRainAmbientColor, sunVisibility2);
     #endif

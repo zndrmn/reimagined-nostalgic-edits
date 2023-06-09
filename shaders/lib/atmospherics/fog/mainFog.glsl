@@ -116,7 +116,7 @@
                     dayNightFogBlend
                 );
 
-                vec3 rainFogColor = mix(vec3(0.09, 0.10, 0.17) * vec3(0.10, 0.10, 0.23), dayMiddleSkyColor * 1.1, dayNightFogBlend);
+                vec3 rainFogColor = mix(normalize(nightMiddleSkyColor) * 0.09, dayMiddleSkyColor * 1.1, dayNightFogBlend);
 
                 vec3 fogColorM = mix(clearFogColor, rainFogColor, rainFactor);
             #else

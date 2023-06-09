@@ -17,7 +17,7 @@ flat in vec3 upVec, sunVec;
 //Uniforms//
 uniform int isEyeInWater;
 
-//uniform float viewWidth, viewHeight;
+uniform float viewWidth, viewHeight;
 
 uniform vec3 cameraPosition;
 

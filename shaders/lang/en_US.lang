@@ -601,9 +601,9 @@ option.ATM_END_I=Atmosphere Intensity Multiplier
 screen.EUPHORIA_SETTINGS=Euphoria Patches Settings
 screen.EUPHORIA_SETTINGS.comment=Settings that are added by Euphoria Patches.
 
-    screen.SKY_SETTINGS=Sky Settings
-	    screen.AURORA_SETTINGS=Aurora Borealis
-	    screen.AURORA_SETTINGS.comment=Settings that relate to the Aurora Borealis.
+    screen.EUPHORIA_ATMOSPHERE=Atmosphere
+	    screen.AURORA_BOREALIS=Aurora Borealis
+	    screen.AURORA_BOREALIS.comment=Settings that relate to the Aurora Borealis.
 		    screen.AURORA_COLOR_SETTINGS=Aurora Color Settings
 		    screen.AURORA_COLOR_SETTINGS.comment=Settings that relate to the color of the Aurora Borealis.
         screen.CLOUDS=Clouds
@@ -613,11 +613,13 @@ screen.EUPHORIA_SETTINGS.comment=Settings that are added by Euphoria Patches.
         screen.STAR_SETTINGS=Star Settings
         screen.STAR_SETTINGS.comment=Settings that relate to the Stars.
 
-    screen.BLOCKLIGHT=Blocklight Settings
+    screen.BLOCKLIGHT=Blocklight
     screen.BLOCKLIGHT.comment=Settings that relate to blocklight color.
 
-    screen.EUPHORIA_MATERIAL_SETTINGS=Material Settings
-    screen.EUPHORIA_MATERIAL_SETTINGS.comment=Settings that relate to materials.
+    screen.EUPHORIA_MATERIAL=Materials
+    screen.EUPHORIA_MATERIAL.comment=Settings that relate to materials.
+
+    screen.EUPHORIA_OTHER_SETTINGS=Other
 
 option.AURORA_COLOR_PRESET=Color Preset
 option.AURORA_COLOR_PRESET.comment=Choose between default preset/custom colored auroras.\n§e[*]§r Monthly Preset changes the preset every in-game month.\n§a[*]§r Complementary Reimagined is the default preset.
@@ -629,8 +631,8 @@ value.AURORA_COLOR_PRESET.4=Euphoria Patches
 value.AURORA_COLOR_PRESET.5=Nostalgic Edits
 value.AURORA_COLOR_PRESET.6=Galactic Lights
 value.AURORA_COLOR_PRESET.7=Mythical Lights
-value.AURORA_COLOR_PRESET.8=Amethyst Lights
-value.AURORA_COLOR_PRESET.9=Malachite Lights
+#value.AURORA_COLOR_PRESET.8=Amethyst Lights
+#value.AURORA_COLOR_PRESET.9=Malachite Lights
 
 option.RGB_AURORA=RGB Aurora
 option.RGB_AURORA.comment=Be an Epic Gamer with §4R§2G§9B §rAuroras.

@@ -27,7 +27,7 @@
 #elif defined NETHER
     vec3 netherSkyColor = pow(fogColor, vec3(0.6, 0.75, 0.75));
 #elif defined END
-    vec3 endSkyColor = vec3(36.3375, 26.775, 57.375) / 255.0 * 1.00;
+    vec3 endSkyColor = vec3(42.3375, 26.775, 65.375) / 255.0 * 1.00;
 #endif
 
 #endif

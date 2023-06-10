@@ -17,7 +17,7 @@ flat in vec3 upVec, sunVec;
 //Uniforms//
 uniform int isEyeInWater;
 
-uniform float viewWidth, viewHeight;
+//uniform float viewWidth, viewHeight;
 
 uniform vec3 cameraPosition;
 
@@ -53,7 +53,7 @@ uniform sampler2D depthtex1;
 #ifdef LIGHTSHAFTS_ACTIVE
 	uniform int frameCounter;
 
-	//uniform float viewWidth, viewHeight;
+	uniform float viewWidth, viewHeight;
 	uniform float blindness;
 	uniform float darknessFactor;
 	uniform float frameTime;

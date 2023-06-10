@@ -36,26 +36,26 @@ vec3 GetAuroraBorealis(vec3 viewPos, float VdotU, float dither) {
             vec3 auroraDown = vec3(AURORA_DOWN_R, AURORA_DOWN_G, AURORA_DOWN_B);
         #else
             vec3 auroraUpA[] = vec3[](
-                vec3(0.0, 0.0, 0.0),      // [0] Monthly Reserved
+                vec3(112.0, 36.0, 192.0), // [0] Monthly Reserved
                 vec3(112.0, 36.0, 192.0), // [2] Complementary Reimagined
                 vec3(112.0, 80.0, 255.0), // [3] Complementary Legacy
                 vec3(64.0, 255.0, 255.0), // [4] Euphoria Patches
                 vec3(24.0, 255.0, 140.0), // [5] Nostalgic Edits
                 vec3(164.0, 12.0, 76.0),  // [6] Galactic Lights
-                vec3(132.0, 0.0, 200.0),  // [7] Mythical Lights
-                vec3(255.0, 88.0, 188.0), // [8] Amethyst Lights
-                vec3(76.0, 204.0, 220.0)  // [9] Malachite Lights
+                vec3(132.0, 0.0, 200.0)   // [7] Mythical Lights
+                //vec3(255.0, 88.0, 188.0), // [8] Amethyst Lights
+                //vec3(76.0, 204.0, 220.0)  // [9] Malachite Lights
             );
             vec3 auroraDownA[] = vec3[](
-                vec3(0.0, 0.0, 0.0),      // [0] Monthly Reserved
+                vec3(96.0, 255.0, 192.0), // [0] Monthly Reserved
                 vec3(96.0, 255.0, 192.0), // [2] Complementary Reimagined
                 vec3(80.0, 255.0, 180.0), // [3] Complementary Legacy
                 vec3(128.0, 64.0, 128.0), // [4] Euphoria Patches
                 vec3(108.0, 72.0, 255.0), // [5] Nostalgic Edits
                 vec3(124.0, 64.0, 255.0), // [6] Galactic Lights
-                vec3(56.0, 168.0, 255.0), // [7] Mythical Lights
-                vec3(104.0, 72.0, 192.0), // [8] Amethyst Lights
-                vec3(0.0, 255.0, 176.0)   // [9] Malachite Lights
+                vec3(56.0, 168.0, 255.0)  // [7] Mythical Lights
+                //vec3(104.0, 72.0, 192.0), // [8] Amethyst Lights
+                //vec3(0.0, 255.0, 176.0)   // [9] Malachite Lights
             );
             #if AURORA_COLOR_PRESET > 1
                 int p = AURORA_COLOR_PRESET-1;

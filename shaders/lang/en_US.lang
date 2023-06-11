@@ -731,7 +731,7 @@ option.GREEN_BLUE_SCREEN.comment=Changes lime concrete, lime wool, blue concrete
 value.GREEN_BLUE_SCREEN.0=Off
 value.GREEN_BLUE_SCREEN.1=§aGreen
 value.GREEN_BLUE_SCREEN.2=§9Blue
-value.GREEN_BLUE_SCREEN.3=§aGreen §r& §9Blue
+value.GREEN_BLUE_SCREEN.3=§aGreen§r/§9Blue
 
 option.RAIN_ATMOSPHERE=Rain Atmosphere
 option.RAIN_ATMOSPHERE.comment=Adds more atmospheric effects while raining.

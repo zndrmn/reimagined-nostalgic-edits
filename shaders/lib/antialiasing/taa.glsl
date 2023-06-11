@@ -1,5 +1,7 @@
-#if defined THUNDER_LIGHTING && defined OVERWORLD
+#if defined IS_IRIS && defined RAIN_ATMOSPHERE && defined OVERWORLD
 	#include "/lib/colors/lightAndAmbientColors.glsl"
+
+	uniform float lightning;
 #endif
 
 const float regularEdge = 20.0;
@@ -92,9 +94,9 @@ void DoTAA(inout vec3 color, inout vec3 temp, float depth) {
 	float blendConstant = 0.65;
 	float velocityFactor = dot(velocity, velocity) * 10.0;
 	blendFactor *= max(exp(-velocityFactor) * blendVariable + blendConstant - length(cameraOffset) * edge, blendMinimum);
-	
-	#if defined THUNDER_LIGHTING && defined OVERWORLD
-	if (rainFactor > 0.75 && float(rainAmbientColor) > 0.20) blendFactor = 0.0;
+
+	#if defined IS_IRIS && defined RAIN_ATMOSPHERE && defined OVERWORLD
+		if (lightning > 0.0) blendFactor = 0.0;
 	#endif
 
 	color = mix(color, tempColor, blendFactor);

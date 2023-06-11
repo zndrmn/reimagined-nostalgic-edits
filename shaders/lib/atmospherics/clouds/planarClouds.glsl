@@ -5,6 +5,9 @@ float coordFactor = 0.009375;
 
 float CloudNoise(vec2 coord) {
     float wind = syncedTime * 0.007;
+    // #ifdef RAIN_ATMOSPHERE
+    //     wind *= rainFactor * 2.0 + 1.0;
+    // #endif
     float noise = texture2D(noisetex, coord*0.5    + vec2(wind * 0.25, 0)).r * 7.0;
           noise+= texture2D(noisetex, coord*0.25   + vec2(wind * 0.15, 0)).r * 12.0;
           noise+= texture2D(noisetex, coord*0.125  + vec2(wind * 0.05, 0)).r * 12.0;

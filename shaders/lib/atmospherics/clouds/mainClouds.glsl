@@ -12,8 +12,8 @@ vec4 GetClouds(inout float cloudLinearDepth, float skyFade, vec3 playerPos, vec3
     vec4 clouds = vec4(0.0);
 
     #ifdef CLOUDS_REIMAGINED
-        const float threshold1 = CLOUD_DRAW_DISTANCE;
-        const float threshold2 = CLOUD_DRAW_DISTANCE;
+        const float threshold1 = CLOUD_FOG_THRESHOLD_1;
+        const float threshold2 = CLOUD_FOG_THRESHOLD_2;
 
         vec3 nPlayerPos = normalize(playerPos);
         float lViewPosM = lViewPos < far * 1.5 ? lViewPos - 1.0 : 1000000000.0;
@@ -21,7 +21,7 @@ vec4 GetClouds(inout float cloudLinearDepth, float skyFade, vec3 playerPos, vec3
 
         #if CLOUD_STYLE == 1
             clouds =
-            GetVolumetricClouds(CLOUD_ALT1, threshold1, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, VdotS, VdotU, dither);
+            GetVolumetricClouds(CLOUD_ALT1, threshold1, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, viewPos, VdotS, VdotU, dither);
         #else
             float maxCloudAlt = max(CLOUD_ALT1, CLOUD_ALT2);
             float minCloudAlt = min(CLOUD_ALT1, CLOUD_ALT2);
@@ -29,14 +29,14 @@ vec4 GetClouds(inout float cloudLinearDepth, float skyFade, vec3 playerPos, vec3
 
             if (abs(cameraPosition.y - minCloudAlt) < abs(cameraPosition.y - maxCloudAlt)) {
                 clouds =
-                GetVolumetricClouds(minCloudAlt, threshold1, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, VdotS, VdotU, dither);
+                GetVolumetricClouds(minCloudAlt, threshold1, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, viewPos, VdotS, VdotU, dither);
                 if (clouds.a == 0.0) clouds =
-                GetVolumetricClouds(maxCloudAlt, threshold2, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, VdotS, VdotU, dither);
+                GetVolumetricClouds(maxCloudAlt, threshold2, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, viewPos, VdotS, VdotU, dither);
             } else {
                 clouds =
-                GetVolumetricClouds(maxCloudAlt, threshold2, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, VdotS, VdotU, dither);
+                GetVolumetricClouds(maxCloudAlt, threshold2, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, viewPos, VdotS, VdotU, dither);
                 if (clouds.a == 0.0) clouds =
-                GetVolumetricClouds(minCloudAlt, threshold1, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, VdotS, VdotU, dither);
+                GetVolumetricClouds(minCloudAlt, threshold1, cloudLinearDepth, skyFade, skyMult0, nPlayerPos, lViewPosM, viewPos, VdotS, VdotU, dither);
             }
         #endif
     #endif

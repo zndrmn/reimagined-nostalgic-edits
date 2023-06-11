@@ -293,6 +293,9 @@ if (mat < 10512) {
                                 float dotColor = dot(color.rgb, color.rgb);
                                 if (dotColor > 1.5) { // Snowy Variants:Snowy Part
                                     #include "/lib/materials/specificMaterials/terrain/snow.glsl"
+                                    #ifdef SSS_SNOW_ICE
+                                        subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
+                                    #endif
                                 } else { // Snowy Variants:Dirt Part
                                     #include "/lib/materials/specificMaterials/terrain/dirt.glsl"
                                 }
@@ -937,6 +940,9 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10380)*/ { // Snow, Snow Block, Powder Snow
                                 #include "/lib/materials/specificMaterials/terrain/snow.glsl"
+                                #ifdef SSS_SNOW_ICE
+                                    subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
+                                #endif
                             }
                         }
                     }
@@ -958,6 +964,10 @@ if (mat < 10512) {
                                 #ifdef COATED_TEXTURES
                                     noiseFactor = 0.33;
                                 #endif
+
+                                #ifdef SSS_SNOW_ICE
+                                    subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
+                                #endif
                             }
                             else /*if (mat == 10388)*/ { // Blue Ice
                                 materialMask = OSIEBCA; // Intense Fresnel
@@ -969,6 +979,10 @@ if (mat < 10512) {
 
                                 #ifdef COATED_TEXTURES
                                     noiseFactor = 0.33;
+                                #endif
+
+                                #ifdef SSS_SNOW_ICE
+                                    subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
                                 #endif
                             }
                         } else {

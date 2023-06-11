@@ -109,21 +109,21 @@ value.WATER_QUALITY.2=§aMedium
 value.WATER_QUALITY.3=§bHigh
 
 option.WATER_REFLECT_QUALITY=Water Reflection Quality
-option.WATER_REFLECT_QUALITY.comment=Adjusts the visual quality of reflections that appear on translucents. §aMedium§r: Screenspace ray-traced reflections on water and translucents. §cPotato§r: Replaces water and translucent reflections with a faster method, may look incorrect in some situations. §cOFF§r: No reflections.
-value.WATER_REFLECT_QUALITY.0=§cOFF
+option.WATER_REFLECT_QUALITY.comment=Adjusts the visual quality of reflections that appear on translucents. §aMedium§r: Screenspace ray-traced reflections on water and translucents. §cPotato§r: Replaces water and translucent reflections with a faster method, may look incorrect in some situations. §cOff§r: No reflections.
+value.WATER_REFLECT_QUALITY.0=§cOff
 value.WATER_REFLECT_QUALITY.1=§cPotato
 value.WATER_REFLECT_QUALITY.2=§aMedium
 
 option.BLOCK_REFLECT_QUALITY=Block Reflection Quality §e[*]§r
 option.BLOCK_REFLECT_QUALITY.comment=Adjusts the visual quality of reflections that appear on solid materials. §bHigh§r: Smoother reflections using a temporal filter. §aMedium§r: Material-based reflections on all blocks. §e[*]§r RP Support option must be set to anything but Basic for any material reflections to appear.
-value.BLOCK_REFLECT_QUALITY.0=§cOFF
+value.BLOCK_REFLECT_QUALITY.0=§cOff
 value.BLOCK_REFLECT_QUALITY.2=§aMedium
 value.BLOCK_REFLECT_QUALITY.3=§bHigh
 
 option.REALTIME_SHADOWS=Real-Time Shadows
 option.REALTIME_SHADOWS.comment=Enables traditional shadows that move depending on the terrain and sun/moon angle. §e[*]§r Disabling this option will cause Light Shafts to not work, and will stop other shadow options from doing anything
 value.REALTIME_SHADOWS.true=§bON
-value.REALTIME_SHADOWS.false=§cOFF
+value.REALTIME_SHADOWS.false=§cOff
 
 option.SHADOW_QUALITY=Shadow Sample Quality
 option.SHADOW_QUALITY.comment=Adjusts the quality of shadows. Every tier further reduces the shadow noise artifacts, and options lower than §bHigh§r enable optimised shadows on leaves.
@@ -135,7 +135,7 @@ value.SHADOW_QUALITY.5=§dUltra
 
 option.LIGHTSHAFT_QUALITY=Light Shaft Quality
 option.LIGHTSHAFT_QUALITY.comment=Adjusts the quality of light shafts. Every tier further reduces the light shaft noise artifacts.
-value.LIGHTSHAFT_QUALITY.0=§cOFF
+value.LIGHTSHAFT_QUALITY.0=§cOff
 value.LIGHTSHAFT_QUALITY.1=§eLow
 value.LIGHTSHAFT_QUALITY.2=§aMedium
 value.LIGHTSHAFT_QUALITY.3=§bHigh
@@ -161,11 +161,11 @@ value.shadowDistance.1024.0=§d64 Chunks
 option.ENTITY_SHADOWS=Entity Shadows
 option.ENTITY_SHADOWS.comment=Enables the ability for entities and block entities to cast shadows.
 value.ENTITY_SHADOWS.true=§dON
-value.ENTITY_SHADOWS.false=§eOFF
+value.ENTITY_SHADOWS.false=§eOff
 
 option.SSAO=SSAO
 option.SSAO.comment=Enables Screen-Space Ambient Occlusion (SSAO) which adds extra ambient shadowing to the edges of the scene.
-value.SSAO.0=§cOFF
+value.SSAO.0=§cOff
 value.SSAO.1=Subtle
 value.SSAO.2=Normal
 
@@ -195,7 +195,7 @@ option.LIGHTSHAFT_RAIN_I=Light Shaft Rain Multiplier
 option.CLOUD_STYLE_DEFINE=Cloud Style
 option.CLOUD_STYLE_DEFINE.comment=Determines the style of clouds.
 value.CLOUD_STYLE_DEFINE.-1=Default Style
-value.CLOUD_STYLE_DEFINE.0=§cOFF
+value.CLOUD_STYLE_DEFINE.0=§cOff
 value.CLOUD_STYLE_DEFINE.1=Reimagined
 value.CLOUD_STYLE_DEFINE.2=Double Reimagined
 value.CLOUD_STYLE_DEFINE.3=Fantasy
@@ -205,7 +205,7 @@ option.CLOUD_SHADOWS.comment=Enables shadows that are cast from the clouds. §e[
 
 option.CLOUD_HIGH_QUALITY=High Quality Clouds §e[*]§r
 option.CLOUD_HIGH_QUALITY.comment=Reduces noise and improves the integrity of the Reimagined Clouds. §e[*]§r This setting only works when the Cloud Style is set to "Reimagined" or "Double Reimagined". §c[-]§r This option can impact performance especially with double layer clouds.
-value.CLOUD_HIGH_QUALITY.1=OFF
+value.CLOUD_HIGH_QUALITY.1=Off
 value.CLOUD_HIGH_QUALITY.2=ON §c[-]
 
 option.CLOUD_CLOSED_AREA_CHECK=Prevent Clouds in Interiors §e[*]§r
@@ -313,7 +313,7 @@ value.NIGHT_STAR_AMOUNT.3=High
 option.AURORA_STYLE_DEFINE=Aurora Borealis Style
 option.AURORA_STYLE_DEFINE.comment=Determines the style of northern lights that appear in the night sky.
 value.AURORA_STYLE_DEFINE.-1=Default Style
-value.AURORA_STYLE_DEFINE.0=§cOFF
+value.AURORA_STYLE_DEFINE.0=§cOff
 value.AURORA_STYLE_DEFINE.1=Reimagined
 value.AURORA_STYLE_DEFINE.2=Fantasy
 
@@ -327,7 +327,7 @@ value.AURORA_CONDITION.4=Full Moon or Snowy Biome
 
 option.PIXEL_SHADOW=Pixelated Shadows
 option.PIXEL_SHADOW.comment=Modifies the world coordinates on a grid to make shadows pixelated. §e[*]§r This setting does not affect performance.
-value.PIXEL_SHADOW.0=OFF
+value.PIXEL_SHADOW.0=Off
 value.PIXEL_SHADOW.8=8x8 §e[*]
 value.PIXEL_SHADOW.16=16x16 §e[*]
 value.PIXEL_SHADOW.32=32x32 §e[*]
@@ -380,7 +380,7 @@ option.FANCY_GLASS.comment=Improves the regular glass by adding a translucent la
 
 option.HAND_SWAYING=Hand Sway
 option.HAND_SWAYING.comment=Adds slow movement to the player hand to simulate a breathing animation.
-value.HAND_SWAYING.0=OFF
+value.HAND_SWAYING.0=Off
 value.HAND_SWAYING.1=Subtle
 value.HAND_SWAYING.2=Normal
 value.HAND_SWAYING.3=Intense
@@ -393,7 +393,7 @@ option.SNOWY_WORLD.comment=Makes the entire world covered with snow.
 
 option.SHOW_LIGHT_LEVEL=Show Light Levels
 option.SHOW_LIGHT_LEVEL.comment=In Overworld: Yellow means mobs can spawn during night time, red means mobs can spawn anytime. In Nether or End: Yellow means some mobs can spawn, red means all mobs can spawn. §e[*]§r Disable Smooth Lighting for precise results.
-value.SHOW_LIGHT_LEVEL.0=OFF
+value.SHOW_LIGHT_LEVEL.0=Off
 value.SHOW_LIGHT_LEVEL.1=Hold Spider Eye
 value.SHOW_LIGHT_LEVEL.2=Hold Light Source
 value.SHOW_LIGHT_LEVEL.3=Always ON
@@ -426,7 +426,7 @@ option.COATED_TEXTURE_MULT.comment=Adjusts the strength of auto-generated noise 
 
 option.GLOWING_ORES=Glowing Ores
 option.GLOWING_ORES.comment=Adds emission to ores. §e[*]§r RP Support option must be set to Integrated PBR+.
-value.GLOWING_ORES.0=OFF
+value.GLOWING_ORES.0=Off
 value.GLOWING_ORES.1=Overworld
 value.GLOWING_ORES.2=Overworld + Nether
 
@@ -438,7 +438,7 @@ option.EMISSIVE_LAPIS_BLOCK.comment=Adds emission to the Lapis Lazuli Block. §e
 
 option.GLOWING_AMETHYST=Glowing Amethyst
 option.GLOWING_AMETHYST.comment=Adds emission to amethyst buds/clusters/blocks. §e[*]§r RP Support option must be set to Integrated PBR+.
-value.GLOWING_AMETHYST.0=§cOFF
+value.GLOWING_AMETHYST.0=§cOff
 value.GLOWING_AMETHYST.1=Crystal
 value.GLOWING_AMETHYST.2=Crystal & Block
 
@@ -450,7 +450,7 @@ option.CUSTOM_EMISSION_INTENSITY.comment=Adjusts the intensity of glowing surfac
 
 option.POM=Parallax Occlusion Mapping
 option.POM.comment=Enables 3D effect on surfaces. §c[-]§r This effect can severely impact performance. §e[*]§r RP Support option must be set to SEUSPBR/labPBR, and a compatible resource pack must be used.
-value.POM.false=OFF
+value.POM.false=Off
 value.POM.true=ON §c[-]
 
 option.POM_DEPTH=POM Depth
@@ -479,19 +479,19 @@ value.POM_LIGHTING_MODE.2=Sharp
 
 option.POM_ALLOW_CUTOUT=POM on Cutout Surfaces
 option.POM_ALLOW_CUTOUT.comment=Makes POM be able to work on cutout block sections (like gaps of leaves). §c[-]§r This effect can severely impact performance.
-value.POM_ALLOW_CUTOUT.false=OFF
+value.POM_ALLOW_CUTOUT.false=Off
 value.POM_ALLOW_CUTOUT.true=ON §c[-]
 
 option.DIRECTIONAL_BLOCKLIGHT=Directional Blocklight
 option.DIRECTIONAL_BLOCKLIGHT.comment=Adds depth to blocklight depending on the surface normal. §e[*]§r RP Support option must be set to SEUSPBR/labPBR, and a compatible resource pack must be used. §c[-]§r This effect can impact performance.
-value.DIRECTIONAL_BLOCKLIGHT.0=OFF
+value.DIRECTIONAL_BLOCKLIGHT.0=Off
 value.DIRECTIONAL_BLOCKLIGHT.3=Subtle
 value.DIRECTIONAL_BLOCKLIGHT.7=Normal
 value.DIRECTIONAL_BLOCKLIGHT.11=Intense
 
 option.HELD_LIGHTING_MODE=Dynamic Handheld Lighting
 option.HELD_LIGHTING_MODE.comment=Allows handheld light sources to cast light onto the scene.
-value.HELD_LIGHTING_MODE.0=§cOFF
+value.HELD_LIGHTING_MODE.0=§cOff
 value.HELD_LIGHTING_MODE.1=Subtle
 value.HELD_LIGHTING_MODE.2=Normal
 
@@ -521,7 +521,7 @@ option.WORLD_OUTLINE_THICKNESS.comment=Determines the thickness of the World Out
 
 option.RAIN_PUDDLES=Rain Puddles
 option.RAIN_PUDDLES.comment=Adds water puddles to the terrain during rain. §e[*]§r RP Support option must be set to anything but Basic, and Block Reflection Quality must be set to Medium or above. §c[-]§r Rain puddles can severely impact performance.
-value.RAIN_PUDDLES.0=OFF
+value.RAIN_PUDDLES.0=Off
 value.RAIN_PUDDLES.1=§aON - Puddles
 value.RAIN_PUDDLES.2=§aON - Full Coverage
 value.RAIN_PUDDLES.3=§aON - §cAlways§a Puddles
@@ -532,7 +532,7 @@ option.UNDERWATER_DISTORTION.comment=Adds subtle refraction to the screen when t
 
 option.SELECT_OUTLINE=Selection Outline
 option.SELECT_OUTLINE.comment=Determines the color of the block selection outline.
-value.SELECT_OUTLINE.0=§cOFF
+value.SELECT_OUTLINE.0=§cOff
 value.SELECT_OUTLINE.1=Default
 value.SELECT_OUTLINE.2=Rainbow
 value.SELECT_OUTLINE.3=Select Color
@@ -675,13 +675,27 @@ option.MULTICOLORED_BLOCKLIGHT.comment=Enables screen space multi-colored blockl
 option.MCBL_INFLUENCE=Multi-Colored Blocklight Influence
 option.MCBL_INFLUENCE.comment=Controls how much the multi-colored blocklight affects the default blocklight color.
 
-option.CLOUD_DRAW_DISTANCE=Cloud Draw Distance
+option.CLOUD_FOG_THRESHOLD_1=Cloud Fog Threshold
+option.CLOUD_FOG_THRESHOLD_2=Cloud Fog Threshold §e[*]§r
 option.CLOUD_WIDTH=Cloud Width
 option.CLOUD_STRETCH=Cloud Height
 option.CLOUD_SPEED=Cloud Speed
 option.CLOUD_TRANSPARENCY=Cloud Transparency
 option.CLOUD_MINECRAFT_TEXTURE=Minecraft Cloud Texture
 option.CLOUD_COLOR_I=Cloud Color Intensity
+
+option.RAINBOW_CLOUD=Rainbow Clouds
+value.RAINBOW_CLOUD.0=Off
+value.RAINBOW_CLOUD.1=10% Coverage
+value.RAINBOW_CLOUD.2=20% Coverage
+value.RAINBOW_CLOUD.3=30% Coverage
+value.RAINBOW_CLOUD.4=40% Coverage
+value.RAINBOW_CLOUD.5=50% Coverage
+value.RAINBOW_CLOUD.6=60% Coverage
+value.RAINBOW_CLOUD.7=70% Coverage
+value.RAINBOW_CLOUD.8=80% Coverage
+value.RAINBOW_CLOUD.9=90% Coverage
+value.RAINBOW_CLOUD.10=100% Coverage
 
 option.END_BEAMS=Ender Beams
 option.END_BEAMS.comment=Setting which enables nebula like beams in the End.
@@ -714,13 +728,19 @@ value.END_STAR_AMOUNT.3=Very High
 
 option.GREEN_BLUE_SCREEN=Green & Blue Screen
 option.GREEN_BLUE_SCREEN.comment=Changes lime concrete, lime wool, blue concrete and blue wool to green and blue screens. §e[*]§r Pro tip: Put light sources under lime or blue carpets for lighting. §e[*]§r RP Support option must be set to Integrated PBR+
-value.GREEN_BLUE_SCREEN.0=OFF
+value.GREEN_BLUE_SCREEN.0=Off
 value.GREEN_BLUE_SCREEN.1=§aGreen
 value.GREEN_BLUE_SCREEN.2=§9Blue
 value.GREEN_BLUE_SCREEN.3=§aGreen §r& §9Blue
 
+option.RAIN_ATMOSPHERE=Rain Atmosphere
+option.RAIN_ATMOSPHERE.comment=Adds more atmospheric effects while raining.
+
 option.RAIN_PARTICLE_TRANSPARENCY=Rain Transparency
 option.SNOW_PARTICLE_TRANSPARENCY=Snow Transparency
+
+option.SSS_SNOW_ICE=Snow and Ice SSS
+option.SSS_SNOW_ICE.comment=Adds subsurface scattering to snow and ice blocks.
 
 option.STAR_BRIGHTNESS=Star Brightness
 option.STAR_BRIGHTNESS.comment=Setting to adjust the star brightness.
@@ -763,9 +783,6 @@ option.EXCLUDE_ENTITIES.comment=Change whether entities should be excluded from 
 option.INTERACTIVE_FOLIAGE=Interactive Foliage
 option.WAVE_SPEED=Foliage Waving Speed
 option.WAVE_SPEED.comment=Waving Speed for foliage and leaves.
-
-option.THUNDER_LIGHTING=Better Thunderstorm
-option.THUNDER_LIGHTING.comment=Makes the terrain light up when a lightning strikes.
 
 option.WORLD_CURVATURE=World Curvature
 option.OVERWORLD_CURVATURE_SIZE=Overworld Curvature Size

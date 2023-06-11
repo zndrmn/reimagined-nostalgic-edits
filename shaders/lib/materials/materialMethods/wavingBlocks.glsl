@@ -64,6 +64,24 @@ void DoWave_Water(inout vec3 playerPos, vec3 worldPos) {
     }
 }
 
+void DoWave_Lava(inout vec3 playerPos, vec3 worldPos) {
+    if (fract(worldPos.y + 0.005) > 0.06) {
+        float lavaWaveTime = frameTimeCounter * 2.0;
+        worldPos.xz *= 18.0;
+
+        float wave  = sin(lavaWaveTime * 0.7 + worldPos.x * 0.14 + worldPos.z * 0.07);
+        wave += sin(lavaWaveTime * 0.5 + worldPos.x * 0.10 + worldPos.z * 0.05);
+        wave *= 0.1;
+        #ifdef NETHER
+        if (mat == 10068) {
+            if (worldPos.y > 30 && worldPos.y < 32) wave *= 7.0;
+            else wave *= 2.0;
+        }
+        #endif
+        playerPos.y += wave * 0.125 - 0.05;
+    }
+}
+
 void DoWave(inout vec3 playerPos, int mat) {
     vec3 worldPos = playerPos.xyz + cameraPosition.xyz;
 
@@ -85,6 +103,12 @@ void DoWave(inout vec3 playerPos, int mat) {
                 DoWave_Leaves(playerPos.xyz, worldPos);
             }
         #endif
+
+        #ifdef LAVA_VERTEX_WAVES
+            if (mat == 10068 || mat == 10069) { // Lava
+                DoWave_Lava(playerPos.xyz, worldPos);
+            }
+        #endif
     #endif
 
     #if defined GBUFFERS_WATER || defined SHADOW
@@ -99,21 +123,13 @@ void DoWave(inout vec3 playerPos, int mat) {
         #endif
     #endif
 }
+
 void DoInteractiveWave(inout vec3 playerPos, int mat){
     if (mat == 10004 || mat == 10005 || mat == 10020 || mat == 10017 || mat == 10628 || mat == 10632) { 
         float lPos = clamp(length(playerPos.xyz), 0.0, 1.0);
         playerPos.xz += 1.0 - lPos * (4.0 - lPos * 3.0);
         // if (length(playerPos) < 2.0) playerPos.xz += playerPos.xz*max(5.0/pow(max(length(playerPos*vec3(8.0,2.0,8.0)-vec3(0.0,2.0,0.0)),2.0),1.0)-0.625,0.0) * 1.3;
     }
-}
-
-float WavingLava(vec3 newPos) {
-    newPos += cameraPosition.xyz;
-    float animate = sin(newPos.x * frameTimeCounter * 0.002 + newPos.z + frameTimeCounter * 0.9);
-    #ifdef OVERWORLD
-        animate *= 0.5;
-    #endif
-    return animate;
 }
 
 void DoWaveEverything(inout vec3 playerPos, int mat) {

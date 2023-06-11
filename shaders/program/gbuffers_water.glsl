@@ -524,10 +524,6 @@ void main() {
 		#endif
 	#endif
 
-	#if SEASONS == 1 || SEASONS == 4 
-		ivec2 pixelTexSize = ivec2(absMidCoordPos * 2.0 * atlasSize);
-	#endif
-
 	gl_Position.z -= 0.0001;
 }
 

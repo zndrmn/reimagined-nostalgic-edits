@@ -44,13 +44,12 @@ void main() {
 	vec4 color = texture2D(tex, texCoord);
 	color *= glColor;
 
-	//if (color.a < 0.1 || isEyeInWater == 3) discard;
+	if (color.a < 0.1 || isEyeInWater == 3) discard;
 
-	if (color.r + color.g < 1.5) {
-		color.a *= RAIN_PARTICLE_TRANSPARENCY;
-	} else {
-		color.a *= SNOW_PARTICLE_TRANSPARENCY;
-	}
+	//if (abs(discarder - 0.5) < 0.499 || discarder2 < 0.35) discard;
+
+	if (color.r + color.g < 1.5) color.a *= RAIN_PARTICLE_TRANSPARENCY;
+	else color.a *= SNOW_PARTICLE_TRANSPARENCY;
 
 	color.rgb = sqrt2(color.rgb) * (blocklightCol * 2.0 * lmCoord.x + ambientColor * lmCoord.y * (0.7 + 0.35 * sunFactor));
 
@@ -79,7 +78,7 @@ uniform mat4 gbufferModelViewInverse;
 
 #if defined WORLD_CURVATURE
 	uniform sampler2D noisetex;
-	uniform mat4 gbufferModelViewInverse;
+	//uniform mat4 gbufferModelViewInverse;
 #endif
 
 //Attributes//
@@ -127,7 +126,6 @@ void main() {
 	sunVec = GetSunVector();
 
 	#if defined WORLD_CURVATURE
-		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
 		#endif

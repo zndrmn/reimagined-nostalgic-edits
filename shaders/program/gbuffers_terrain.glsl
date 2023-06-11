@@ -470,7 +470,7 @@ void main() {
 
 	mat = int(mc_Entity.x + 0.5);
 
-	#if defined WORLD_CURVATURE || defined LAVA_VERTEX_WAVES || defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE
+	#if defined WORLD_CURVATURE || defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
@@ -481,15 +481,6 @@ void main() {
 		#ifdef INTERACTIVE_FOLIAGE
 			DoInteractiveWave(position.xyz, mat);
 		#endif
-		if (mat == 10068 || mat == 10069){ // lava, flowing lava
-			#ifdef LAVA_VERTEX_WAVES
-				#ifdef NETHER
-					position.y += WavingLava(position.xyz) * 0.05;
-				#else
-					position.y += WavingLava(position.xyz) * 0.035;
-				#endif
-			#endif
-		}
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#else
 		gl_Position = ftransform();

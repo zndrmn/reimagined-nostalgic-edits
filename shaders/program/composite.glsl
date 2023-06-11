@@ -17,7 +17,7 @@ flat in vec3 upVec, sunVec;
 //Uniforms//
 uniform int isEyeInWater;
 
-//uniform float viewWidth, viewHeight;
+uniform float viewWidth, viewHeight;
 
 uniform vec3 cameraPosition;
 
@@ -53,7 +53,7 @@ uniform sampler2D depthtex1;
 #ifdef LIGHTSHAFTS_ACTIVE
 	uniform int frameCounter;
 
-	uniform float viewWidth, viewHeight;
+	//uniform float viewWidth, viewHeight;
 	uniform float blindness;
 	uniform float darknessFactor;
 	uniform float frameTime;
@@ -79,7 +79,7 @@ uniform sampler2D depthtex1;
 
 #ifdef MULTICOLORED_BLOCKLIGHT
 	#ifndef LIGHTSHAFTS_ACTIVE
-		uniform float viewWidth, viewHeight;
+		//uniform float viewWidth, viewHeight;
 		uniform int frameCounter;
 	#endif
 
@@ -161,7 +161,16 @@ float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(S
 		float mask = clamp(2.0 - 2.0 * max(abs(prevCoord.x - 0.5), abs(prevCoord.y - 0.5)), 0.0, 1.0);
 
 		vec2 offset = OffsetDist(dither) * blurstr;
-		previousColoredLight += texture2D(colortex9, prevCoord.xy + offset).rgb;
+
+		vec2 sampleZPos = coord + offset;
+		float sampleZ0 = texture2D(depthtex0, sampleZPos).r;
+		float sampleZ1 = texture2D(depthtex1, sampleZPos).r;
+		float linearSampleZ = GetLinearDepth(sampleZ1 >= 1.0 ? sampleZ0 : sampleZ1);
+
+		float sampleWeight = clamp(abs(lz - linearSampleZ) * far / 16.0, 0.0, 1.0);
+		sampleWeight = 1.0 - sampleWeight * sampleWeight;
+
+		previousColoredLight += texture2D(colortex9, prevCoord.xy + offset).rgb * sampleWeight;
 		previousColoredLight *= previousColoredLight * mask;
 
 		return sqrt(mix(previousColoredLight, lightAlbedo * lightAlbedo / clamp(previousColoredLight.r + previousColoredLight.g + previousColoredLight.b, 0.01, 1.0), 0.01));

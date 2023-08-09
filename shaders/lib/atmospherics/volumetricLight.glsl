@@ -22,6 +22,9 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 	if (max(blindness, darknessFactor) > 0.1) return vec4(0.0);
 	vec4 volumetricLight = vec4(0.0);
 
+	// For some reason Optifine doesn't provide correct shadowMapResolution if Shadow Quality isn't 1x
+	vec2 shadowMapResolutionM = textureSize(shadowtex0, 0);
+
 	#ifdef OVERWORLD
 		vec3 vlColor = lightColor;
 		vec3 vlColorReducer = vec3(1.0);

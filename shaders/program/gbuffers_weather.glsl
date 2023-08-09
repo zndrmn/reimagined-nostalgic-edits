@@ -65,9 +65,6 @@ void main() {
 	if (color.r + color.g < 1.5) color.a *= rainTexOpacity;
 	else color.a *= snowTexOpacity;
 
-	if (color.r + color.g < 1.5) color.a *= RAIN_PARTICLE_TRANSPARENCY;
-	else color.a *= SNOW_PARTICLE_TRANSPARENCY;
-
 	color.rgb = sqrt2(color.rgb) * (blocklightCol * 2.0 * lmCoord.x + ambientColor * lmCoord.y * (0.7 + 0.35 * sunFactor));
 
 	#ifdef COLOR_CODED_PROGRAMS

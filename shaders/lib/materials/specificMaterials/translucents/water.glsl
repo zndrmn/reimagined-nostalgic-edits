@@ -219,7 +219,7 @@
         } else { // Underwater
             noDirectionalShading = true;
 
-            reflectMult = FRESNEL_MULTIPLIER;
+            reflectMult = 0.5;
 
             #if MC_VERSION < 11300 && WATER_STYLE >= 3
                 color.a = 0.7;

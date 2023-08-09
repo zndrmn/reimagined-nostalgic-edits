@@ -73,7 +73,7 @@ void main() {
 
 	#ifdef UNDERWATER_DISTORTION
 		if (isEyeInWater == 1)
-			texCoordM += WATER_REFRACTION_INTENSITY * 0.00035 * sin((texCoord.x + texCoord.y) * 25.0 + frameTimeCounter * UNDERWATER_DISTORTION_STRENGTH);
+			texCoordM += WATER_REFRACTION_INTENSITY * 0.00035 * sin((texCoord.x + texCoord.y) * 25.0 + frameTimeCounter * 3.0);
 	#endif
 
 	#ifdef LETTERBOXING

@@ -116,12 +116,6 @@ vec4 GetVolumetricClouds(float cloudAltitude, float distanceThreshold, inout flo
             vec3 cLightPosAdd = normalize(ViewToPlayer(lightVec * 1000000000.0)) * vec3(0.08);
             cLightPosAdd *= shadowTime;
 
-            float light = 2.0;
-            cLightPos += (1.0 + gradientNoise) * cLightPosAdd;
-            light -= texture2D(colortex3, GetRoundedCloudCoord(cLightPos.xz)).r * cloudShadingM;
-            cLightPos += gradientNoise * cLightPosAdd;
-            light -= texture2D(colortex3, GetRoundedCloudCoord(cLightPos.xz)).r * cloudShadingM;
-
             float VdotSM1 = max0(sunVisibility > 0.5 ? VdotS : - VdotS);
             #if DETAIL_QUALITY >= 1
                 float light = 2.0;

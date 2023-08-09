@@ -27,10 +27,6 @@ uniform float viewWidth, viewHeight;
 uniform float blindness;
 uniform float darknessFactor;
 
-#ifdef NETHER_NOISE
-	uniform float eyeAltitude;
-#endif
-
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
 

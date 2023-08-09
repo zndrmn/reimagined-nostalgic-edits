@@ -46,13 +46,13 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 		vlMult *= mix(pow2(invNoonFactor) * 0.875 + 0.125, 1.0, max(vlSceneIntensity, rainFactor2));
 		vlMult *= mix(0.25, 1.0, max(sunVisibility, invRainFactor));
 
-		#if LIGHTSHAFT_QUALITY == 4
+		#if LIGHTSHAFT_QUALI == 4
 			int sampleCount = vlSceneIntensity < 0.5 ? 30 : 50;
-		#elif LIGHTSHAFT_QUALITY == 3
+		#elif LIGHTSHAFT_QUALI == 3
 			int sampleCount = vlSceneIntensity < 0.5 ? 15 : 30;
-		#elif LIGHTSHAFT_QUALITY == 2
+		#elif LIGHTSHAFT_QUALI == 2
 			int sampleCount = vlSceneIntensity < 0.5 ? 10 : 20;
-		#elif LIGHTSHAFT_QUALITY == 1
+		#elif LIGHTSHAFT_QUALI == 1
 			int sampleCount = vlSceneIntensity < 0.5 ? 6 : 12;
 		#endif
 		#ifndef TAA
@@ -61,21 +61,29 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 	#else
 		float vlSceneIntensity = 0.0;
 
-		#if LIGHTSHAFT_QUALITY == 4
+		#if LIGHTSHAFT_QUALI == 4
 			int sampleCount = 20;
-		#elif LIGHTSHAFT_QUALITY == 3
+		#elif LIGHTSHAFT_QUALI == 3
 			int sampleCount = 16;
-		#elif LIGHTSHAFT_QUALITY == 2
+		#elif LIGHTSHAFT_QUALI == 2
 			int sampleCount = 12;
-		#elif LIGHTSHAFT_QUALITY == 1
+		#elif LIGHTSHAFT_QUALI == 1
 			int sampleCount = 10;
-		#elif LIGHTSHAFT_QUALITY == 0
+		#elif LIGHTSHAFT_QUALI == 0
 			int sampleCount = 8;
 		#endif
 	#endif
 
 	float addition = 1.0;
 	float maxDist = mix(max(far, 96.0) * 0.55, 80.0, vlSceneIntensity);
+
+	#if WATER_FOG_MULT != 100
+		if (isEyeInWater == 1) {
+			#define WATER_FOG_MULT_M WATER_FOG_MULT * 0.01;
+			maxDist /= WATER_FOG_MULT_M;
+		}
+	#endif
+
 	float distMult = maxDist / (sampleCount + addition);
 	float sampleMultIntense = isEyeInWater != 1 ? 1.0 : 0.85;
 
@@ -130,33 +138,36 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 			#endif
 
 			if (length(shadowPosition.xy * 2.0 - 1.0) < 1.0) {
-				shadowSample = texture2D(shadowtex0, shadowPosition.xy).x;
+				// 28A3DK6 We need to use texelFetch here or a lot of Nvidia GPUs can't get a valid value
+				shadowSample = texelFetch(shadowtex0, ivec2(shadowPosition.xy * shadowMapResolutionM), 0).x;
 				shadowSample = clamp((shadowSample-shadowPosition.z)*65536.0,0.0,1.0);
 				vlSample = vec3(shadowSample);
 
-				if (shadowSample == 0.0) {
-					float testsample = shadow2D(shadowtex1, shadowPosition.xyz).z;
-					if (testsample == 1.0) {
-						vec3 colsample = texture2D(shadowcolor1, shadowPosition.xy).rgb * 4.0;
-						colsample *= colsample;
-						vlSample = colsample * (1.0 - vlSample) + vlSample;
-						#ifdef OVERWORLD
-							vlSample *= vlColorReducer;
-						#endif
-					}
-				} else {
-					// For water-tinting the water surface when observed from below the surface
-					if (translucentMult != vec3(1.0) && currentDist > depth0) {
-						if (isEyeInWater == 1) {
-							vec3 translucentMultM = translucentMult * 2.8;
-							vlSample *= pow(translucentMultM, vec3(sunVisibility * 3.0 * clamp01(playerPos.y * 0.03)));
-						} else {
-							vlSample *= 0.1 + 0.9 * pow2(pow2(translucentMult * 1.7));
+				#if SHADOW_QUALITY >= 1
+					if (shadowSample == 0.0) {
+						float testsample = shadow2D(shadowtex1, shadowPosition.xyz).z;
+						if (testsample == 1.0) {
+							vec3 colsample = texture2D(shadowcolor1, shadowPosition.xy).rgb * 4.0;
+							colsample *= colsample;
+							vlSample = colsample * (1.0 - vlSample) + vlSample;
+							#ifdef OVERWORLD
+								vlSample *= vlColorReducer;
+							#endif
 						}
-					}
+					} else {
+						// For water-tinting the water surface when observed from below the surface
+						if (translucentMult != vec3(1.0) && currentDist > depth0) {
+							if (isEyeInWater == 1) {
+								vec3 translucentMultM = translucentMult * 2.8;
+								vlSample *= pow(translucentMultM, vec3(sunVisibility * 3.0 * clamp01(playerPos.y * 0.03)));
+							} else {
+								vlSample *= 0.1 + 0.9 * pow2(pow2(translucentMult * 1.7));
+							}
+						}
 
-					if (isEyeInWater == 1 && translucentMult == vec3(1.0)) vlSample = vec3(0.0);
-				}
+						if (isEyeInWater == 1 && translucentMult == vec3(1.0)) vlSample = vec3(0.0);
+					}
+				#endif
 			}
 		#endif
 		
@@ -182,7 +193,8 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 				for (float i = 0.25; i < salsX; i++) {
 					for (float h = 0.45; h < salsY; h++) {
 						vec2 coord = 0.3 + 0.4 * viewM * vec2(i, h);
-						float salsSample = texture2D(shadowtex0, coord).x;
+						//float salsSample = texture2D(shadowtex0, coord).x;
+						float salsSample = texelFetch(shadowtex0, ivec2(coord * shadowMapResolutionM), 0).x; // read 28A3DK6
 						if (salsSample < 0.55) {
 							vec3 salsShadowNDC = vec3(coord, salsSample) * 2.0 - 1.0;
 							salsShadowNDC.z /= 0.2;

@@ -1,29 +1,28 @@
 #include "/lib/colors/skyColors.glsl"
 
-uniform sampler2D noisetex;
-
 float GetStarNoise(vec2 pos) {
     return fract(sin(dot(pos, vec2(12.9898, 4.1414))) * 43758.54953);
+}
+
+vec2 GetStarCoord(vec3 viewPos) {
+    vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos * 1000.0, 1.0)).xyz);
+    vec3 starCoord = wpos / (wpos.y + length(wpos.xz) * 0.5);
+	vec3 moonPos = vec3(gbufferModelViewInverse * vec4(- sunVec * 70.0, 1.0));
+	vec3 moonCoord = moonPos / (moonPos.y + length(moonPos.xz));
+    return starCoord.xz - moonCoord.xz;
 }
 
 vec3 GetStars(vec3 viewPos, float VdotU, float VdotS) {
     if (VdotU < 0.0) return vec3(0.0);
 
-    vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos * 1000.0, 1.0)).xyz);
-    vec3 starCoord = wpos / (wpos.y + length(wpos.xz) * 0.5);
-
-	vec3 moonPos = vec3(gbufferModelViewInverse * vec4(- sunVec * 70.0, 1.0));
-	vec3 moonCoord = moonPos / (moonPos.y + length(moonPos.xz));
-	starCoord.xz -= moonCoord.xz;
-
-    vec2 starCoord2 = starCoord.xz * 0.2 / STAR_SIZE;
+    vec2 starCoord = GetStarCoord(viewPos) * 0.2 / STAR_SIZE;
     float starFactor = 1024.0;
-    starCoord2 = floor(starCoord2 * starFactor) / starFactor;
+    starCoord = floor(starCoord * starFactor) / starFactor;
 
     float star = 1.0;
-    star *= GetStarNoise(starCoord2.xy);
-    star *= GetStarNoise(starCoord2.xy+0.1);
-    star *= GetStarNoise(starCoord2.xy+0.23);
+    star *= GetStarNoise(starCoord.xy);
+    star *= GetStarNoise(starCoord.xy+0.1);
+    star *= GetStarNoise(starCoord.xy+0.23);
 
     #ifdef MORE_STARS_OVERWORLD
         star -= 0.5;
@@ -45,7 +44,7 @@ vec3 GetStars(vec3 viewPos, float VdotU, float VdotS) {
     vec3 stars = 40.0 * star * vec3(0.38, 0.4, 0.5) * invRainFactor * STAR_BRIGHTNESS;
 
     #ifdef TWINKLING_STARS
-        stars *= clamp(abs(texture2D(noisetex, starCoord2 + frameTimeCounter * 0.004).r - 0.5) * 10, 0.5, 1.0);
+        stars *= clamp(abs(texture2D(noisetex, starCoord + frameTimeCounter * 0.004).r - 0.5) * 10, 0.5, 1.0);
     #endif
 
     return stars;

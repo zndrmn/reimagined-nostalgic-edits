@@ -1,6 +1,8 @@
-////////////////////////////////////////
-// Complementary Reimagined by EminGT //
-////////////////////////////////////////
+//////////////////////////////////////////////
+//    Complementary Reimagined by EminGT    //
+//             -- -- with -- --             //
+// Euphoria Patches by isuewo & SpacEagle17 //
+//////////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -37,7 +39,10 @@ float sunVisibility2 = sunVisibility * sunVisibility;
 
 //Includes//
 #include "/lib/colors/lightAndAmbientColors.glsl"
-#include "/lib/colors/blocklightColors.glsl"
+
+#ifdef COLOR_CODED_PROGRAMS
+	#include "/lib/misc/colorCodedPrograms.glsl"
+#endif
 
 //Program//
 void main() {
@@ -48,10 +53,26 @@ void main() {
 
 	//if (abs(discarder - 0.5) < 0.499 || discarder2 < 0.35) discard;
 
+	#if WEATHER_TEX_OPACITY == 100
+		const float rainTexOpacity = 0.25;
+		const float snowTexOpacity = 0.5;
+	#else
+		#define WEATHER_TEX_OPACITY_M 100.0 / WEATHER_TEX_OPACITY
+		const float rainTexOpacity = pow(0.25, WEATHER_TEX_OPACITY_M);
+		const float snowTexOpacity = pow(0.5, WEATHER_TEX_OPACITY_M);
+	#endif
+
+	if (color.r + color.g < 1.5) color.a *= rainTexOpacity;
+	else color.a *= snowTexOpacity;
+
 	if (color.r + color.g < 1.5) color.a *= RAIN_PARTICLE_TRANSPARENCY;
 	else color.a *= SNOW_PARTICLE_TRANSPARENCY;
 
 	color.rgb = sqrt2(color.rgb) * (blocklightCol * 2.0 * lmCoord.x + ambientColor * lmCoord.y * (0.7 + 0.35 * sunFactor));
+
+	#ifdef COLOR_CODED_PROGRAMS
+		ColorCodeProgram(color);
+	#endif
 
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;

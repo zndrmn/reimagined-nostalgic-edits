@@ -73,6 +73,12 @@ uniform float isSnowy;
 	uniform sampler2D colortex9;
 #endif
 
+#ifdef AURORA_INFLUENCE
+	uniform int moonPhase;
+	uniform float blindness;
+	uniform float darknessFactor;
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//
@@ -105,7 +111,6 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
 #include "/lib/util/dither.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #ifdef TAA
@@ -128,8 +133,19 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
+#ifdef COLOR_CODED_PROGRAMS
+	#include "/lib/misc/colorCodedPrograms.glsl"
+#endif
+
 #ifdef MULTICOLORED_BLOCKLIGHT
 	#include "/lib/lighting/coloredBlocklight.glsl"
+#endif
+
+#ifdef AURORA_INFLUENCE
+	#ifdef RGB_AURORA
+		#include "/lib/colors/rainbowColor.glsl"
+	#endif
+	#include "/lib/atmospherics/auroraBorealis.glsl"
 #endif
 
 //Program//
@@ -139,10 +155,6 @@ void main() {
 		vec3 colorP = color.rgb;
 	#endif
 	color *= glColor;
-
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		vec3 lightAlbedo = color.rgb;
-	#endif
 
 	vec3 screenPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z);
 	#ifdef TAA
@@ -178,15 +190,6 @@ void main() {
 		}
 	#endif
 
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		float lightEmission = clamp01(emission);
-		lightAlbedo = normalize(mix(lightAlbedo, color.rgb, lightEmission)) * lightEmission;
-
-		if (blockEntityId == 60000) lightAlbedo = normalize(color.rgb * 20.0 + 0.00001);
-
-		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
-	#endif
-
 	#ifdef GENERATED_NORMALS
 		GenerateNormals(normalM, colorP);
 	#endif
@@ -195,15 +198,34 @@ void main() {
 		CoatTextures(color.rgb, noiseFactor, playerPos);
 	#endif
 
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+	#endif
+
+	#ifdef AURORA_INFLUENCE
+		AuroraAmbientColor(ambientColor, viewPos);
+	#endif
+
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 	           noSmoothLighting, noDirectionalShading, false, false,
 			   0, smoothnessG, highlightMult, emission);
+
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		vec3 lightAlbedo = normalize(color.rgb) * min1(emission);
+
+		if (blockEntityId == 60000) lightAlbedo = color.rgb;
+		if (blockEntityId == 60004) lightAlbedo = vec3(0.0); // fix glowing sign text affecting blocklight color
+	#endif
+
+	#ifdef COLOR_CODED_PROGRAMS
+		ColorCodeProgram(color);
+	#endif
 
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
 
-	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE >= 2
+	#if BLOCK_REFLECT_QUALITY >= 2 && RP_MODE >= 2
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
 

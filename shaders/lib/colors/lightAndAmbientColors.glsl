@@ -36,7 +36,7 @@
     #endif
 
 
-    vec3 nightRainLightColor   = vec3(0.10, 0.10, 0.11) / 3.44 * (0.38 + vsBrightness); //moon light color
+    vec3 nightRainLightColor   = vec3(0.10, 0.10, 0.11) / 2.88 * (0.38 + vsBrightness); //moon light color
     #ifdef RAIN_ATMOSPHERE //ground color
         vec3 nightRainAmbientColor = vec3(0.09, 0.11, 0.12) / 1.38 * (0.41 + vsBrightness * 0.5) * mix(0.9, 31.0 * float(skyColor), float(skyColor) * 0.5);
     #else
@@ -63,7 +63,7 @@
 #elif defined NETHER
     vec3 netherColor  = max(normalize(sqrt(fogColor)), vec3(0.0));
     vec3 lightColor   = vec3(0.0);
-    vec3 ambientColor = netherColor * (0.35 + 0.1 * vsBrightness);
+    vec3 ambientColor = netherColor * (0.44 + 0.22 * vsBrightness);
 #elif defined END
     vec3 endLightColor = vec3(0.68, 0.51, 1.07);
     float endLightBalancer = 0.2 * vsBrightness;

@@ -20,7 +20,7 @@ vec2 wind = vec2(frameTimeCounter * 0.012, 0.0);
 
 noDirectionalShading = true;
 lmCoordM = vec2(0.0);
-emission = GetLuminance(color.rgb) * 5.5;
+emission = GetLuminance(color.rgb) * 6.5;
 
 #if LAVA_VARIATION > 0
     if (mat == 10068 || mat == 10069){
@@ -29,17 +29,36 @@ emission = GetLuminance(color.rgb) * 5.5;
         #else
             float columnNoise = 0.0;
         #endif
-
-        #if LAVA_VARIATION == 1 // Dark Islands
-            color.rgb += vec3(min(pow2(pow2(pow2(smoothstep1(emission * 0.5)))), 0.25)) * LAVA_TEMPERATURE * 0.65 + 0.1;
+        #if LAVA_VARIATION == 1 // Adaptive Noise
+        color.rgb += min(pow2(pow2(emission * 0.50)), 0.2) * LAVA_TEMPERATURE * 0.65 + 0.1;
             if (mat == 10068 || columnNoise == 1.0) {
-                float noise = texture2D(noisetex, lavaPos * 0.01 + wind * 0.01).r;
-                noise -= texture2D(noisetex, lavaPos * 1.1 + wind * 0.05).r * 0.3;
-                noise += texture2D(noisetex, lavaPos * 0.1).r * 0.7;
-                color.rgb *= smoothstep(0.00, 0.70, noise);
+                float noise = 1.0;
+                #ifdef NETHER
+                    if (worldPos.y > 30 && worldPos.y < 32) {
+                        noise = texture2D(noisetex, lavaPos * 0.2 + wind * 0.1).r;
+                        noise += texture2D(noisetex, lavaPos * 0.8 + wind * 0.04).r * 0.5;
+                        noise *= texture2D(noisetex, lavaPos * 0.1 + wind * 0.02).r * 0.5;
+                        emission *= 1.6;
+                        color.rgb *= smoothstep(0.00, 0.50, noise);
+                        color.r *= 1.2;
+                    }
+                    else {
+                        noise = texture2D(noisetex, lavaPos * 0.05 + wind * 0.01).r;
+                        noise -= texture2D(noisetex, lavaPos * 1.5 + wind * 0.05).r * 0.3;
+                        noise += texture2D(noisetex, lavaPos * 0.1).r * 0.7;
+                        color.rgb *= smoothstep(0.00, 0.70, noise);
+                        color.r *= 1.5;
+                    }
+                #else
+                    noise = texture2D(noisetex, lavaPos * 0.2 + wind * 0.01).g;
+                    noise -= texture2D(noisetex, lavaPos * 2.0 + wind * 0.05).g * 0.3;
+                    noise += texture2D(noisetex, lavaPos * 0.1).g * 0.3;
+                    color.rgb *= smoothstep(0.00, 0.70, noise);
+                    color.r *= 1.25;
+                    emission *= 1.1;
+                #endif
             }
         #elif LAVA_VARIATION == 2 // Sunshine
-            wind *= 0.2;
             color.rgb += min(pow2(pow2(emission * 0.50)), 0.2) * LAVA_TEMPERATURE * 0.65 + 0.1;
             if (mat == 10068 || columnNoise == 1.0) {
                 float noise = texture2D(noisetex, lavaPos * 0.2 + wind * 0.1).r;
@@ -60,10 +79,18 @@ emission = GetLuminance(color.rgb) * 5.5;
                 noise += texture2D(noisetex, lavaPos * 0.1).g * 0.3;
                 color.rgb *= smoothstep(0.00, 0.70, noise);
             }
+        #elif LAVA_VARIATION == 5 // Dark Islands
+        color.rgb += vec3(min(pow2(pow2(pow2(smoothstep1(emission * 0.5)))), 0.25)) * LAVA_TEMPERATURE * 0.65 + 0.1;
+            if (mat == 10068 || columnNoise == 1.0) {
+                float noise = texture2D(noisetex, lavaPos * 0.01 + wind * 0.01).r;
+                noise -= texture2D(noisetex, lavaPos * 1.1 + wind * 0.05).r * 0.3;
+                noise += texture2D(noisetex, lavaPos * 0.1).r * 0.7;
+                color.rgb *= smoothstep(0.00, 0.70, noise);
+            }
         #endif
     }
 #else
-    maRecolor = vec3(clamp(pow2(pow2(pow2(smoothstep1(emission * 0.35)))), 0.12, 0.4) * 1.3) * vec3(1.0, vec2(0.7));
+    maRecolor = vec3(clamp(pow2(pow2(pow2(smoothstep1(emission * 0.28)))), 0.12, 0.4) * 1.3) * vec3(1.0, vec2(0.7));
     if (LAVA_TEMPERATURE != 0.0) maRecolor += LAVA_TEMPERATURE * 0.5 - 0.2;
 #endif
 

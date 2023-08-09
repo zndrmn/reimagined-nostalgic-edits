@@ -1,6 +1,8 @@
-////////////////////////////////////////
-// Complementary Reimagined by EminGT //
-////////////////////////////////////////
+//////////////////////////////////////////////
+//    Complementary Reimagined by EminGT    //
+//             -- -- with -- --             //
+// Euphoria Patches by isuewo & SpacEagle17 //
+//////////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -20,7 +22,7 @@ in vec3 midUV;
 flat in vec3 upVec, sunVec, northVec, eastVec;
 in vec3 normal;
 
-in vec4 glColor;
+in vec4 glColorRaw;
 
 #if RAIN_PUDDLES >= 1 || defined GENERATED_NORMALS || defined CUSTOM_PBR
 	flat in vec3 binormal, tangent;
@@ -95,6 +97,11 @@ uniform float isSnowy;
 	uniform sampler2D colortex9;
 #endif
 
+#ifdef AURORA_INFLUENCE
+	uniform int moonPhase;
+	uniform float blindness;
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//
@@ -107,6 +114,8 @@ float sunVisibility2 = sunVisibility * sunVisibility;
 float shadowTimeVar1 = abs(sunVisibility - 0.5) * 2.0;
 float shadowTimeVar2 = shadowTimeVar1 * shadowTimeVar1;
 float shadowTime = shadowTimeVar2 * shadowTimeVar2;
+
+vec4 glColor = glColorRaw;
 
 #ifdef OVERWORLD
 	vec3 lightVec = sunVec * ((timeAngle < 0.5325 || timeAngle > 0.9675) ? 1.0 : -1.0);
@@ -155,7 +164,6 @@ float GetMaxColorDif(vec3 color) {
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #ifdef TAA
@@ -178,8 +186,19 @@ float GetMaxColorDif(vec3 color) {
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
+#ifdef COLOR_CODED_PROGRAMS
+	#include "/lib/misc/colorCodedPrograms.glsl"
+#endif
+
 #ifdef MULTICOLORED_BLOCKLIGHT
 	#include "/lib/lighting/coloredBlocklight.glsl"
+#endif
+
+#ifdef AURORA_INFLUENCE
+	#ifdef RGB_AURORA
+		#include "/lib/colors/rainbowColor.glsl"
+	#endif
+	#include "/lib/atmospherics/auroraBorealis.glsl"
 #endif
 
 //Program//
@@ -195,10 +214,6 @@ void main() {
 
 	vec3 colorP = color.rgb;
 	color.rgb *= glColor.rgb;
-
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		vec3 lightAlbedo = color.rgb + 0.00001;
-	#endif
 	
 	vec3 screenPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z);
 	#ifdef TAA
@@ -343,17 +358,20 @@ void main() {
 		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
 	#endif
 
+	#ifdef AURORA_INFLUENCE
+		AuroraAmbientColor(ambientColor, viewPos);
+	#endif
+
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 				noSmoothLighting, noDirectionalShading, noVanillaAO, centerShadowBias,
 				subsurfaceMode, smoothnessG, highlightMult, emission);
 
-	#ifdef IPBR
-		color.rgb += maRecolor;
+	#ifdef MULTICOLORED_BLOCKLIGHT
+		vec3 lightAlbedo = normalize(color.rgb) * min1(emission);
 	#endif
 
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		float lightEmission = clamp01(emission);
-		lightAlbedo = normalize(mix(lightAlbedo, color.rgb, lightEmission)) * lightEmission;
+	#ifdef IPBR
+		color.rgb += maRecolor;
 	#endif
 
 	#ifdef PBR_REFLECTIONS
@@ -364,11 +382,15 @@ void main() {
 		#endif
 	#endif
 
+	#ifdef COLOR_CODED_PROGRAMS
+		ColorCodeProgram(color);
+	#endif
+
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
 
-	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE != 0
+	#if BLOCK_REFLECT_QUALITY >= 2 && RP_MODE != 0
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
 
@@ -399,7 +421,7 @@ out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of
 flat out vec3 upVec, sunVec, northVec, eastVec;
 out vec3 normal;
 
-out vec4 glColor;
+out vec4 glColorRaw;
 
 #if RAIN_PUDDLES >= 1 || defined GENERATED_NORMALS || defined CUSTOM_PBR
 	flat out vec3 binormal, tangent;
@@ -416,7 +438,7 @@ out vec4 glColor;
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined WAVING_ANYTHING_TERRAIN || defined WORLD_CURVATURE || defined LAVA_VERTEX_WAVES
+#if defined WAVING_ANYTHING_TERRAIN || defined WORLD_CURVATURE || defined INTERACTIVE_FOLIAGE
 	uniform vec3 cameraPosition;
 	uniform mat4 gbufferModelViewInverse;
 	uniform sampler2D noisetex;
@@ -432,6 +454,7 @@ attribute vec3 at_midBlock;
 #endif
 
 //Common Variables//
+vec4 glColor = vec4(1.0);
 
 //Common Functions//
 
@@ -440,7 +463,7 @@ attribute vec3 at_midBlock;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#if defined WAVING_ANYTHING_TERRAIN || defined LAVA_VERTEX_WAVES || defined INTERACTIVE_FOLIAGE
+#if defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE
 	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
@@ -454,8 +477,9 @@ void main() {
 	lmCoord  = GetLightMapCoordinates();
 	midUV = 0.5 - at_midBlock / 64.0;
 
-	glColor = gl_Color;
-	if (glColor.a < 0.1) glColor.a = 1.0;
+	glColorRaw = gl_Color;
+	if (glColorRaw.a < 0.1) glColorRaw.a = 1.0;
+	glColor = glColorRaw;
 
 	normal = normalize(gl_NormalMatrix * gl_Normal);
 	upVec = normalize(gbufferModelView[1].xyz);
@@ -484,7 +508,12 @@ void main() {
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#else
 		gl_Position = ftransform();
-	
+
+		#ifndef WAVING_LAVA
+			// G8FL735 Fixes Optifine-Iris parity. Optifine has 0.9 gl_Color.rgb on a lot of versions
+			glColorRaw.rgb = min(glColorRaw.rgb, vec3(0.9));
+		#endif
+
 		#ifdef FLICKERING_FIX
 			//if (mat == 10256) gl_Position.z -= 0.00001; // Iron Bars
 		#endif

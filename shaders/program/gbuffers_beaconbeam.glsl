@@ -1,6 +1,8 @@
-////////////////////////////////////////
-// Complementary Reimagined by EminGT //
-////////////////////////////////////////
+//////////////////////////////////////////////
+//    Complementary Reimagined by EminGT    //
+//             -- -- with -- --             //
+// Euphoria Patches by isuewo & SpacEagle17 //
+//////////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -35,6 +37,10 @@ uniform sampler2D tex;
 	#include "/lib/util/jitter.glsl"
 #endif
 
+#ifdef COLOR_CODED_PROGRAMS
+	#include "/lib/misc/colorCodedPrograms.glsl"
+#endif
+
 //Program//
 void main() {
 	vec4 color = texture2D(tex, texCoord);
@@ -65,7 +71,11 @@ void main() {
 
 	color.rgb *= 0.5 + 0.5 * exp(- lViewPos * 0.04);
 
-    /* DRAWBUFFERS:01 */
+	#ifdef COLOR_CODED_PROGRAMS
+		ColorCodeProgram(color);
+	#endif
+
+	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(0.0, 0.0, 0.0, 1.0);
 }

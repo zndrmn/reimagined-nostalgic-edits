@@ -1,6 +1,8 @@
-////////////////////////////////////////
-// Complementary Reimagined by EminGT //
-////////////////////////////////////////
+//////////////////////////////////////////////
+//    Complementary Reimagined by EminGT    //
+//             -- -- with -- --             //
+// Euphoria Patches by isuewo & SpacEagle17 //
+//////////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -16,9 +18,6 @@ uniform float viewWidth, viewHeight;
 uniform sampler2D colortex3;
 
 //Pipeline Constants//
-#ifndef TAA
-	const bool colortex3MipmapEnabled = true;
-#endif
 
 //Common Variables//
 

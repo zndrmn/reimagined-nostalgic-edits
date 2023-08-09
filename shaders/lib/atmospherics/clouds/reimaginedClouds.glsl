@@ -41,8 +41,8 @@ float InterleavedGradientNoise() {
 
 bool GetCloudNoise(vec3 tracePos, float cloudAltitude) {
     vec2 coord = GetRoundedCloudCoord(ModifyTracePos(tracePos.xyz, cloudAltitude).xz);
-    
-    float noise = texture2D(colortex3, coord).r;
+
+    float noise = texture2D(colortex3, coord).b;
     float threshold = clamp(abs(cloudAltitude - tracePos.y) / cloudStretch, 0.001, 0.999);
     threshold = pow2(pow2(pow2(threshold)));
     return noise > (threshold * 0.5 + 0.25);
@@ -62,15 +62,16 @@ vec4 GetVolumetricClouds(float cloudAltitude, float distanceThreshold, inout flo
     if (maxPlaneDistance < 0.0) return vec4(0.0);
     float planeDistanceDif = maxPlaneDistance - minPlaneDistance;
 
-    vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz);
-    wpos /= (abs(wpos.y) + length(wpos.xz));
+    #if RAINBOW_CLOUD != 0
+        vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz);
+        wpos /= (abs(wpos.y) + length(wpos.xz));
 
-    float r = wpos.x * cos(frameTimeCounter * 0.1) - wpos.z * sin(frameTimeCounter * 0.01) + frameTimeCounter * 0.01;
-    vec3 rainbowColor = vec3(0.5) + vec3(0.5) * cos(6.28318 * (vec3(0.1,0.1,0.1) * rainbowCloudDistribution * 2.0 * r + vec3(0.0,0.33,0.67)));        // Copyright © 2015 Inigo Quilez Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        vec3 rainbowColor = getRainbowColor(wpos.xz * rainbowCloudDistribution * 0.35, 0.05);
+    #endif
 
-    #if CLOUD_HIGH_QUALITY == 1
+    #ifndef HQ_REIM_CLOUD
         int sampleCount = max(int(planeDistanceDif) / 8, 12);
-    #elif CLOUD_HIGH_QUALITY == 2
+    #else
         int sampleCount = max(int(planeDistanceDif), 12);
     #endif
 
@@ -122,17 +123,26 @@ vec4 GetVolumetricClouds(float cloudAltitude, float distanceThreshold, inout flo
             light -= texture2D(colortex3, GetRoundedCloudCoord(cLightPos.xz)).r * cloudShadingM;
 
             float VdotSM1 = max0(sunVisibility > 0.5 ? VdotS : - VdotS);
-            float VdotSM2 = VdotSM1 * shadowTime * 0.25;
-                  VdotSM2 += 0.5 * cloudShading + 0.08;
-            cloudShading = VdotSM2 * light * lightMult;
+            #if DETAIL_QUALITY >= 1
+                float light = 2.0;
+                cLightPos += (1.0 + gradientNoise) * cLightPosAdd;
+                light -= texture2D(colortex3, GetRoundedCloudCoord(cLightPos.xz)).b * cloudShadingM;
+                cLightPos += gradientNoise * cLightPosAdd;
+                light -= texture2D(colortex3, GetRoundedCloudCoord(cLightPos.xz)).b * cloudShadingM;
+
+                float VdotSM2 = VdotSM1 * shadowTime * 0.25;
+                    VdotSM2 += 0.5 * cloudShading + 0.08;
+                cloudShading = VdotSM2 * light * lightMult;
+            #endif
 
             #if RAINBOW_CLOUD != 0
                 vec3 colorSample = rainbowColor * cloudAmbientColor + rainbowColor * cloudLightColor * (0.07 + cloudShading);
             #else
                 vec3 colorSample = CLOUD_COLOR_I * cloudAmbientColor + cloudLightColor * (0.18 + cloudShading);
-                //vec3 colorSample = cloudAmbientColor + cloudLightColor * (0.07 + cloudShading);
             #endif
-            //vec3 colorSample = CLOUD_COLOR_I * cloudAmbientColor + cloudLightColor * (0.18 + cloudShading);
+            #ifdef AURORA_INFLUENCE
+                AuroraAmbientColor(colorSample, viewPos);
+            #endif
             vec3 cloudSkyColor = GetSky(VdotU, VdotS, dither, true, false);
             float cloudFogFactor = clamp((distanceThreshold - lTracePosXZ) / distanceThreshold, 0.0, 0.75) * CLOUD_TRANSPARENCY;
             float skyMult1 = 1.0 - 0.2 * (1.0 - skyFade) * max(sunVisibility2, nightFactor);

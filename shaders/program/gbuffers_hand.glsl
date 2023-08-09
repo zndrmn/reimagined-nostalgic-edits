@@ -1,6 +1,8 @@
-////////////////////////////////////////
-// Complementary Reimagined by EminGT //
-////////////////////////////////////////
+//////////////////////////////////////////////
+//    Complementary Reimagined by EminGT    //
+//             -- -- with -- --             //
+// Euphoria Patches by isuewo & SpacEagle17 //
+//////////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -64,6 +66,10 @@ uniform sampler2D noisetex;
 	uniform int heldItemId2;
 #endif
 
+#ifdef IS_IRIS
+	uniform int currentRenderedItemId;
+#endif
+
 #ifdef MULTICOLORED_BLOCKLIGHT
 	uniform vec3 previousCameraPosition;
 
@@ -71,6 +77,13 @@ uniform sampler2D noisetex;
 	uniform mat4 gbufferPreviousProjection;
 
 	uniform sampler2D colortex9;
+#endif
+
+#ifdef AURORA_INFLUENCE
+	uniform int moonPhase;
+	uniform float isSnowy;
+	uniform float blindness;
+	uniform float darknessFactor;
 #endif
 
 //Pipeline Constants//
@@ -104,7 +117,6 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #if defined GENERATED_NORMALS || defined COATED_TEXTURES
@@ -123,8 +135,19 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
+#ifdef COLOR_CODED_PROGRAMS
+	#include "/lib/misc/colorCodedPrograms.glsl"
+#endif
+
 #ifdef MULTICOLORED_BLOCKLIGHT
 	#include "/lib/lighting/coloredBlocklight.glsl"
+#endif
+
+#ifdef AURORA_INFLUENCE
+	#ifdef RGB_AURORA
+		#include "/lib/colors/rainbowColor.glsl"
+	#endif
+	#include "/lib/atmospherics/auroraBorealis.glsl"
 #endif
 
 //Program//
@@ -150,6 +173,10 @@ void main() {
 		vec2 lmCoordM = lmCoord;
 		vec3 shadowMult = vec3(0.4);
 		#ifdef IPBR
+			#ifdef IS_IRIS
+				#include "/lib/materials/materialHandling/irisMaterials.glsl"
+			#endif
+
 			#ifdef GENERATED_NORMALS
 				GenerateNormals(normalM, colorP);
 			#endif
@@ -167,6 +194,10 @@ void main() {
 			blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
 		#endif
 
+		#ifdef AURORA_INFLUENCE
+			AuroraAmbientColor(ambientColor, viewPos);
+		#endif
+
 		DoLighting(color, shadowMult, playerPos, viewPos, 0.0, normalM, lmCoordM,
 				   true, false, false, false,
 				   0, smoothnessG, highlightMult, emission);
@@ -180,11 +211,15 @@ void main() {
 		#endif
 	}
 
+	#ifdef COLOR_CODED_PROGRAMS
+		ColorCodeProgram(color);
+	#endif
+
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
 
-	#if BLOCK_REFLECT_QUALITY >= 1 && RP_MODE >= 2
+	#if BLOCK_REFLECT_QUALITY >= 2 && RP_MODE >= 2
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
 

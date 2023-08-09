@@ -65,11 +65,14 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
-#include "/lib/colors/blocklightColors.glsl"
 #include "/lib/lighting/mainLighting.glsl"
 
 #ifdef TAA
 	#include "/lib/util/jitter.glsl"
+#endif
+
+#ifdef COLOR_CODED_PROGRAMS
+	#include "/lib/misc/colorCodedPrograms.glsl"
 #endif
 
 #ifdef MULTICOLORED_BLOCKLIGHT
@@ -91,11 +94,11 @@ void main() {
 
 	vec3 shadowMult = vec3(1.0);
 
-	#ifdef MULTICOLORED_BLOCKLIGHT
-		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
-	#endif
-
 	#ifndef GBUFFERS_LINE
+		#ifdef MULTICOLORED_BLOCKLIGHT
+			blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
+		#endif
+
 		DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
 				false, false, false, false,
 				0, 0.0, 0.0, 0.0);
@@ -113,6 +116,10 @@ void main() {
 			color.rgb = vec3(SELECT_OUTLINE_R, SELECT_OUTLINE_G, SELECT_OUTLINE_B) * SELECT_OUTLINE_I;
 		#endif
 	}
+	#endif
+
+	#ifdef COLOR_CODED_PROGRAMS
+		ColorCodeProgram(color);
 	#endif
 
 	/* DRAWBUFFERS:01 */

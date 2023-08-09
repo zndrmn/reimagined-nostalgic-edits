@@ -1,6 +1,8 @@
-////////////////////////////////////////
-// Complementary Reimagined by EminGT //
-////////////////////////////////////////
+//////////////////////////////////////////////
+//    Complementary Reimagined by EminGT    //
+//             -- -- with -- --             //
+// Euphoria Patches by isuewo & SpacEagle17 //
+//////////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -54,8 +56,6 @@ uniform sampler2D depthtex1;
 	uniform int frameCounter;
 
 	//uniform float viewWidth, viewHeight;
-	uniform float blindness;
-	uniform float darknessFactor;
 	uniform float frameTime;
 	uniform float frameTimeSmooth;
 
@@ -73,7 +73,7 @@ uniform sampler2D depthtex1;
 	uniform sampler2D colortex1;
 #endif
 
-#if OVERWORLD_BEAMS_CONDITION == 0
+#ifdef AURORA_INFLUENCE
 	uniform int moonPhase;
 #endif
 
@@ -92,11 +92,20 @@ uniform sampler2D depthtex1;
 	uniform sampler2D colortex9;
 #endif
 
+#ifdef AURORA_INFLUENCE
+	uniform float isSnowy;
+#endif
+
 //Pipeline Constants//
 //const bool colortex0MipmapEnabled = true;
 
 #ifdef MULTICOLORED_BLOCKLIGHT
 	const bool colortex9Clear = false;
+#endif
+
+#ifdef LIGHTSHAFTS_ACTIVE
+	uniform float blindness;
+	uniform float darknessFactor;
 #endif
 
 //Common Variables//
@@ -173,6 +182,8 @@ float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(S
 		previousColoredLight += texture2D(colortex9, prevCoord.xy + offset).rgb * sampleWeight;
 		previousColoredLight *= previousColoredLight * mask;
 
+		if (lightAlbedo.g + lightAlbedo.b < 0.05) lightAlbedo.r *= 0.45; // red color reduction to prevent redstone from overpowering everything
+
 		return sqrt(mix(previousColoredLight, lightAlbedo * lightAlbedo / clamp(previousColoredLight.r + previousColoredLight.g + previousColoredLight.b, 0.01, 1.0), 0.01));
 	}
 #endif
@@ -182,6 +193,13 @@ float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(S
 
 #if defined BLOOM_FOG && !defined MOTION_BLURRING
 	#include "/lib/atmospherics/fog/bloomFog.glsl"
+#endif
+
+#ifdef AURORA_INFLUENCE
+	#ifdef RGB_AURORA
+		#include "/lib/colors/rainbowColor.glsl"
+	#endif
+	#include "/lib/atmospherics/auroraBorealis.glsl"
 #endif
 
 #ifdef LIGHTSHAFTS_ACTIVE
@@ -254,19 +272,12 @@ void main() {
 			volumetricLight.rgb *= GetAtmColorMult();
 		#endif
 	#endif
-
-	/*color.rgb = vec3(lViewPos);
-	if (gl_FragCoord.x > 960)
-	color.rgb = vec3(GetApproxDistance(z1));
-	color.rgb *= 0.02;
-	color.rgb = min(color.rgb, vec3(2.0));*/
 	
 	if (isEyeInWater == 1) {
 		if (z0 == 1.0) color.rgb = waterFogColor;
 
-		const vec3 underwaterMult = vec3(0.80, 0.87, 0.97);
+		vec3 underwaterMult = vec3(0.80, 0.87, 0.97);
 		color.rgb *= underwaterMult * 0.85;
-
 		volumetricLight.rgb *= pow2(underwaterMult * 0.71);
 	} else if (isEyeInWater == 2) {
 		if (z1 == 1.0) color.rgb = fogColor * 5.0;
@@ -293,23 +304,11 @@ void main() {
 		color *= GetBloomFog(lViewPos); // Reminder: Bloom Fog moves between composite and composite2 depending on Motion Blur
 	#endif
 
-	/*//if (texCoord.x < 0.25 && texCoord.y < 0.25)
-	vec4 wpos = vec4(shadowModelView[3][0], shadowModelView[3][1], shadowModelView[3][2], shadowModelView[3][3]);
-	wpos = shadowProjection * wpos;
-	wpos /= wpos.w;
-	vec4 shadowPosition = DistortShadow(wpos, 1.0 - shadowMapBias);
-	float checkS = texture2D(shadowtex0, texCoord).x;
-	vec3 checkColor = vec3(1.0 - checkS);
-	checkColor *= mix(vec3(0,1,0), vec3(0,0,1), clamp((checkS-shadowPosition.z)*65536.0,0.0,1.0));
-	if (checkS > 0.55) checkColor = vec3(checkColor.g + checkColor.b,0,0) * 3.0;
-	color += checkColor * 2.0;*/
-
-	//if (texCoord.y < 0.05 && vlFactor > texCoord.x) color = vec3(1,0,1);
-
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
-	
-	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END // Can't use LIGHTSHAFTS_ACTIVE on Optifine
+
+	// Can't use LIGHTSHAFTS_ACTIVE on Optifine
+	#if LIGHTSHAFT_QUALI_DEFINE > 0 && LIGHTSHAFT_BEHAVIOUR > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
 		/* DRAWBUFFERS:04 */
 		gl_FragData[1] = vec4(vlFactorM, 0.0, 0.0, 1.0);
 

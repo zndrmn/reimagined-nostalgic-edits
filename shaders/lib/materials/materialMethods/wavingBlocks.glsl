@@ -72,19 +72,18 @@ void DoWave_Water(inout vec3 playerPos, vec3 worldPos) {
 
 void DoWave_Lava(inout vec3 playerPos, vec3 worldPos) {
     if (fract(worldPos.y + 0.005) > 0.06) {
-        float lavaWaveTime = frameTimeCounter * 2.0;
-        worldPos.xz *= 18.0;
+        float lavaWaveTime = frameTimeCounter * 3.0;
+        worldPos.xz *= 14.0;
 
         float wave  = sin(lavaWaveTime * 0.7 + worldPos.x * 0.14 + worldPos.z * 0.07);
-        wave += sin(lavaWaveTime * 0.5 + worldPos.x * 0.10 + worldPos.z * 0.05);
-        wave *= 0.1;
-        #ifdef NETHER
-        if (mat == 10068) {
-            if (worldPos.y > 30 && worldPos.y < 32) wave *= 7.0;
+              wave += sin(lavaWaveTime * 0.5 + worldPos.x * 0.05 + worldPos.z * 0.10);
+
+        #if defined NETHER && defined WAVIER_LAVA
+            if (worldPos.y > 30 && worldPos.y < 32) wave *= 4.5;
             else wave *= 2.0;
-        }
         #endif
-        playerPos.y += wave * 0.125 - 0.05;
+
+        playerPos.y += wave * 0.0125;
     }
 }
 
@@ -98,8 +97,8 @@ void DoWave(inout vec3 playerPos, int mat) {
             } else if (mat == 10020) { // Upper Layer Waving Foliage
                 DoWave_Foliage(playerPos.xyz, worldPos);
             }
-            
-            #ifdef WAVING_LEAVES
+
+            #if defined WAVING_LEAVES || defined WAVING_LAVA
                 else
             #endif
         #endif
@@ -108,11 +107,20 @@ void DoWave(inout vec3 playerPos, int mat) {
             if (mat == 10008 || mat == 10012) { // Leaves, Vine
                 DoWave_Leaves(playerPos.xyz, worldPos);
             }
+
+            #ifdef WAVING_LAVA
+                else
+            #endif
         #endif
 
-        #ifdef LAVA_VERTEX_WAVES
-            if (mat == 10068 || mat == 10069) { // Lava
+        #ifdef WAVING_LAVA
+            if (mat == 10068) { // Lava
                 DoWave_Lava(playerPos.xyz, worldPos);
+
+                #ifdef GBUFFERS_TERRAIN
+                    // G8FL735 Fixes Optifine-Iris parity. Optifine has 0.9 gl_Color.rgb on a lot of versions
+                    glColor.rgb = min(glColor.rgb, vec3(0.9));
+                #endif
             }
         #endif
     #endif

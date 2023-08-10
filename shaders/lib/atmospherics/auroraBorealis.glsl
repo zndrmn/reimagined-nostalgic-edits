@@ -25,19 +25,21 @@ void GetAuroraColor(in vec2 wpos, out vec3 auroraUp, out vec3 auroraDown) {
     #else
         vec3 auroraUpA[] = vec3[](
             vec3(112.0, 36.0, 192.0), // [1] Complementary Reimagined
-            vec3(112.0, 80.0, 255.0), // [2] Complementary Legacy
-            vec3(64.0, 255.0, 255.0), // [3] Euphoria Patches
-            vec3(24.0, 255.0, 140.0), // [4] Nostalgic Edits
-            vec3(164.0, 12.0, 76.0),  // [5] Galactic Lights
-            vec3(132.0, 0.0, 200.0)   // [6] Mythical Lights
+            vec3(112.0, 36.0, 192.0), // [2] Complementary Reimagined
+            vec3(112.0, 80.0, 255.0), // [3] Complementary Legacy
+            vec3(64.0, 255.0, 255.0), // [4] Euphoria Patches
+            vec3(24.0, 255.0, 140.0), // [5] Nostalgic Edits
+            vec3(164.0, 12.0, 76.0),  // [6] Galactic Lights
+            vec3(132.0, 0.0, 200.0)   // [7] Mythical Lights
         );
         vec3 auroraDownA[] = vec3[](
             vec3(96.0, 255.0, 192.0), // [1] Complementary Reimagined
-            vec3(80.0, 255.0, 180.0), // [2] Complementary Legacy
-            vec3(128.0, 64.0, 128.0), // [3] Euphoria Patches
-            vec3(108.0, 72.0, 255.0), // [4] Nostalgic Edits
-            vec3(124.0, 64.0, 255.0), // [5] Galactic Lights
-            vec3(56.0, 168.0, 255.0)  // [6] Mythical Lights
+            vec3(96.0, 255.0, 192.0), // [2] Complementary Reimagined
+            vec3(80.0, 255.0, 180.0), // [3] Complementary Legacy
+            vec3(128.0, 64.0, 128.0), // [4] Euphoria Patches
+            vec3(108.0, 72.0, 255.0), // [5] Nostalgic Edits
+            vec3(124.0, 64.0, 255.0), // [6] Galactic Lights
+            vec3(56.0, 168.0, 255.0)  // [7] Mythical Lights
         );
         #if AURORA_COLOR_PRESET > 1
             int p = AURORA_COLOR_PRESET-1;

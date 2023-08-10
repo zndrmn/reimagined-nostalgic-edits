@@ -31,15 +31,15 @@ uniform float frameTimeCounter;
 
     #define SHADER_STYLE 1 //[1 4]
 
-    #define RP_MODE 1 //[0 1 2 3]
+    #define RP_MODE 1 //[1 0 3 2]
     #if RP_MODE == 1
-    #define IPBR
-    //#define GENERATED_NORMALS
-    //#define COATED_TEXTURES
+        #define IPBR
+        //#define GENERATED_NORMALS
+        //#define COATED_TEXTURES
     #endif
     #if RP_MODE >= 2
-    #define CUSTOM_PBR
-    #define POM
+        #define CUSTOM_PBR
+        #define POM
     #endif
 
     #define REALTIME_SHADOWS
@@ -194,8 +194,8 @@ uniform float frameTimeCounter;
     #define GR_BB 100 //[0 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 108 116 124 132 140 148 156 164 172 180 188 196 200 212 224 236 248 260 272 284 296 300 316 332 348 364 380 396 400 400 424 448 472 496 500]
     #define GR_BC 1.00 //[0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00 2.20 2.40 2.60 2.80 3.00 3.25 3.50 3.75 4.00 4.50 5.00]
 
-    #define LIGHT_COLOR_MULTS
-    #define ATM_COLOR_MULTS
+    //#define LIGHT_COLOR_MULTS
+    //#define ATM_COLOR_MULTS
     #define LIGHT_MORNING_R 1.10 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
     #define LIGHT_MORNING_G 1.00 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]
     #define LIGHT_MORNING_B 0.85 //[0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00 1.10 1.20 1.30 1.40 1.50 1.60 1.70 1.80 1.90 2.00]

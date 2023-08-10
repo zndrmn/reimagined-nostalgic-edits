@@ -3,11 +3,11 @@
 
 #if defined OVERWORLD
     #ifndef COMPOSITE
-        vec3 noonClearLightColor = vec3(0.67, 0.55, 0.5) * 1.6; //ground and cloud color
+        vec3 noonClearLightColor = vec3(0.63, 0.57, 0.52) * 1.7; //ground and cloud color
     #else
         vec3 noonClearLightColor = vec3(0.4, 0.7, 1.4); //light shaft color
     #endif
-    vec3 noonClearAmbientColor = pow(skyColor, vec3(0.55)) * 0.85;
+        vec3 noonClearAmbientColor = pow(skyColor, vec3(0.55)) * 0.80;
 
 
     #ifndef COMPOSITE

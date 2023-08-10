@@ -758,11 +758,6 @@ screen.OTHER_SETTINGS.comment=§7-----§r. Settings that don't fit into any othe
     option.COLOR_CODED_PROGRAMS=Color Coded Programs §c[-]§r
     option.COLOR_CODED_PROGRAMS.comment=Shows which shader programs are being used to render geometry. §c[-]§r This option is only for development purposes and shouldn't be used for gameplay. §e[*]§r Color values can be found in shaders\lib\misc\colorCodedPrograms.glsl
 
-#option.CLOUD_HIGH_QUALITY=High Quality Clouds §e[*]§r
-#option.CLOUD_HIGH_QUALITY.comment=Reduces noise and improves the integrity of the Reimagined Clouds. §e[*]§r This setting only works when the Cloud Style is set to "Reimagined" or "Double Reimagined". §c[-]§r This option can impact performance especially with double layer clouds.
-#value.CLOUD_HIGH_QUALITY.1=Off
-#value.CLOUD_HIGH_QUALITY.2=On §c[-]
-
 ############    Euphoria    ############
 ############    Euphoria    ############
 ############    Euphoria    ############

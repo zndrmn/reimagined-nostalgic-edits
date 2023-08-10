@@ -94,13 +94,17 @@ void DoTAA(inout vec3 color, inout vec3 temp, float depth) {
 	float blendConstant = 0.65;
 	float velocityFactor = dot(velocity, velocity) * 10.0;
 	blendFactor *= max(exp(-velocityFactor) * blendVariable + blendConstant - length(cameraOffset) * edge, blendMinimum);
-
+	
 	#if defined IS_IRIS && defined RAIN_ATMOSPHERE && defined OVERWORLD
 		if (lightning > 0.0) blendFactor = 0.0;
+	#endif
+
+	#ifdef MIRROR_DIMENSION
+		blendFactor = 0.0;
 	#endif
 
 	color = mix(color, tempColor, blendFactor);
 	temp = color;
 
-	//if (edge > 0.05) color.rgb = vec3(1.0, 0.0, 1.0);
+	// if (edge > 0.05) color.rgb = vec3(1.0, 0.0, 1.0);
 }

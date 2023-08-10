@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -25,7 +23,7 @@ in vec4 glColor;
 	flat in vec3 binormal, tangent;
 #endif
 
-#if WATER_STYLE >= 2 || defined FANCY_NETHERPORTAL || defined GENERATED_NORMALS || defined POM
+#if WATER_STYLE >= 2 || NETHER_PORTAL_VARIATION > 0 || defined GENERATED_NORMALS || defined POM || SEASONS == 1 || SEASONS == 4 
 	in vec2 signMidCoordPos;
 	flat in vec2 absMidCoordPos;
 #endif
@@ -35,6 +33,10 @@ in vec4 glColor;
 #endif
 
 in vec3 midUV;
+
+#if SEASONS == 1 || SEASONS == 4 
+	flat in ivec2 pixelTexSize;
+#endif
 
 //Uniforms//
 uniform int isEyeInWater;
@@ -86,7 +88,7 @@ uniform sampler2D noisetex;
 	#endif
 #endif
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM || WATER_STYLE >= 2
 	uniform ivec2 atlasSize;
 #endif
 
@@ -95,7 +97,7 @@ uniform sampler2D noisetex;
 	uniform sampler2D specular;
 #endif
 
-#if OVERWORLD_BEAMS_CONDITION == 0
+#if defined AURORA_INFLUENCE || OVERWORLD_BEAMS_CONDITION == 0
 	uniform int moonPhase;
 #endif
 
@@ -226,6 +228,14 @@ void main() {
 		atmColorMult = GetAtmColorMult();
 	#endif
 
+	#if SEASONS == 1 || SEASONS == 4 
+		float snowIntensity = 1.0;
+		float snowTransparentOverwrite = 0.0;
+		float snowAlpha = 1.0;
+		float snowFresnelMult = 1.0;
+		float IPBRMult = 1.0;
+	#endif
+
 	#ifdef CLOUDS_REIMAGINED
 		float cloudLinearDepth = texelFetch(gaux1, texelCoord, 0).r;
 
@@ -266,11 +276,56 @@ void main() {
 			float smoothnessD, materialMaskPh;
 			GetCustomMaterials(color, normalM, lmCoordM, NdotU, shadowMult, smoothnessG, smoothnessD, highlightMult, emission, materialMaskPh, viewPos, lViewPos);
 			reflectMult = smoothnessD;
+		#endif
+		
+		if (mat == 31000) { // Water
+			#ifdef SHADER_WATER
+				#include "/lib/materials/specificMaterials/translucents/water.glsl"
+				#if SEASONS == 1 || SEASONS == 4 
+					snowIntensity = 0.0;
+					snowFresnelMult = 0.0;
+					IPBRMult = 0.0;
+					snowAlpha = 0.0;
+				#endif
+			#endif
+			#if SEASONS == 1 || SEASONS == 4 
+				snowAlpha = 0.95;
+			#endif
+		}
 	#endif
 
-	if (mat == 31000) { // Water
-			#include "/lib/materials/specificMaterials/translucents/water.glsl"
-		}
+	#if defined NETHER && defined BIOME_COLORED_NETHER_PORTALS
+		if (mat == 30020) {
+			#if NETHER_PORTAL_VARIATION == 1 && defined IPBR
+				color.rgb = normalize(netherSkyColor) * 0.4;
+			#else
+				float luminance = GetLuminance(color.rgb);
+				color.rgb = normalize(netherSkyColor) * luminance;
+			#endif
+			#if NETHER_PORTAL_VARIATION == 0 || !defined IPBR
+				emission = sqrt(luminance) * 11;
+				color.a *= luminance;
+				lmCoordM = vec2(0.0);
+			#endif
+		} 
+	#endif
+
+	#if SEASONS > 0
+		#include "/lib/materials/seasons.glsl"
+	#endif
+
+	#ifdef REFLECTIVE_WORLD
+		smoothnessG = 1.0;
+	#endif
+
+	#if MONOTONE_WORLD > 0
+		#if MONOTONE_WORLD == 1
+			color.rgb = vec3(1.0);
+		#elif MONOTONE_WORLD == 2
+			color.rgb = vec3(0.0);
+		#else
+			color.rgb = vec3(0.5);
+		#endif
 	#endif
 
 	// Blending
@@ -278,14 +333,14 @@ void main() {
 		translucentMult = vec4(mix(vec3(0.666), color.rgb * (1.0 - pow2(pow2(color.a))), color.a), 1.0);
 
 	translucentMult.rgb = mix(translucentMult.rgb, vec3(1.0), min1(pow2(pow2(lViewPos / far))));
-
+	
 	#ifdef MULTICOLORED_BLOCKLIGHT
 		blocklightCol = ApplyMultiColoredBlocklight(blocklightCol, screenPos);
 	#endif
 
 	#ifdef AURORA_INFLUENCE
-		AuroraAmbientColor(ambientColor, viewPos);
-	#endif
+        AuroraAmbientColor(ambientColor, viewPos);
+    #endif
 
 	// Lighting
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
@@ -315,9 +370,9 @@ void main() {
 			#if defined REALTIME_SHADOWS && defined WATER_QUALITY >= 2
 				skyLightFactor = max(skyLightFactor, min1(dot(shadowMult, shadowMult)));
 			#endif
-
+		
 			vec4 reflection = GetReflection(normalM, viewPos.xyz, nViewPos, playerPos, lViewPos, -1.0,
-											depthtex1, dither, skyLightFactor, fresnel,
+			                                depthtex1, dither, skyLightFactor, fresnel,
 											smoothnessG, geoNormal, color.rgb, shadowMult, highlightMult);
 
 			color.rgb = mix(color.rgb, reflection.rgb, fresnelM);
@@ -336,7 +391,7 @@ void main() {
 				vec4 clipPosR = gbufferProjection * vec4(nViewPosR + 0.013 * viewPos, 1.0);
 				vec3 screenPosR = clipPosR.xyz / clipPosR.w * 0.5 + 0.5;
 
-        		vec2 rEdge = vec2(0.6, 0.53);
+				vec2 rEdge = vec2(0.6, 0.53);
 				vec2 screenPosRM = abs(screenPosR.xy - 0.5);
 
 				if (screenPosRM.x < rEdge.x && screenPosRM.y < rEdge.y) {
@@ -373,7 +428,7 @@ void main() {
 			#endif
 		#endif
 	#endif
-	////
+    ////
 
 	#ifdef COLOR_CODED_PROGRAMS
 		ColorCodeProgram(color);
@@ -423,7 +478,7 @@ out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of
 	flat out vec3 binormal, tangent;
 #endif
 
-#if WATER_STYLE >= 2 || defined FANCY_NETHERPORTAL || defined GENERATED_NORMALS || defined POM
+#if WATER_STYLE >= 2 || NETHER_PORTAL_VARIATION > 0 || defined GENERATED_NORMALS || defined POM || SEASONS == 1 || SEASONS == 4 
 	out vec2 signMidCoordPos;
 	flat out vec2 absMidCoordPos;
 #endif
@@ -441,15 +496,15 @@ out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined WAVING_WATER_VERTEX || defined WORLD_CURVATURE
+#if defined WAVING_WATER_VERTEX || defined WAVE_EVERYTHING || defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	uniform mat4 gbufferModelViewInverse;
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined WAVE_EVERYTHING || defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	uniform sampler2D noisetex;
 #endif
 
-#if defined WAVING_WATER_VERTEX
+#if defined WAVE_EVERYTHING || defined WAVING_WATER_VERTEX || defined ATLAS_ROTATION
 	uniform vec3 cameraPosition;
 #endif
 
@@ -472,17 +527,20 @@ attribute vec4 at_tangent;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
 #endif
 
-#if defined WAVING_WATER_VERTEX
+#if defined WAVE_EVERYTHING || defined WAVING_WATER_VERTEX
 	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
 void main() {
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.1, vec3(100.0))));
+	#endif
 	lmCoord  = GetLightMapCoordinates();
 	midUV = 0.5 - at_midBlock / 64.0;
 
@@ -490,15 +548,23 @@ void main() {
 
 	mat = int(mc_Entity.x + 0.5);
 
-	#if defined WAVING_WATER_VERTEX || defined WORLD_CURVATURE
+	#if defined WAVING_WATER_VERTEX || defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
 
 		#ifdef WAVING_WATER_VERTEX
 			DoWave(position.xyz, mat);
 		#endif
 
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
+
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
@@ -532,7 +598,7 @@ void main() {
 
 	viewVector = tbnMatrix * (gl_ModelViewMatrix * gl_Vertex).xyz;
 
-	#if WATER_STYLE >= 2 || defined FANCY_NETHERPORTAL || defined GENERATED_NORMALS || defined POM
+	#if WATER_STYLE >= 2 || NETHER_PORTAL_VARIATION > 0 || defined GENERATED_NORMALS || defined POM || SEASONS == 1 || SEASONS == 4 
 		vec2 midCoord = (gl_TextureMatrix[0] * mc_midTexCoord).st;
 		vec2 texMinMidCoord = texCoord - midCoord;
 		signMidCoordPos = sign(texMinMidCoord);
@@ -542,6 +608,10 @@ void main() {
 			vTexCoordAM.zw  = abs(texMinMidCoord) * 2;
 			vTexCoordAM.xy  = min(texCoord, midCoord - texMinMidCoord);
 		#endif
+	#endif
+
+	#if SEASONS == 1 || SEASONS == 4 
+		ivec2 pixelTexSize = ivec2(absMidCoordPos * 2.0 * atlasSize);
 	#endif
 
 	gl_Position.z -= 0.0001;

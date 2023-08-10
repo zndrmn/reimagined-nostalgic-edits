@@ -7,8 +7,8 @@ if (mat < 10512) {
                         if (mat < 10008) {
                             if (mat == 10000) { // No directional shading
                                 noDirectionalShading = true;
-                            }
-                            else if (mat == 10004 || mat == 10005) { // Grounded Waving Foliage
+                            } 
+                            else if (mat == 10004 ||mat == 10005) { // Grounded Waving Foliage
                                 subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
                                 DoFoliageColorTweaks(color.rgb, shadowMult, snowMinNdotU, lViewPos);
 
@@ -89,8 +89,8 @@ if (mat < 10512) {
                             }
                         } else {
                             if (mat == 10040) { // Rails
-                                color = texture2DLod(tex, texCoord, 0);
-
+	                            color = texture2DLod(tex, texCoord, 0);
+                                
                                 noSmoothLighting = true;
                                 if (color.r > 0.1 && color.g + color.b < 0.1) { // Redstone Parts
                                     noSmoothLighting = true; noDirectionalShading = true;
@@ -99,6 +99,10 @@ if (mat < 10512) {
                                     if (color.r > 0.5) {
                                         color.rgb *= color.rgb;
                                         emission = 8.0 * color.r;
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.35;
+                                            snowEmission = 0.2;
+                                        #endif
                                     } else if (color.r > color.g * 2.0) {
                                         materialMask = OSIEBCA * 5.0; // Redstone Fresnel
 
@@ -119,6 +123,7 @@ if (mat < 10512) {
                             else /*if (mat == 10044)*/ { // Empty Cauldron, Hopper
                                 noSmoothLighting = true;
                                 lmCoordM.x = min(lmCoordM.x, 0.9333);
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
 
                                 #include "/lib/materials/specificMaterials/terrain/anvil.glsl"
                             }
@@ -128,25 +133,30 @@ if (mat < 10512) {
                             if (mat == 10048) { // Water Cauldron
                                 noSmoothLighting = true;
                                 lmCoordM.x = min(lmCoordM.x, 0.9333);
-
+                                
                                 vec3 worldPos = playerPos + cameraPosition;
                                 vec3 fractPos = fract(worldPos.xyz);
                                 vec2 coordM = abs(fractPos.xz - 0.5);
                                 if (max(coordM.x, coordM.y) < 0.375 && fractPos.y > 0.3 && NdotU > 0.9) {
-                                    #if WATER_STYLE < 3
-                                        vec3 colorP = color.rgb / glColor.rgb;
-                                        smoothnessG = min(pow2(pow2(dot(colorP.rgb, colorP.rgb) * 0.4)), 1.0);
-                                        highlightMult = 3.25;
-                                        smoothnessD = 0.8;
-                                    #else
-                                        smoothnessG = 0.3;
-                                        smoothnessD = 1.0;
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.0;
                                     #endif
+                                    #ifdef SHADER_WATER
+                                        #if WATER_STYLE < 3
+                                            vec3 colorP = color.rgb / glColor.rgb;
+                                            smoothnessG = min(pow2(pow2(dot(colorP.rgb, colorP.rgb) * 0.4)), 1.0);
+                                            highlightMult = 3.25;
+                                            smoothnessD = 0.8;
+                                        #else
+                                            smoothnessG = 0.3;
+                                            smoothnessD = 1.0;
+                                        #endif
 
-                                    #include "/lib/materials/specificMaterials/translucents/water.glsl"
+                                        #include "/lib/materials/specificMaterials/translucents/water.glsl"
 
-                                    #ifdef COATED_TEXTURES
-                                        noiseFactor = 0.0;
+                                        #ifdef COATED_TEXTURES
+                                            noiseFactor = 0.0;
+                                        #endif
                                     #endif
                                 } else {
                                     #include "/lib/materials/specificMaterials/terrain/anvil.glsl"
@@ -155,13 +165,16 @@ if (mat < 10512) {
                             else /*if (mat == 10052)*/ { // Powder Snow Cauldron
                                 noSmoothLighting = true;
                                 lmCoordM.x = min(lmCoordM.x, 0.9333);
-
+                                
                                 vec3 worldPos = playerPos + cameraPosition;
                                 vec3 fractPos = fract(worldPos.xyz);
                                 vec2 coordM = abs(fractPos.xz - 0.5);
                                 if (max(coordM.x, coordM.y) < 0.375 &&
                                     fractPos.y > 0.3 &&
                                     NdotU > 0.9) {
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.4;
+                                    #endif
 
                                     #include "/lib/materials/specificMaterials/terrain/snow.glsl"
                                 } else {
@@ -189,6 +202,10 @@ if (mat < 10512) {
                                 if (color.r > color.g + color.b) {
                                     color.rgb *= color.rgb;
                                     emission = 4.0;
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.1;
+                                        snowEmission = 0.3;
+                                    #endif
                                 } else {
                                     #include "/lib/materials/specificMaterials/terrain/cobblestone.glsl"
                                 }
@@ -216,12 +233,16 @@ if (mat < 10512) {
                                 noSmoothLighting = true, noDirectionalShading = true;
                                 emission = 1.5;
                                 color.rgb = pow1_5(color.rgb);
+                                #if SEASONS == 1 || SEASONS == 4
+                                    snowIntensity = 0.0;
+                                #endif
                             }
                         }
                     } else {
                         if (mat < 10088) {
                             if (mat == 10080) { // Stone+, Coal Ore, Smooth Stone+, Grindstone, Stonecutter
                                 #include "/lib/materials/specificMaterials/terrain/stone.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                             else /*if (mat == 10084)*/ { // Granite+
                                 smoothnessG = pow2(pow2(color.r)) * 0.5;
@@ -254,7 +275,7 @@ if (mat < 10512) {
                             else /*if (mat == 10100)*/ { // Polished Diorite+
                                 smoothnessG = pow2(color.g) * 0.7;
                                 smoothnessD = smoothnessG;
-
+                                
                                 DoBrightBlockTweaks(color.rgb, 0.75, shadowMult, highlightMult);
 
                                 #ifdef COATED_TEXTURES
@@ -295,7 +316,15 @@ if (mat < 10512) {
                         } else {
                             if (mat == 10120) { // Dripstone+, Daylight Detector
                                 smoothnessG = color.r * 0.35 + 0.2;
-                                smoothnessD = smoothnessG;
+                                #ifdef REDSTONE_IPBR
+                                    if(color.r > 0.5 && color.g > 0.5 && color.b > 0.5){
+                                        smoothnessD = 1.0;
+                                    } else {
+                                        smoothnessD = smoothnessG;
+                                    }
+                                #else
+                                    smoothnessD = smoothnessG;
+                                #endif
 
                                 #ifdef COATED_TEXTURES
                                     noiseFactor = 0.66;
@@ -305,6 +334,9 @@ if (mat < 10512) {
                                 float dotColor = dot(color.rgb, color.rgb);
                                 if (dotColor > 1.5) { // Snowy Variants:Snowy Part
                                     #include "/lib/materials/specificMaterials/terrain/snow.glsl"
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.0;
+                                    #endif
                                     #ifdef SSS_SNOW_ICE
                                         subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
                                     #endif
@@ -357,10 +389,10 @@ if (mat < 10512) {
                         }
                     } else {
                         if (mat < 10152) {
-                            if (mat == 10144) { // Warped Nylium, Warped Wart Block
-                                if (color.g == color.b && color.g > 0.0001) { // Warped Nylium:Netherrack Part
+                            if (mat == 10144) { // Warped Nylium
+                                if (color.g == color.b && color.g > 0.0001) { // Netherrack Part
                                     #include "/lib/materials/specificMaterials/terrain/netherrack.glsl"
-                                } else { // Warped Nylium:Nylium Part, Warped Wart Block
+                                } else { // Nylium Part
                                     smoothnessG = color.g * 0.5;
                                     smoothnessD = smoothnessG;
 
@@ -369,10 +401,30 @@ if (mat < 10512) {
                                     #endif
                                 }
                             }
-                            else /*if (mat == 10148)*/ { // Crimson Nylium, Nether Wart Block
-                                if (color.g == color.b && color.g > 0.0001 && color.r < 0.522) { // Crimson Nylium:Netherrack Part
+                            if (mat == 10146) { // Warped Wart Block
+                                    smoothnessG = color.g * 0.5;
+                                    smoothnessD = smoothnessG;
+
+                                    #ifdef GLOWING_WART
+                                        float animation = abs(sin(frameTimeCounter * 0.75) - 1.0) + 0.05;
+                                        // emission = pow(float(color.g - color.b), 3.0) * 30.0 * animation;
+                                        if(color.g > 0.7) {
+                                            emission = animation * 0.3;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.7;
+                                                snowEmission = 0.8;
+                                            #endif
+                                        }
+                                    #endif
+
+                                    #ifdef COATED_TEXTURES
+                                        noiseFactor = 0.77;
+                                    #endif
+                            }
+                            if (mat == 10148) { // Crimson Nylium
+                                if (color.g == color.b && color.g > 0.0001 && color.r < 0.522) { // Netherrack Part
                                     #include "/lib/materials/specificMaterials/terrain/netherrack.glsl"
-                                } else { // Crimson Nylium:Nylium Part, Nether Wart Block
+                                } else { // Nylium Part
                                     smoothnessG = color.r * 0.5;
                                     smoothnessD = smoothnessG;
 
@@ -381,11 +433,36 @@ if (mat < 10512) {
                                     #endif
                                 }
                             }
+                            if (mat == 10150) { // Nether Wart Block
+                                    smoothnessG = color.r * 0.5;
+                                    smoothnessD = smoothnessG;
+
+                                    #ifdef GLOWING_WART
+                                        float animation = abs(sin(frameTimeCounter * 0.75) - 1.0) + 0.05;
+                                        if (color.r > 0.6) {
+                                            emission = 2.0 * color.g * animation;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowEmission = 0.28;
+                                            #endif
+                                        }
+                                        pow2(max0(color.g - color.r)) * 2.0;
+                                    #endif
+
+                                    #ifdef COATED_TEXTURES
+                                        noiseFactor = 0.77;
+                                    #endif
+                            }
                         } else {
                             if (mat == 10152) { // Cobblestone+, Mossy Cobblestone+, Furnace:Unlit, Smoker:Unlit, Blast Furnace:Unlit, Moss Block+, Lodestone, Piston, Sticky Piston, Dispenser, Dropper
                                 #include "/lib/materials/specificMaterials/terrain/cobblestone.glsl"
+                            } 
+                            else if (mat == 10153){ //Piston, Sticky Piston, Dispenser, Dropper
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
-                            else /*if (mat == 10156)*/ { // Oak Planks++:Clean Variants, Bookshelf, Crafting Table, Tripwire Hook
+                            else if (mat == 10156){ // Oak Planks++:Clean Variants, Crafting Table, Tripwire Hook
+                                #include "/lib/materials/specificMaterials/planks/oakPlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
+                            } else { //Bookshelf
                                 #include "/lib/materials/specificMaterials/planks/oakPlanks.glsl"
                             }
                         }
@@ -404,6 +481,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10164)*/ { // Spruce Planks++:Clean Variants
                                 #include "/lib/materials/specificMaterials/planks/sprucePlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         } else {
                             if (mat == 10168) { // Spruce Log, Spruce Wood
@@ -417,6 +495,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10172)*/ { // Birch Planks++:Clean Variants, Scaffolding, Loom
                                 #include "/lib/materials/specificMaterials/planks/birchPlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         }
                     } else {
@@ -435,6 +514,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10180)*/ { // Jungle Planks++:Clean Variants, Composter
                                 #include "/lib/materials/specificMaterials/planks/junglePlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         } else {
                             if (mat == 10184) { // Jungle Log, Jungle Wood
@@ -452,6 +532,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10188)*/ { // Acacia Planks++:Clean Variants
                                 #include "/lib/materials/specificMaterials/planks/acaciaPlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         }
                     }
@@ -469,12 +550,13 @@ if (mat < 10512) {
                                     smoothnessD = smoothnessG;
 
                                     #ifdef COATED_TEXTURES
-                                    noiseFactor = 0.66;
+                                        noiseFactor = 0.66;
                                     #endif
                                 }
                             }
                             else /*if (mat == 10196)*/ { // Dark Oak Planks++:Clean Variants
                                 #include "/lib/materials/specificMaterials/planks/darkOakPlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         } else {
                             if (mat == 10200) { // Dark Oak Log, Dark Oak Wood
@@ -488,6 +570,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10204)*/ { // Mangrove Planks++:Clean Variants
                                 #include "/lib/materials/specificMaterials/planks/mangrovePlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         }
                     } else {
@@ -502,18 +585,27 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10212)*/ { // Crimson Planks++:Clean Variants
                                 #include "/lib/materials/specificMaterials/planks/crimsonPlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         } else {
                             if (mat == 10216) { // Crimson Stem, Crimson Hyphae
-                                if (color.r / color.b > 2.5) { // Emissive Part
-                                    emission = pow2(color.r) * 6.5;
-                                    color.gb *= 0.5;
-                                } else { // Flat Part
+                                if (color.r / color.b <= 2.5) { // Flat Part
                                     #include "/lib/materials/specificMaterials/planks/crimsonPlanks.glsl"
                                 }
+                                #ifdef GLOWING_NETHER_TREES
+                                else { // Emissive Part
+                                    emission = pow2(color.r) * 6.5;
+                                    color.gb *= 0.5;
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.6;
+                                        snowEmission = 0.15;
+                                    #endif
+                                }
+                                #endif
                             }
                             else /*if (mat == 10220)*/ { // Warped Planks++:Clean Variants
                                 #include "/lib/materials/specificMaterials/planks/warpedPlanks.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                         }
                     }
@@ -521,12 +613,18 @@ if (mat < 10512) {
                     if (mat < 10240) {
                         if (mat < 10232) {
                             if (mat == 10224) { // Warped Stem, Warped Hyphae
-                                //if (color.r < 0.12 || color.r + color.g * 3.0 < 3.4 * color.b) { // Emissive Part
-                                if (color.r < 0.37 * color.b || color.r + color.g * 3.0 < 3.4 * color.b) { // Emissive Part
-                                    emission = pow2(color.g + 0.2 * color.b) * 4.5 + 0.15;
-                                } else { // Flat Part
+                                if (color.r >= 0.37 * color.b && color.r + color.g * 3.0 >= 3.4 * color.b) { // Flat Part
                                     #include "/lib/materials/specificMaterials/planks/warpedPlanks.glsl"
                                 }
+                                #ifdef GLOWING_NETHER_TREES
+                                else { // Emissive Part
+                                    emission = pow2(color.g + 0.2 * color.b) * 4.5 + 0.15;
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.7;
+                                        snowEmission = 0.3;
+                                    #endif
+                                }
+                                #endif
                             }
                             else /*if (mat == 10228)*/ { // Bedrock
                                 smoothnessG = color.b * 0.2 + 0.1;
@@ -538,6 +636,7 @@ if (mat < 10512) {
                             }
                         } else {
                             if (mat == 10232) { // Sand, Suspicious Sand
+                                highlightMult = 2.0;
                                 smoothnessG = pow(color.g, 16.0) * 2.0;
                                 smoothnessG = min1(smoothnessG);
                                 smoothnessD = smoothnessG * 0.7;
@@ -609,10 +708,20 @@ if (mat < 10512) {
                                 #ifdef COATED_TEXTURES
                                     noiseFactor = 1.5;
                                 #endif
-
+                                
                                 #ifdef GLOWING_ORE_ANCIENTDEBRIS
                                     emission = min(pow2(color.g * 6.0), 8.0);
-                                    color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.2;
+                                        snowEmission = 0.8;
+                                    #endif
+                                    #ifdef SITUATIONAL_ORES
+                                        float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                        emission *= skyLightFactor;
+                                        color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                    #else
+                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                    #endif
                                     emission *= GLOWING_ORE_MULT;
                                 #endif
                             }
@@ -638,6 +747,7 @@ if (mat < 10512) {
                         } else {
                             if (mat == 10264) { // Iron Block, Iron Trapdoor, Heavy Weighted Pressure Plate
                                 #include "/lib/materials/specificMaterials/terrain/ironBlock.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                                 color.rgb *= max(color.r, 0.85) * 0.9;
                             }
                             else /*if (mat == 10268)*/ { // Raw Iron Block
@@ -650,11 +760,21 @@ if (mat < 10512) {
                                 if (color.r != color.g) { // Iron Ore:Raw Iron Part
                                     #include "/lib/materials/specificMaterials/terrain/rawIronBlock.glsl"
                                     #ifdef GLOWING_ORE_IRON
-                                    if (color.r - color.b > 0.15) {
-                                        emission = pow1_5(color.r) * 1.5;
-                                        color.rgb *= pow(color.rgb, vec3(0.5 * min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (color.r - color.b > 0.15) {
+                                            emission = pow1_5(color.r) * 1.5;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.6;
+                                                snowEmission = 0.5;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(0.5 * min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(0.5 * min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Iron Ore:Stone Part
                                     #include "/lib/materials/specificMaterials/terrain/stone.glsl"
@@ -664,11 +784,21 @@ if (mat < 10512) {
                                 if (color.r != color.g) { // Deepslate Iron Ore:Raw Iron Part
                                     #include "/lib/materials/specificMaterials/terrain/rawIronBlock.glsl"
                                     #ifdef GLOWING_ORE_IRON
-                                    if (color.r - color.b > 0.15) {
-                                        emission = pow1_5(color.r) * 1.5;
-                                        color.rgb *= pow(color.rgb, vec3(0.5 * min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (color.r - color.b > 0.15) {
+                                            emission = pow1_5(color.r) * 1.5;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.6;
+                                                snowEmission = 0.5;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(0.5 * min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(0.5 * min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Deepslate Iron Ore:Deepslate Part
                                     #include "/lib/materials/specificMaterials/terrain/deepslate.glsl"
@@ -682,11 +812,21 @@ if (mat < 10512) {
                                 if (color.r != color.g) { // Copper Ore:Raw Copper Part
                                     #include "/lib/materials/specificMaterials/terrain/rawCopperBlock.glsl"
                                     #ifdef GLOWING_ORE_COPPER
-                                    if (max(color.r * 0.5, color.g) - color.b > 0.05) {
-                                        emission = color.r * 2.0 + 0.7;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (max(color.r * 0.5, color.g) - color.b > 0.05) {
+                                            emission = color.r * 2.0 + 0.7;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.6;
+                                                snowEmission = 0.5;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Copper Ore:Stone Part
                                     #include "/lib/materials/specificMaterials/terrain/stone.glsl"
@@ -701,11 +841,21 @@ if (mat < 10512) {
                                 if (color.r != color.g) { // Deepslate Copper Ore:Raw Copper Part
                                     #include "/lib/materials/specificMaterials/terrain/rawCopperBlock.glsl"
                                     #ifdef GLOWING_ORE_COPPER
-                                    if (max(color.r * 0.5, color.g) - color.b > 0.05) {
-                                        emission = color.r * 2.0 + 0.7;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (max(color.r * 0.5, color.g) - color.b > 0.05) {
+                                            emission = color.r * 2.0 + 0.7;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.6;
+                                                snowEmission = 0.5;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Deepslate Copper Ore:Deepslate Part
                                     #include "/lib/materials/specificMaterials/terrain/deepslate.glsl"
@@ -731,11 +881,21 @@ if (mat < 10512) {
                                 if (color.r != color.g || color.r > 0.99) { // Gold Ore:Raw Gold Part
                                     #include "/lib/materials/specificMaterials/terrain/rawGoldBlock.glsl"
                                     #ifdef GLOWING_ORE_GOLD
-                                    if (color.g - color.b > 0.15) {
-                                        emission = color.r + 1.0;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (color.g - color.b > 0.15) {
+                                            emission = color.r + 1.0;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.65;
+                                                snowEmission = 0.6;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Gold Ore:Stone Part
                                     #include "/lib/materials/specificMaterials/terrain/stone.glsl"
@@ -748,11 +908,21 @@ if (mat < 10512) {
                                 if (color.r != color.g || color.r > 0.99) { // Deepslate Gold Ore:Raw Gold Part
                                     #include "/lib/materials/specificMaterials/terrain/rawGoldBlock.glsl"
                                     #ifdef GLOWING_ORE_GOLD
-                                    if (color.g - color.b > 0.15) {
-                                        emission = color.r + 1.0;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (color.g - color.b > 0.15) {
+                                            emission = color.r + 1.0;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.65;
+                                                snowEmission = 0.6;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Deepslate Gold Ore:Deepslate Part
                                     #include "/lib/materials/specificMaterials/terrain/deepslate.glsl"
@@ -763,6 +933,14 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/rawGoldBlock.glsl"
                                     #ifdef GLOWING_ORE_NETHERGOLD
                                         emission = color.g * 1.5;
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.65;
+                                            snowEmission = 0.6;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Nether Gold Ore:Netherrack Part
@@ -772,6 +950,7 @@ if (mat < 10512) {
                         } else {
                             if (mat == 10312) { // Gold Block, Light Weighted Pressure Plate
                                 #include "/lib/materials/specificMaterials/terrain/goldBlock.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                             else /*if (mat == 10316)*/ { // Diamond Block
                                 #include "/lib/materials/specificMaterials/terrain/diamondBlock.glsl"
@@ -788,7 +967,17 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/diamondBlock.glsl"
                                     #ifdef GLOWING_ORE_DIAMOND
                                         emission = color.g + 1.5;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.75;
+                                            snowEmission = 0.4;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                            color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                        #else
+                                            color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Diamond Ore:Stone Part, Diamond Ore:StoneToDiamond part
@@ -800,7 +989,17 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/diamondBlock.glsl"
                                     #ifdef GLOWING_ORE_DIAMOND
                                         emission = color.g + 1.5;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.75;
+                                            snowEmission = 0.4;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                            color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                        #else
+                                            color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Diamond Ore:Stone Part, Diamond Ore:StoneToDiamond part
@@ -859,6 +1058,13 @@ if (mat < 10512) {
                         if (mat < 10344) {
                             if (mat == 10336) { // Emerald Block
                                 #include "/lib/materials/specificMaterials/terrain/emeraldBlock.glsl"
+                                #ifdef GLOWING_EMERALD_BLOCK
+                                    emission = pow2(pow(color.g, 2.8)) * 3.0 + 0.3;
+                                    color.rgb *= color.rgb;
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.5;
+                                    #endif
+                                #endif
                             }
                             else /*if (mat == 10340)*/ { // Emerald Ore
                                 float dif = GetMaxColorDif(color.rgb);
@@ -866,7 +1072,17 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/emeraldBlock.glsl"
                                     #ifdef GLOWING_ORE_EMERALD
                                         emission = 2.0;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.7;
+                                            snowEmission = 0.3;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                            color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                        #else
+                                            color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Emerald Ore:Stone Part
@@ -880,7 +1096,17 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/emeraldBlock.glsl"
                                     #ifdef GLOWING_ORE_EMERALD
                                         emission = 2.0;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.7;
+                                            snowEmission = 0.3;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                            color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                        #else
+                                            color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Deepslate Emerald Ore:Deepslate Part
@@ -901,6 +1127,10 @@ if (mat < 10512) {
 
                                 #ifdef EMISSIVE_LAPIS_BLOCK
                                     emission = pow2(dot(color.rgb, color.rgb)) * 10.0;
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.4;
+                                        snowEmission = 0.28;
+                                    #endif
                                 #endif
                             }
                             else /*if (mat == 10356)*/ { // Lapis Ore
@@ -909,11 +1139,21 @@ if (mat < 10512) {
                                     smoothnessG *= 0.5;
                                     smoothnessD *= 0.5;
                                     #ifdef GLOWING_ORE_LAPIS
-                                    if (color.b - color.r > 0.2) {
-                                        emission = 2.0;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (color.b - color.r > 0.2) {
+                                            emission = 2.0;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.65;
+                                                snowEmission = 0.6;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Lapis Ore:Stone Part
                                     #include "/lib/materials/specificMaterials/terrain/stone.glsl"
@@ -926,11 +1166,21 @@ if (mat < 10512) {
                                     smoothnessG *= 0.5;
                                     smoothnessD *= 0.5;
                                     #ifdef GLOWING_ORE_LAPIS
-                                    if (color.b - color.r > 0.2) {
-                                        emission = 2.0;
-                                        color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
-                                        emission *= GLOWING_ORE_MULT;
-                                    }
+                                        if (color.b - color.r > 0.2) {
+                                            emission = 2.0;
+                                            #if SEASONS == 1 || SEASONS == 4
+                                                snowIntensity = 0.65;
+                                                snowEmission = 0.6;
+                                            #endif
+                                            #ifdef SITUATIONAL_ORES
+                                                float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                                emission *= skyLightFactor;
+                                                color.rgb = mix(color.rgb, color.rgb * pow(color.rgb, vec3(min1(GLOWING_ORE_MULT))), skyLightFactor);
+                                            #else
+                                                color.rgb *= pow(color.rgb, vec3(min1(GLOWING_ORE_MULT)));
+                                            #endif
+                                            emission *= GLOWING_ORE_MULT;
+                                        }
                                     #endif
                                 } else { // Deepslate Lapis Ore:Deepslate Part
                                     #include "/lib/materials/specificMaterials/terrain/deepslate.glsl"
@@ -947,6 +1197,10 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/quartzBlock.glsl"
                                     #ifdef GLOWING_ORE_NETHERQUARTZ
                                         emission = pow2(color.b * 1.6);
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Nether Quartz Ore:Netherrack Part
@@ -971,6 +1225,9 @@ if (mat < 10512) {
                                 #include "/lib/materials/specificMaterials/terrain/snow.glsl"
                                 #ifdef SSS_SNOW_ICE
                                     subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
+                                #endif
+                                #if SEASONS == 1 || SEASONS == 4
+                                    snowIntensity = 0.0;
                                 #endif
                             }
                         }
@@ -1140,15 +1397,15 @@ if (mat < 10512) {
                 }
             } else {
                 if (mat < 10480) {
-                    if (mat < 10464) {
+                    if (mat < 10464) { 
                         if (mat < 10456) {
                             if (mat == 10448) { // Sea Lantern
                                 noSmoothLighting = true; noDirectionalShading = true;
                                 lmCoordM.x = 0.85;
-
+                                
                                 smoothnessD = min1(max0(0.5 - color.r) * 2.0);
                                 smoothnessG = color.g;
-
+                                
                                 float blockRes = absMidCoordPos.x * atlasSize.x;
                                 vec2 signMidCoordPosM = (floor((signMidCoordPos + 1.0) * blockRes) + 0.5) / blockRes - 1.0;
                                 float dotsignMidCoordPos = dot(signMidCoordPosM, signMidCoordPosM);
@@ -1182,10 +1439,11 @@ if (mat < 10512) {
 
                                     emission = 0.2;
                                 }
+
                             }
                         } else {
                             if (mat == 10456) { // Command Block+
-                                    color = texture2DLod(tex, texCoord, 0);
+	                            color = texture2DLod(tex, texCoord, 0);
 
                                 vec2 coord = signMidCoordPos;
                                 float blockRes = absMidCoordPos.x * atlasSize.x;
@@ -1193,12 +1451,15 @@ if (mat < 10512) {
                                 float maxCoord = max(absCoord.x, absCoord.y);
 
                                 float dif = GetMaxColorDif(color.rgb);
-
+                                
                                 if (dif > 0.1 && maxCoord < 0.375 && !CheckForColor(color.rgb, vec3(111, 73, 43))) {
                                     emission = 6.0;
                                     color.rgb *= color.rgb;
                                     highlightMult = 2.0;
                                     maRecolor = vec3(0.5);
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.1;
+                                    #endif
                                 } else {
                                     smoothnessG = dot(color.rgb, color.rgb) * 0.33;
                                     smoothnessD = smoothnessG;
@@ -1210,19 +1471,25 @@ if (mat < 10512) {
                                         color.rgb = vec3(0.0,1.0,0.0);
                                         emission = 0.5;
                                         noVanillaAO = true; noDirectionalShading = true;
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.0;
+                                        #endif
                                         materialMask = OSIEBCA * 4.0;
                                         noiseFactor = 0.0;
                                     } else if (GREEN_BLUE_SCREEN > 1 && color.b * 1.4 > color.r + color.g && color.b > 0.2 && abs(color.g - color.r) < 0.1) {
                                         color.rgb = vec3(0.0,0.0,1.0);
                                         emission = 0.5;
                                         noVanillaAO = true; noDirectionalShading = true;
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.0;
+                                        #endif
                                         materialMask = OSIEBCA * 4.0;
                                         noiseFactor = 0.0;
                                     } else {
                                         smoothnessG = 0.4;
                                         highlightMult = 1.5;
                                         smoothnessD = 0.3;
-
+                                        
                                         #ifdef COATED_TEXTURES
                                             noiseFactor = 0.2;
                                         #endif
@@ -1266,12 +1533,21 @@ if (mat < 10512) {
                         if (mat < 10488) {
                             if (mat == 10480) { // Blackstone++
                                 #include "/lib/materials/specificMaterials/terrain/blackstone.glsl"
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                             else /*if (mat == 10484)*/ { // Gilded Blackstone
                                 if (color.r > color.b * 3.0) { // Gilded Blackstone:Gilded Part
                                     #include "/lib/materials/specificMaterials/terrain/rawGoldBlock.glsl"
                                     #ifdef GLOWING_ORE_GILDEDBLACKSTONE
                                         emission = color.g * 1.5;
+                                        #if SEASONS == 1 || SEASONS == 4
+                                            snowIntensity = 0.65;
+                                            snowEmission = 0.6;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Gilded Blackstone:Blackstone Part
@@ -1299,7 +1575,8 @@ if (mat < 10512) {
                         if (mat < 10504) {
                             if (mat == 10496) { // Torch
                                 noDirectionalShading = true;
-
+                                lmCoordM.x = min1(0.7 + 0.3 * pow2(1.0 - signMidCoordPos.y));
+                                
                                 if (color.r > 0.95) {
                                     noSmoothLighting = true;
                                     lmCoordM.x = 1.0;
@@ -1322,10 +1599,12 @@ if (mat < 10512) {
                                     emission = 2.8;
                                     emission *= 0.4 + max0(0.6 - 0.006 * lViewPos);
 
+                                #if END_ROD_COLOR_PROFILE == 0
                                     color.rgb = pow2(color.rgb);
                                     color.g *= 0.95;
-                                } else {
-
+                                #else
+                                    color.rgb = pow2(vec3(END_ROD_R, END_ROD_G, END_ROD_B) / 255) * END_ROD_I;
+                                #endif
                                 }
                             }
                         } else {
@@ -1336,6 +1615,10 @@ if (mat < 10512) {
                                 float dotColor = dot(color.rgb, color.rgb);
                                 if (dotColor > 1.0)
                                     emission = pow2(pow2(pow2(dotColor * 0.33))) + 0.2 * dotColor;
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.5;
+                                        snowEmission = 0.6;
+                                    #endif
                             }
                         }
                     }
@@ -1354,6 +1637,10 @@ if (mat < 10512) {
                                 if (color.b < color.g) {
                                     emission = 10.7;
                                     color.rgb *= color.rgb * dot(color.rgb, color.rgb) * vec3(0.4, 0.35, 0.4);
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.1;
+                                        snowEmission = 0.8;
+                                    #endif
                                 }
                             }
                             else /*if (mat == 10516)*/ { // Furnace:Lit
@@ -1362,7 +1649,7 @@ if (mat < 10512) {
                                 #include "/lib/materials/specificMaterials/terrain/cobblestone.glsl"
 
                                 float dotColor = dot(color.rgb, color.rgb);
-                                emission = 2.5 * dotColor * max0(pow2(pow2(pow2(color.r))) - color.b) + pow(dotColor * 0.35, 32.0);
+                                emission = 2.5 * dotColor * max0(pow2(pow2(pow2(color.r))) - color.b) + pow(dotColor * 0.35, 32.0);                
                                 color.r *= 1.0 + 0.1 * emission;
                             }
                         } else {
@@ -1375,6 +1662,9 @@ if (mat < 10512) {
                                 float factor = color.r * 0.5;
                                 smoothnessG = factor;
                                 smoothnessD = factor;
+                                // if (midCoord.x > 0.8 && midCoord.x < 0.9 && dot(normal, upVec) > 0.99 && midCoord.z < 0.2 && midCoord.z > 0.1){
+                                // color.rgb = midCoord;
+                                // }
 
                                 #ifdef COATED_TEXTURES
                                     noiseFactor = 0.66;
@@ -1451,7 +1741,7 @@ if (mat < 10512) {
 
                                 #if GLOWING_LICHEN > 0
                                     float dotColor = dot(color.rgb, color.rgb);
-                                    emission = min(pow2(pow2(dotColor) * dotColor) * 1.4 + dotColor * 0.5, 6.0);
+                                    emission = min(pow2(pow2(dotColor) * dotColor) * 1.4 + dotColor * 0.9, 6.0);
 
                                     #if GLOWING_LICHEN == 1
                                         float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9));
@@ -1501,12 +1791,20 @@ if (mat < 10512) {
                                         smoothnessG = 0.5;
                                         smoothnessD = 0.5;
                                         emission = pow2(min(color.g, 0.25)) * 170.0 * (0.28 - maxCoord);
+                                        #if SEASONS == 1 || SEASONS == 4 
+                                            snowIntensity = 0.65;
+                                            snowEmission = 0.6;
+                                        #endif
                                     } else {
                                         float minCoord = min(absCoord.x, absCoord.y);
                                         if (CheckForColor(color.rgb, vec3(153, 198, 147))
                                         && minCoord > 0.25) { // End Portal Frame:Emissive Corner Bits
                                             emission = 1.4;
                                             color.rgb = vec3(0.45, 1.0, 0.6);
+                                            #if SEASONS == 1 || SEASONS == 4 
+                                                snowIntensity = 0.65;
+                                                snowEmission = 0.6;
+                                            #endif
                                         }
                                     }
                                 }
@@ -1557,6 +1855,9 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10572)*/ { // Dragon Egg
                                 emission = float(color.b > 0.1) * 10.0 + 1.25;
+                                #if SEASONS == 1 || SEASONS == 4 
+                                    snowIntensity = 0.0;
+                                #endif
                             }
                         }
                     }
@@ -1590,7 +1891,7 @@ if (mat < 10512) {
                         } else {
                             if (mat == 10584) { // Candle++:Lit
                                 noSmoothLighting = true;
-
+                                
                                 color.rgb *= 1.0 + pow2(max(-signMidCoordPos.y, float(NdotU > 0.9) * 1.2));
 
                                 #ifdef SNOWY_WORLD
@@ -1621,6 +1922,9 @@ if (mat < 10512) {
                                     smoothnessD = 0.0;
                                     emission = pow2(color.r) * color.r * 16.0;
                                     maRecolor = vec3(0.0);
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.0;
+                                    #endif
                                 } else if (color.r + color.g > 1.3) { // Respawn Anchor:Glowstone Part
                                     emission = 4.5 * sqrt3(max0(color.r + color.g - 1.3));
                                 }
@@ -1636,14 +1940,23 @@ if (mat < 10512) {
 
                                 emission = pow2(min(color.r, 0.9)) * 4.0;
                                 color.gb *= 0.25;
+                                #if SEASONS == 1 || SEASONS == 4 
+                                    snowIntensity = 0.0;
+                                #endif
                             }
                         } else {
                             if (mat == 10600) { // Redstone Wire:Unlit
                                 #include "/lib/materials/specificMaterials/terrain/redstoneBlock.glsl"
+                                #if SEASONS == 1 || SEASONS == 4 
+                                    snowIntensity = 0.0;
+                                #endif
                             }
                             else /*if (mat == 10604)*/ { // Redstone Torch
                                 #include "/lib/materials/specificMaterials/terrain/redstoneTorch.glsl"
                                 emission += 0.0001; // No light reducing during noon
+                                #if SEASONS == 1 || SEASONS == 4 
+                                    snowIntensity = 0.0;
+                                #endif
                             }
                         }
                     }
@@ -1658,6 +1971,8 @@ if (mat < 10512) {
 
                                     #ifdef SNOWY_WORLD
                                         snowFactor = 0.0;
+                                    #elif SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.5;
                                     #endif
                                 #endif
                             }
@@ -1666,7 +1981,17 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/redstoneBlock.glsl"
                                     #ifdef GLOWING_ORE_REDSTONE
                                         emission = color.r * pow1_5(color.r) * 4.0;
-                                        color.gb *= 1.0 - 0.9 * min1(GLOWING_ORE_MULT);
+                                        #if SEASONS == 1 || SEASONS == 4 
+                                            snowIntensity = 0.5;
+                                            snowEmission = 0.5;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                            color.gb = mix(color.gb, color.gb * (1.0 - 0.9 * min1(GLOWING_ORE_MULT)), skyLightFactor);
+                                        #else
+                                            color.gb *= 1.0 - 0.9 * min1(GLOWING_ORE_MULT);
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Redstone Ore:Unlit:Stone Part
@@ -1678,6 +2003,10 @@ if (mat < 10512) {
                                 if (color.r - color.g > 0.2) { // Redstone Ore:Lit:Redstone Part
                                     #include "/lib/materials/specificMaterials/terrain/redstoneBlock.glsl"
                                     emission = pow2(color.r) * color.r * 5.5;
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.5;
+                                        snowEmission = 0.5;
+                                    #endif
                                     color.gb *= 0.1;
                                 } else { // Redstone Ore:Lit:Stone Part
                                     #include "/lib/materials/specificMaterials/terrain/stone.glsl"
@@ -1689,7 +2018,17 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/redstoneBlock.glsl"
                                     #ifdef GLOWING_ORE_REDSTONE
                                         emission = color.r * pow1_5(color.r) * 4.0;
-                                        color.gb *= 1.0 - 0.9 * min1(GLOWING_ORE_MULT);
+                                        #if SEASONS == 1 || SEASONS == 4 
+                                            snowIntensity = 0.5;
+                                            snowEmission = 0.5;
+                                        #endif
+                                        #ifdef SITUATIONAL_ORES
+                                            float skyLightFactor = pow2(1.0 - min1(lmCoord.y * 2.9 * sunVisibility));
+                                            emission *= skyLightFactor;
+                                            color.gb = mix(color.gb, color.gb * (1.0 - 0.9 * min1(GLOWING_ORE_MULT)), skyLightFactor);
+                                        #else
+                                            color.gb *= 1.0 - 0.9 * min1(GLOWING_ORE_MULT);
+                                        #endif
                                         emission *= GLOWING_ORE_MULT;
                                     #endif
                                 } else { // Deepslate Redstone Ore:Unlit:Deepslate Part
@@ -1704,6 +2043,10 @@ if (mat < 10512) {
                                     #include "/lib/materials/specificMaterials/terrain/redstoneBlock.glsl"
                                     emission = pow2(color.r) * color.r * 6.0;
                                     color.gb *= 0.05;
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.5;
+                                        snowEmission = 0.5;
+                                    #endif
                                 } else { // Deepslate Redstone Ore:Lit:Deepslate Part
                                     #include "/lib/materials/specificMaterials/terrain/deepslate.glsl"
                                 }
@@ -1748,7 +2091,7 @@ if (mat < 10512) {
                                 float factor = pow2(smoothnessG);
                                 highlightMult = factor * 2.0 + 1.0;
                                 smoothnessD = min1(factor * 2.0);
-
+                            
                                 if (color.b > 0.1) {
                                     float dotColor = dot(color.rgb, color.rgb);
                                     #if MC_VERSION >= 11300
@@ -1767,6 +2110,10 @@ if (mat < 10512) {
                                     if (color.r < 0.999 && color.b > 0.4) color.gb *= 0.5;  // Comparator:Emissive Wire
 
                                     #include "/lib/materials/specificMaterials/terrain/redstoneTorch.glsl"
+                                #if SEASONS == 1 || SEASONS == 4 
+                                    snowIntensity = 0.7;
+                                    snowEmission = 0.2;
+                                #endif
                                 } else { // Quartz Base
                                     float factor = pow2(color.g) * 0.6;
 
@@ -1801,7 +2148,7 @@ if (mat < 10512) {
                         if (mat < 10664) {
                             if (mat == 10656) { // Soul Campfire:Lit
                                 noSmoothLighting = true;
-
+                                
                                 float dotColor = dot(color.rgb, color.rgb);
                                 if (color.r > color.b) {
                                     #include "/lib/materials/specificMaterials/terrain/oakWood.glsl"
@@ -1817,7 +2164,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10660)*/ { // Campfire:Unlit, Soul Campfire:Unlit
                                 noSmoothLighting = true;
-
+                                
                                 if (color.r > color.b) {
                                     #include "/lib/materials/specificMaterials/terrain/oakWood.glsl"
                                 }
@@ -1826,13 +2173,43 @@ if (mat < 10512) {
                             if (mat == 10664) { // Observer
                                 if (color.r > 0.1 && color.g + color.b < 0.1) {
                                     #include "/lib/materials/specificMaterials/terrain/redstoneTorch.glsl"
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.7;
+                                        snowEmission = 0.15;
+                                    #endif
                                 } else {
                                     #include "/lib/materials/specificMaterials/terrain/cobblestone.glsl"
                                 }
                             }
                             else /*if (mat == 10668)*/ { // Wool+, Carpet+
-                                #ifdef COATED_TEXTURES
-                                    noiseFactor = 0.77;
+                                #if GREEN_BLUE_SCREEN > 0
+                                    if (GREEN_BLUE_SCREEN % 2 != 0 && color.g * 1.4 > color.r + color.b && color.g > 0.6 && color.r * 2.0 > color.b) {
+                                        color.rgb = vec3(0.0,1.0,0.0);
+                                        emission = 0.5;
+                                        noVanillaAO = true; noDirectionalShading = true;
+                                        #if SEASONS == 1 || SEASONS == 4 
+                                            snowIntensity = 0.0;
+                                        #endif
+                                        materialMask = OSIEBCA * 4.0;
+                                        noiseFactor = 0.0;
+                                    } else if (GREEN_BLUE_SCREEN > 1 && color.b * 1.4 > color.r + color.g && color.b > 0.2 && abs(color.g - color.r) < 0.1) {
+                                        color.rgb = vec3(0.0,0.0,1.0);
+                                        emission = 0.5;
+                                        noVanillaAO = true; noDirectionalShading = true;
+                                        #if SEASONS == 1 || SEASONS == 4 
+                                            snowIntensity = 0.0;
+                                        #endif
+                                        materialMask = OSIEBCA * 4.0;
+                                        noiseFactor = 0.0;
+                                    } else {
+                                        #ifdef COATED_TEXTURES
+                                            noiseFactor = 0.77;
+                                        #endif
+                                    }
+                                #else
+                                    #ifdef COATED_TEXTURES
+                                        noiseFactor = 0.77;
+                                    #endif
                                 #endif
                             }
                         }
@@ -1889,7 +2266,16 @@ if (mat < 10512) {
                             if (mat == 10696) { // Sculk, Sculk Catalyst, Sculk Vein, Sculk Sensor:Unlit
                                 float boneFactor = max0(color.r * 1.25 - color.b);
 
-                                if (boneFactor < 0.0001) emission = pow2(max0(color.g - color.r));
+                                float sculkEmission = pow2(max0(color.g - color.r)) * 1.7;
+                                if (boneFactor < 0.0001) {
+                                    #ifdef INTENSE_DEEP_DARK
+                                        // sculkEmission = sculkEmission + 0.2 * clamp(sin(sculkEmission + sculkEmission * frameCounter * 0.01), 0.0, 10.0); // temp comment, not finished, was experimenting
+                                        emission = mix(sculkEmission, sculkEmission * 5.0, darknessFactor);
+                                    #else
+                                        emission = sculkEmission;
+                                    #endif
+                                    
+                                }
 
                                 smoothnessG = min1(boneFactor * 1.7);
                                 smoothnessD = smoothnessG;
@@ -1902,7 +2288,15 @@ if (mat < 10512) {
                                 float boneFactor = max0(color.r * 1.25 - color.b);
 
                                 if (boneFactor < 0.0001) {
-                                    emission = pow2(max0(color.g - color.r)) * 2.0;
+                                    float sculkEmission = pow2(max0(color.g - color.r)) * 2.0;
+                                    #ifdef INTENSE_DEEP_DARK
+                                        emission = mix(sculkEmission, sculkEmission * 3.0, darknessFactor);
+                                    #else
+                                        emission = sculkEmission;
+                                    #endif
+                                    #if SEASONS == 1 || SEASONS == 4 
+                                        snowIntensity = 0.0;
+                                    #endif
 
                                     vec2 coordFactor = abs(fract(playerPos.xz + cameraPosition.xz) - 0.5);
                                     float coordFactorM = max(coordFactor.x, coordFactor.y);
@@ -1932,6 +2326,10 @@ if (mat < 10512) {
                                 smoothnessD = smoothnessG;
 
                                 emission = 7.0 * float(CheckForColor(color.rgb, vec3(110, 4, 83)));
+                                #if SEASONS == 1 || SEASONS == 4 
+                                    snowIntensity = 0.6;
+                                    snowEmission = 0.15;
+                                #endif
                             }
                         } else {
                             if (mat == 10712) { // Tuff
@@ -1958,7 +2356,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10724)*/ { // Gravel, Suspicious Gravel
                                 #include "/lib/materials/specificMaterials/terrain/stone.glsl"
-
+                                
                                 DoOceanBlockTweaks(smoothnessD);
 
                                 #ifdef COATED_TEXTURES
@@ -1968,10 +2366,12 @@ if (mat < 10512) {
                         } else {
                             if (mat == 10728) { // Flower Pot, Potted Stuff:Without Subsurface
                                 noSmoothLighting = true;
+                            } else if (mat == 10730){ // powered bell stick part
+                                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
                             }
                             else /*if (mat == 10732)*/ { // Potted Stuff:With Subsurface
                                 noSmoothLighting = true;
-
+                                
                                 float NdotE = dot(normalM, eastVec);
                                 if (abs(abs(NdotE) - 0.5) < 0.4) {
                                     subsurfaceMode = 1, noDirectionalShading = true;
@@ -1990,6 +2390,10 @@ if (mat < 10512) {
 
                                 emission = 4.5 * lBlockPosM;
                                 color.rgb = pow2(color.rgb);
+                                #if SEASONS == 1 || SEASONS == 4 
+                                    snowIntensity = 0.45;
+                                    snowEmission = 0.2;
+                                #endif
                             }
                             else /*if (mat == 10740)*/ { // Chain
                                 noSmoothLighting = true;
@@ -2015,7 +2419,7 @@ if (mat < 10512) {
                         if (mat < 10760) {
                             if (mat == 10752) { // Bamboo
                                 if (absMidCoordPos.x > 0.005)
-                                subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
+                                    subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
                                 // No further material properties as bamboo jungles are already slow
                             }
                             else /*if (mat == 10756)*/ { // Block of Bamboo, Bamboo Planks++
@@ -2058,7 +2462,7 @@ if (mat < 10512) {
                             }
                             else /*if (mat == 10772)*/ { // Potted Torchflower
                                 noSmoothLighting = true;
-
+                                
                                 float NdotE = dot(normalM, eastVec);
                                 if (abs(abs(NdotE) - 0.5) < 0.4) {
                                     subsurfaceMode = 1, noDirectionalShading = true;
@@ -2075,6 +2479,9 @@ if (mat < 10512) {
                                     emission = 3.0 * color.g;
                                     color.r *= 1.2;
                                     maRecolor = vec3(0.1);
+                                    #if SEASONS == 1 || SEASONS == 4
+                                        snowIntensity = 0.5;
+                                    #endif
                                 }
                             }
                             else /*if (mat == 10780)*/ { // Potted Crimson Fungus, Potted Warped Fungus
@@ -2214,13 +2621,16 @@ if (mat < 10512) {
                                     emission = 2.5 * pow1_5(cLength);
                                 } else {
                                     lmCoordM.x = max(lmCoordM.x * 0.9, cLength);
-
+                                    
                                     #include "/lib/materials/specificMaterials/terrain/cobblestone.glsl"
                                 }
+                                #if SEASONS == 1 || SEASONS == 4
+                                    snowIntensity = 0.0;
+                                #endif
                             }
                         } else {
                             if (mat == 10840) { //
-
+                            
                             }
                             else /*if (mat == 10844)*/ { //
 
@@ -2229,14 +2639,14 @@ if (mat < 10512) {
                     } else {
                         if (mat < 10856) {
                             if (mat == 10848) { //
-
+                            
                             }
                             else /*if (mat == 10852)*/ { //
 
                             }
                         } else {
                             if (mat == 10856) { //
-
+                            
                             }
                             else /*if (mat == 10860)*/ { //
 
@@ -2247,14 +2657,14 @@ if (mat < 10512) {
                     if (mat < 10880) {
                         if (mat < 10872) {
                             if (mat == 10864) { //
-
+                            
                             }
                             else /*if (mat == 10868)*/ { //
 
                             }
                         } else {
                             if (mat == 10872) { //
-
+                            
                             }
                             else /*if (mat == 10876)*/ { //
 
@@ -2263,14 +2673,14 @@ if (mat < 10512) {
                     } else {
                         if (mat < 10888) {
                             if (mat == 10880) { //
-
+                            
                             }
                             else /*if (mat == 10884)*/ { //
 
                             }
                         } else {
                             if (mat == 10888) { //
-
+                            
                             }
                             else /*if (mat == 10892)*/ { //
 
@@ -2285,14 +2695,14 @@ if (mat < 10512) {
                     if (mat < 10912) {
                         if (mat < 10904) {
                             if (mat == 10896) { //
-
+                            
                             }
                             else /*if (mat == 10900)*/ { //
 
                             }
                         } else {
                             if (mat == 10904) { //
-
+                            
                             }
                             else /*if (mat == 10908)*/ { //
 
@@ -2301,14 +2711,14 @@ if (mat < 10512) {
                     } else {
                         if (mat < 10920) {
                             if (mat == 10912) { //
-
+                            
                             }
                             else /*if (mat == 10916)*/ { //
 
                             }
                         } else {
                             if (mat == 10920) { //
-
+                            
                             }
                             else /*if (mat == 10924)*/ { //
 
@@ -2319,14 +2729,14 @@ if (mat < 10512) {
                     if (mat < 10944) {
                         if (mat < 10936) {
                             if (mat == 10928) { //
-
+                            
                             }
                             else /*if (mat == 10932)*/ { //
 
                             }
                         } else {
                             if (mat == 10936) { //
-
+                            
                             }
                             else /*if (mat == 10940)*/ { //
 
@@ -2335,14 +2745,14 @@ if (mat < 10512) {
                     } else {
                         if (mat < 10952) {
                             if (mat == 10944) { //
-
+                            
                             }
                             else /*if (mat == 10948)*/ { //
 
                             }
                         } else {
                             if (mat == 10952) { //
-
+                            
                             }
                             else /*if (mat == 10956)*/ { //
 
@@ -2355,14 +2765,14 @@ if (mat < 10512) {
                     if (mat < 10976) {
                         if (mat < 10968) {
                             if (mat == 10960) { //
-
+                            
                             }
                             else /*if (mat == 10964)*/ { //
 
                             }
                         } else {
                             if (mat == 10968) { //
-
+                            
                             }
                             else /*if (mat == 10972)*/ { //
 
@@ -2371,14 +2781,14 @@ if (mat < 10512) {
                     } else {
                         if (mat < 10984) {
                             if (mat == 10976) { //
-
+                            
                             }
                             else /*if (mat == 10980)*/ { //
 
                             }
                         } else {
                             if (mat == 10984) { //
-
+                            
                             }
                             else /*if (mat == 10988)*/ { //
 
@@ -2389,14 +2799,14 @@ if (mat < 10512) {
                     if (mat < 11008) {
                         if (mat < 11000) {
                             if (mat == 10992) { //
-
+                            
                             }
                             else /*if (mat == 10996)*/ { //
 
                             }
                         } else {
                             if (mat == 11000) { //
-
+                            
                             }
                             else /*if (mat == 11004)*/ { //
 
@@ -2405,14 +2815,14 @@ if (mat < 10512) {
                     } else {
                         if (mat < 11016) {
                             if (mat == 11008) { //
-
+                            
                             }
                             else /*if (mat == 11012)*/ { //
 
                             }
                         } else {
                             if (mat == 11016) { //
-
+                            
                             }
                             else /*if (mat == 11020)*/ { //
 

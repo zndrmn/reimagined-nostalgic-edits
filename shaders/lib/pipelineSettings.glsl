@@ -11,7 +11,7 @@ const int colortex7Format = RGBA16F;		//(cloud/water map on gbuffers) | temporal
 
 #ifdef MULTICOLORED_BLOCKLIGHT
 const int colortex8Format = RGB8;           //colored light
-const int colortex9Format = RGB16;          //colored light
+const int colortex9Format = RGB16F;         //colored light
 #endif
 */
 

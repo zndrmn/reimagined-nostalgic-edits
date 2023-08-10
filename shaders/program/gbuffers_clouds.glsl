@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -153,7 +151,7 @@ void main() {
 	uniform mat4 gbufferModelViewInverse;
 
 	#ifdef TAA
-			uniform float viewWidth, viewHeight;
+		uniform float viewWidth, viewHeight;
 	#endif
 #endif
 

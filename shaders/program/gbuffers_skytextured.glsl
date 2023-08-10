@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -51,7 +49,7 @@ uniform sampler2D tex;
 #endif
 
 #ifdef CAVE_FOG
-	#include "/lib/atmospherics/fog/caveFactor.glsl"
+    #include "/lib/atmospherics/fog/caveFactor.glsl"
 #endif
 
 #ifdef COLOR_CODED_PROGRAMS
@@ -143,6 +141,10 @@ flat out vec4 glColor;
 
 //Uniforms//
 
+#ifdef ATLAS_ROTATION
+	uniform vec3 cameraPosition;
+#endif
+
 //Attributes//
 
 //Common Variables//
@@ -155,6 +157,9 @@ flat out vec4 glColor;
 void main() {
 	gl_Position = ftransform();
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.5, vec3(100.0))));
+	#endif
 	
 	glColor = gl_Color;
 

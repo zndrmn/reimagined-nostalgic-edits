@@ -21,6 +21,11 @@ vec4 DistortShadow(vec4 shadowpos, float distortFactor) {
 vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucentMult, float lViewPos, vec3 nViewPos, float VdotL, float VdotU, vec2 texCoord, float z0, float z1, float dither) {
 	if (max(blindness, darknessFactor) > 0.1) return vec4(0.0);
 	vec4 volumetricLight = vec4(0.0);
+	#ifdef BEDROCK_NOISE
+		#ifdef OVERWORLD
+			if ((cameraPosition.y < -55.0) && (eyeBrightnessM < 0.4)) return  vec4(0.0);
+		#endif
+	#endif
 
 	// For some reason Optifine doesn't provide correct shadowMapResolution if Shadow Quality isn't 1x
 	vec2 shadowMapResolutionM = textureSize(shadowtex0, 0);
@@ -121,7 +126,10 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0);
 			enderBeamSample /= sampleCount;
 		#endif
-
+		#if defined OVERWORLD && defined OVERWORLD_BEAMS
+			vec4 overworldBeamSample = vec4(DrawOverworldBeams(VdotU, playerPos, viewPos.xyz), 1.0) / 1.0;
+		#endif
+		
 		float shadowSample = 1.0;
 		vec3 vlSample = vec3(1.0);
 		#ifdef REALTIME_SHADOWS
@@ -167,7 +175,7 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 								vlSample *= 0.1 + 0.9 * pow2(pow2(translucentMult * 1.7));
 							}
 						}
-
+						
 						if (isEyeInWater == 1 && translucentMult == vec3(1.0)) vlSample = vec3(0.0);
 					}
 				#endif
@@ -177,7 +185,10 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 		if (currentDist > depth0) vlSample *= translucentMult;
 
 		#ifdef OVERWORLD
-		volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
+			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
+			#ifdef OVERWORLD_BEAMS
+				volumetricLight += vec4(vlSample, shadowSample) * overworldBeamSample * sampleMult;
+			#endif
 		#else
 			#ifdef END_BEAMS
 				volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
@@ -215,7 +226,7 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 
 				float salsCheck = salsSampleSum / salsSampleCount;
 				int reduceAmount = 2;
-
+				
 				int skyCheck = 0;
 				for (float i = 0.1; i < 1.0; i += 0.2) {
 					skyCheck += int(texelFetch(depthtex0, ivec2(view.x * i, view.y * 0.9), 0).x == 1.0);
@@ -234,16 +245,15 @@ vec4 GetVolumetricLight(inout vec3 color, inout float vlFactor, vec3 translucent
 		} else vlFactor = 0.0;
 
 		/*beginTextM(8, vec2(6, 10));
-    	text.fgCol = vec4(1.0, 0.0, 0.0, 1.0);
-    	printFloat(salsCheck);
-    	endText(color);
-
-    	for (float i = 0.25; i < salsX; i++) {
-    	    for (float h = 0.45; h < salsY; h++) {
-    	        if (length(texCoord - (0.3 + 0.4 * viewM * vec2(i, h))) < 0.01) return vec4(1,0,1,1);
-    	    }
-    	}*/
-
+		text.fgCol = vec4(1.0, 0.0, 0.0, 1.0);
+		printFloat(salsCheck);
+		endText(color);
+		
+		for (float i = 0.25; i < salsX; i++) {
+			for (float h = 0.45; h < salsY; h++) {
+				if (length(texCoord - (0.3 + 0.4 * viewM * vec2(i, h))) < 0.01) return vec4(1,0,1,1);
+			}
+		}*/
 	#endif
 
 	#ifdef OVERWORLD

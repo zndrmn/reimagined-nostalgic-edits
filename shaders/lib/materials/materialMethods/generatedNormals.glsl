@@ -22,8 +22,8 @@ float GetDif(float lOriginalAlbedo, vec2 offsetCoord) {
     #endif
 
     #ifndef GBUFFERS_WATER
-        if (dif > 0.0) dif = max(dif + NORMAL_THRESHOLD, 0.0);
-        else           dif = min(dif - NORMAL_THRESHOLD, 0.0);
+        if (dif > 0.0) dif = max(dif - normalThreshold, 0.0);
+        else           dif = min(dif + normalThreshold, 0.0);
     #endif
 
     return clamp(dif, -normalClamp, normalClamp);

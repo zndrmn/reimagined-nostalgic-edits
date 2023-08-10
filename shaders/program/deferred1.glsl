@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -27,6 +25,10 @@ uniform float viewWidth, viewHeight;
 uniform float blindness;
 uniform float darknessFactor;
 
+#if defined NETHER_NOISE || defined BEDROCK_NOISE
+	uniform float eyeAltitude;
+#endif
+
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
 
@@ -50,7 +52,7 @@ uniform sampler2D noisetex;
 
 #ifdef PBR_REFLECTIONS
 	uniform mat4 gbufferModelView;
-
+	
 	uniform sampler2D colortex5;
 #endif
 
@@ -62,9 +64,9 @@ uniform sampler2D noisetex;
 
 #ifdef CLOUDS_REIMAGINED
 	uniform ivec2 eyeBrightness;
-
+	
 	uniform sampler2D colortex3;
-
+	
 	#ifdef REALTIME_SHADOWS
 		uniform sampler2DShadow shadowtex0;
 	#endif
@@ -124,19 +126,19 @@ float GetLinearDepth(float depth) {
         float ao = 0.0;
 
 		#if SSAO_QUALI == 2
-			int samples = 4;
+        	int samples = 4;
 			float scm = 0.4;
 		#elif SSAO_QUALI == 3
-			int samples = 12;
+        	int samples = 12;
 			float scm = 0.6;
 		#endif
 
 		#define SSAO_I_FACTOR 0.004
-
+        
         float sampleDepth = 0.0, angle = 0.0, dist = 0.0;
-		float fovScale = gbufferProjection[1][1];
+        float fovScale = gbufferProjection[1][1];
         float distScale = max(farMinusNear * linearZ0 + near, 3.0);
-		vec2 scale = vec2(scm / aspectRatio, scm) * fovScale / distScale;
+        vec2 scale = vec2(scm / aspectRatio, scm) * fovScale / distScale;
 
         for (int i = 1; i <= samples; i++) {
             vec2 offset = OffsetDist(i + dither, samples) * scale;
@@ -154,11 +156,11 @@ float GetLinearDepth(float depth) {
             aosample = farMinusNear * (linearZ0 - sampleDepth) * 2.0;
             angle += clamp(0.5 - aosample, 0.0, 1.0);
             dist += clamp(0.5 * aosample - 1.0, 0.0, 1.0);
-
+            
             ao += clamp(angle + dist, 0.0, 1.0);
         }
         ao /= samples;
-
+        
 		#define SSAO_IM SSAO_I * SSAO_I_FACTOR
 		return pow(ao, SSAO_IM);
     }
@@ -219,6 +221,10 @@ float GetLinearDepth(float depth) {
 	#include "/lib/materials/materialMethods/reflections.glsl"
 #endif
 
+#ifdef NETHER_NOISE
+	#include "/lib/atmospherics/netherNoise.glsl"
+#endif
+
 #ifdef SHADER_CLOUDS_ACTIVE
 	#include "/lib/atmospherics/clouds/mainClouds.glsl"
 #endif
@@ -235,8 +241,16 @@ float GetLinearDepth(float depth) {
     #include "/lib/colors/colorMultipliers.glsl"
 #endif
 
+#if defined NIGHT_NEBULA || defined BEDROCK_NOISE
+	#include "/lib/atmospherics/stars.glsl"
+#endif
+
 #ifdef NIGHT_NEBULA
 	#include "/lib/atmospherics/nightNebula.glsl"
+#endif
+
+#ifdef BEDROCK_NOISE
+	#include "/lib/atmospherics/bedrockNoise.glsl"
 #endif
 
 //Program//
@@ -263,13 +277,21 @@ void main() {
 	float VdotS = dot(nViewPos, sunVec);
 	float skyFade = 0.0;
 	vec3 waterRefColor = vec3(0.0);
-
+	
 	#if AURORA_STYLE > 0
 		vec3 auroraBorealis = vec3(0.0);
 	#endif
 
 	#ifdef NIGHT_NEBULA
 		vec3 nightNebula = vec3(0.0);
+	#endif
+
+	#ifdef NETHER_NOISE
+		vec3 netherNoise = vec3(0.0);
+	#endif
+
+	#ifdef BEDROCK_NOISE
+		vec3 bedrockNoise = vec3(0.0);
 	#endif
 
 	#ifdef TEMPORAL_FILTER
@@ -279,7 +301,7 @@ void main() {
 	#ifdef SHADER_CLOUDS_ACTIVE
 		bool sun = false;
 	#endif
-
+	
 	if (z0 < 1.0) {
 		vec3 texture5 = texelFetch(colortex1, texelCoord, 0).rgb;
 
@@ -292,7 +314,7 @@ void main() {
 		#else
 			float ssao = 1.0;
 		#endif
-
+		
 		int materialMaskInt = int(texture5.g * 255.1);
 		float intenseFresnel = 0.0;
 		float smoothnessD = texture5.r;
@@ -303,7 +325,7 @@ void main() {
 		#else
 			if (materialMaskInt <= 240) {
 				#ifdef CUSTOM_PBR
-					#if RP_MODE == 2 // seusPBR
+					#if RP_MODE == 2 // seuspbr
 						float metalness = materialMaskInt / 240.0;
 
 						intenseFresnel = metalness;
@@ -321,7 +343,7 @@ void main() {
 					ssao = 1.0;
 			}
 		#endif
-
+		
 		color.rgb *= ssao;
 
 		#ifdef PBR_REFLECTIONS
@@ -357,7 +379,7 @@ void main() {
 					if (z0 <= 0.56) {
 						roughNoise *= 0.1;
 						#ifdef TEMPORAL_FILTER
-						blendFactor = 0.0;
+							blendFactor = 0.0;
 						#endif
 					}
 				#endif
@@ -398,7 +420,7 @@ void main() {
 
 						float oldRefMixer = clamp01((dotDif1 - dotDif2) * 500.0);
 						vec4 oldRef = mix(oldRef1, oldRef2, oldRefMixer);
-				#endif
+					#endif
 
 					vec4 newRef = vec4(colorAdd, colorMultInv);
 
@@ -436,7 +458,7 @@ void main() {
 		DoFog(color, skyFade, lViewPos, playerPos, VdotU, VdotS, dither);
 	} else { // Sky
 		skyFade = 1.0;
-
+		
 		#ifdef OVERWORLD
 			#ifdef CLOUDS_REIMAGINED
 				sun = color.r > 2.0;
@@ -463,6 +485,16 @@ void main() {
 			#ifdef ATM_COLOR_MULTS
 				color.rgb *= atmColorMult;
 			#endif
+			#ifdef NETHER_NOISE
+				netherNoise = GetNetherNoise(viewPos.xyz, VdotU, dither);
+				color.rgb += netherNoise;
+			#endif
+		#endif
+		#if defined OVERWORLD || defined NETHER
+			#ifdef BEDROCK_NOISE
+				bedrockNoise = GetBedrockNoise(viewPos.xyz, VdotU, dither);
+				color.rgb += bedrockNoise;
+			#endif
 		#endif
 		#ifdef END
 			color.rgb = endSkyColor;
@@ -473,7 +505,7 @@ void main() {
 			#endif
 		#endif
 	}
-
+	
 	float cloudLinearDepth = 1.0;
 
 	#ifdef SHADER_CLOUDS_ACTIVE
@@ -526,12 +558,12 @@ flat out vec3 upVec, sunVec;
 //Uniforms//
 #if LIGHTSHAFT_BEHAVIOUR == 1 && defined LIGHTSHAFTS_ACTIVE
 	uniform float viewWidth, viewHeight;
-
+	
 	uniform sampler2D colortex4;
 
 	#ifdef END
 		uniform int frameCounter;
-
+	
 		uniform float frameTimeSmooth;
 		uniform float far;
 	#endif

@@ -44,6 +44,10 @@ vec3 GetEnderStars(vec3 viewPos, float VdotU) {
 
     #ifdef END_TWINKLING_STARS
         enderStars *= clamp(abs(texture2D(noisetex, starCoord2 + frameTimeCounter * 0.004).r - 0.5) * 10, 0.2, 1.0); 
+    #endif 
+
+    #ifdef END_SMOKE
+        enderStars += texture2D(noisetex, (wpos.xz / wpos.y) * 0.5 + frameTimeCounter * 0.004).g * VdotUM1 * endSkyColor * 1.5;
     #endif
 
     return enderStars;

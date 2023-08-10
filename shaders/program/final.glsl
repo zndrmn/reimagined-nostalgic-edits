@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -73,7 +71,7 @@ void main() {
 
 	#ifdef UNDERWATER_DISTORTION
 		if (isEyeInWater == 1)
-			texCoordM += WATER_REFRACTION_INTENSITY * 0.00035 * sin((texCoord.x + texCoord.y) * 25.0 + frameTimeCounter * 3.0);
+			texCoordM += WATER_REFRACTION_INTENSITY * 0.00035 * sin((texCoord.x + texCoord.y) * 25.0 + frameTimeCounter * UNDERWATER_DISTORTION_STRENGTH);
 	#endif
 
 	#ifdef LETTERBOXING

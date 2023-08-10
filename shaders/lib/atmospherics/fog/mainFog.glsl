@@ -16,13 +16,13 @@
             fog *= fog;
             fog *= fog;
             fog *= fog;
-            fog = 1.0 - exp(-3.0 * fog);
+            fog = 1.0 - exp(-BORDER_FOG_DISTANCE * fog);
         #endif
         #ifdef NETHER
             float fog = lPlayerPosXZ / far;
             fog *= fog;
             fog *= fog;
-            fog = 1.0 - exp(-8.0 * fog);
+            fog = 1.0 - exp(-2.6666 * BORDER_FOG_DISTANCE * fog);
         #endif
 
         if (fog > 0.0) {
@@ -40,6 +40,7 @@
                 fogColorM *= atmColorMult;
             #endif
 
+            fog *= BORDER_FOG_DENSITY;
             color = mix(color, fogColorM, fog);
 
             #ifndef GBUFFERS_WATER
@@ -103,29 +104,36 @@
             #ifdef CAVE_FOG
                 fog *= 0.2 + 0.8 * sqrt2(eyeBrightnessM);
                 fog *= 1.0 - GetCaveFactor();
-                fog *= 1.00; // Cave fog density
+                fog *= CAVE_FOG_DENSITY;
             #else
                 fog *= eyeBrightnessM;
             #endif
         #endif
 
-    fog *= altitudeFactor * 0.9 + 0.1;
+        fog *= ATMOSPHERIC_FOG_DENSITY * altitudeFactor * 0.9 + 0.1;
 
         if (fog > 0.0) {
             fog = clamp(fog, 0.0, 1.0);
 
             #ifdef OVERWORLD
-                float nightFogMult = 1.8 - 0.625 * pow2(pow2(altitudeFactorP));
+                float nightFogMult = 2.5 - 0.625 * pow2(pow2(altitudeFactorP));
                 float dayNightFogBlend = pow(1.0 - nightFactor, 4.0 - VdotS - 2.5 * sunVisibility2);
                 vec3 clearFogColor = mix(
                     nightUpSkyColor * (nightFogMult - dayNightFogBlend * nightFogMult),
-                    sqrt(dayDownSkyColor) * (0.9 + vec3(0.22, 0.46, 0.48) * 0.2),
+                    sqrt(dayDownSkyColor) * (0.9 + noonFactor * 0.5),
                     dayNightFogBlend
                 );
 
-                vec3 rainFogColor = mix(normalize(nightMiddleSkyColor) * 0.09, dayMiddleSkyColor * 1.1, dayNightFogBlend);
+                vec3 rainFogColor = mix(normalize(nightMiddleSkyColor) * 0.15, dayMiddleSkyColor * 1.1, dayNightFogBlend);
 
                 vec3 fogColorM = mix(clearFogColor, rainFogColor, rainFactor);
+
+                #ifdef ATMOSPHERIC_FOG
+                    fogColorM *= vec3(ATMOSPHERIC_FOG_R, ATMOSPHERIC_FOG_G, ATMOSPHERIC_FOG_B) * ATMOSPHERIC_FOG_I / 255;
+                    #ifdef RADIOACTIVE_ATMOSPHERIC_FOG
+                        fogColorM /= GetLuminance(fogColorM);
+                    #endif
+                #endif
             #else
                 vec3 fogColorM = endSkyColor;
             #endif

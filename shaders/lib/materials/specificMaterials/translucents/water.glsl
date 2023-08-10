@@ -57,7 +57,7 @@
         vec3 worldPos = playerPos + cameraPosition;
         vec2 waterPos = worldPos.xz * 16.0;
         #if WATER_STYLE < 3
-            waterPos = floor(waterPos);
+             waterPos = floor(waterPos);
         #endif
         waterPos = 0.002 * (waterPos + worldPos.y * 32.0);
     #endif
@@ -100,7 +100,7 @@
         #else
             float pNormalMult = 0.02 * rainFactor * isRainy * pow2(lmCoordM.y);
 
-            if (pNormalMult > 0.0005) {
+            if (pNormalMult > 0.0005) {       
                 vec2 puddlePos = floor((playerPos.xz + cameraPosition.xz) * 16.0) * 0.00625;
 
                 vec2 puddleWind = vec2(frameTimeCounter) * 0.015;
@@ -108,7 +108,7 @@
                 vec2 pNormalCoord2 = puddlePos + vec2(puddleWind.x * -1.5, puddleWind.y * -1.0);
                 vec3 pNormalNoise1 = texture2D(noisetex, pNormalCoord1).rgb;
                 vec3 pNormalNoise2 = texture2D(noisetex, pNormalCoord2).rgb;
-
+                
                 normalMap.xy = (pNormalNoise1.xy + pNormalNoise2.xy - vec2(1.0)) * pNormalMult;
         #endif
 
@@ -134,11 +134,11 @@
     float fresnel4 = pow2(fresnel2);
 
     #if WATER_QUALITY >= 2
-    if (isEyeInWater != 1) {
-        // Noise Coloring
+        if (isEyeInWater != 1) {
+            // Noise Coloring
             float noise = texture2D(noisetex, (waterPos + wind) * 0.25).g;
-                noise = noise - 0.5;
-                noise *= 0.25;
+                  noise = noise - 0.5;
+                  noise *= 0.25;
             color.rgb = pow(color.rgb, vec3(1.0 + noise));
 
             // Water Alpha
@@ -151,7 +151,7 @@
             #endif
             float lViewPosT = length(viewPosT);
             float lViewPosDifM = lViewPos - lViewPosT;
-
+            
             #if WATER_STYLE < 3
                 color.a = sqrt1(color.a);
             #else
@@ -176,7 +176,7 @@
                 color.a = pow(color.a, WATER_ALPHA_MULT_M);
             #endif
             ////
-
+        
             // Water Foam
             #if WATER_FOAM_I > 0 && !(defined MIRROR_DIMENSION || defined WORLD_CURVATURE)
                 if (NdotU > 0.99) {
@@ -219,7 +219,7 @@
         } else { // Underwater
             noDirectionalShading = true;
 
-            reflectMult = 0.5;
+            reflectMult = FRESNEL_MULTIPLIER;
 
             #if MC_VERSION < 11300 && WATER_STYLE >= 3
                 color.a = 0.7;
@@ -232,7 +232,7 @@
             #endif
         }
     #else
-        shadowMult = vec3(0.0);
+        shadowMult = vec3(0.0); 
     #endif
 
     // Final Tweaks

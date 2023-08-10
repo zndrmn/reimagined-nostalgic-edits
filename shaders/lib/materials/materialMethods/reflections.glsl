@@ -1,5 +1,8 @@
 #ifdef OVERWORLD
     #include "/lib/atmospherics/sky.glsl"
+    #ifdef OVERWORLD_BEAMS
+        #include "/lib/atmospherics/overworldBeams.glsl"
+    #endif
 #endif
 #if defined END && defined DEFERRED1
     #include "/lib/atmospherics/enderBeams.glsl"
@@ -73,20 +76,20 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
                 float smoothnessDM = pow2(smoothness);
                 float lodFactor = 1.0 - exp(-0.125 * (1.0 - smoothnessDM) * dist);
                 float lod = log2(viewHeight / 8.0 * (1.0 - smoothnessDM) * lodFactor) * 0.45;
-                    #ifdef CUSTOM_PBR
-                        if (z0 <= 0.56) lod *= 2.22;
-            #endif
-            lod = max(lod - 1.0, 0.0);
+				#ifdef CUSTOM_PBR
+					if (z0 <= 0.56) lod *= 2.22;
+                #endif
+                lod = max(lod - 1.0, 0.0);
 
-            reflection.rgb = texture2DLod(colortex0, refPos.xy, lod).rgb;
+                reflection.rgb = texture2DLod(colortex0, refPos.xy, lod).rgb;
             #else
                 reflection = texture2D(gaux2, refPos.xy);
                 reflection.rgb = pow2(reflection.rgb + 1.0);
             #endif
 
             /**/
-                float skyFade = 0.0;
-                DoFog(reflection.rgb, skyFade, lViewPosRT, ViewToPlayer(rfragpos.xyz), RVdotU, RVdotS, dither);
+	        float skyFade = 0.0;
+	        DoFog(reflection.rgb, skyFade, lViewPosRT, ViewToPlayer(rfragpos.xyz), RVdotU, RVdotS, dither);
 
             edgeFactor.x = pow2(edgeFactor.x);
             edgeFactor = 1.0 - edgeFactor;
@@ -108,13 +111,19 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
             vec3 vlColorApprox = pow(lightColor, vec3(0.8)) * 0.6;
             skyReflection += vlColorApprox * rainFactor2;
 
-        #ifdef ATM_COLOR_MULTS
+            #ifdef ATM_COLOR_MULTS
                 skyReflection *= atmColorMult;
             #endif
             
             #ifdef DEFERRED1
                 skyReflection *= skyLightFactor;
+                #ifdef OVERWORLD_BEAMS
+                    skyReflection *= DrawOverworldBeams(RVdotU, playerPos, viewPos) * 0.1;
+                #endif
             #else
+                #ifdef OVERWORLD_BEAMS
+                    skyReflection *= (DrawOverworldBeams(RVdotU, playerPos, viewPos) * 0.1 + 0.9) * 0.5;
+                #endif
                 skyReflection = mix(color * 0.5, skyReflection, skyLightFactor);
 
                 float specularHighlight = GGX(normalM, nViewPos, lightVec, max(dot(normalM, lightVec), 0.0), smoothness);

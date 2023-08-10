@@ -4,7 +4,7 @@
         return clamp(1.0 - cameraPosition.y / 60.0, 0.0, 1.0 - eyeBrightnessM);
     }
 
-    vec3 caveFogColorRaw = vec3(33.15, 33.15, 38.25) / 255 *  .00;
+    vec3 caveFogColorRaw = vec3(CAVE_FOG_R, CAVE_FOG_G, CAVE_FOG_B) / 255 * CAVE_FOG_I;
     #if MINIMUM_LIGHT_MODE <= 1
         vec3 caveFogColor = caveFogColorRaw * 0.7;
     #elif MINIMUM_LIGHT_MODE == 2

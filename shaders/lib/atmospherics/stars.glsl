@@ -9,7 +9,7 @@ vec2 GetStarCoord(vec3 viewPos) {
     vec3 starCoord = wpos / (wpos.y + length(wpos.xz) * 0.5);
 	vec3 moonPos = vec3(gbufferModelViewInverse * vec4(- sunVec * 70.0, 1.0));
 	vec3 moonCoord = moonPos / (moonPos.y + length(moonPos.xz));
-    return starCoord.xz - moonCoord.xz;
+	return starCoord.xz - moonCoord.xz;
 }
 
 vec3 GetStars(vec3 viewPos, float VdotU, float VdotS) {

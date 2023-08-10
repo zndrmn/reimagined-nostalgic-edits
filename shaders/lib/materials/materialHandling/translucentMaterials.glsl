@@ -3,14 +3,23 @@ if (mat < 31008) {
         if (mat < 30008) {
             if (mat == 30000) { // Stained Glass
                 #include "/lib/materials/specificMaterials/translucents/stainedGlass.glsl"
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 1.05;
+                #endif
             } else if (mat == 30004) { // Stained Glass Pane
                 #include "/lib/materials/specificMaterials/translucents/stainedGlass.glsl"
                 noSmoothLighting = true;
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 1.05;
+                #endif
             }
         } else {
             if (mat == 30008) { // Tinted Glass
                 color.a = pow(color.a, 1.0 - fresnel * 0.65);
                 reflectMult = 0.75;
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 0.95;
+                #endif
             } else /*if (mat == 30012)*/ { // Slime Block
                 translucentMultCalculated = true;
                 reflectMult = 0.25;
@@ -18,6 +27,9 @@ if (mat < 31008) {
 
                 smoothnessG = color.g * 0.5;
                 highlightMult = 3.5;
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 0.6;
+                #endif
             }
         }
     } else {
@@ -29,19 +41,33 @@ if (mat < 31008) {
 
                 smoothnessG = color.r * 0.7;
                 highlightMult = 3.5;
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 0.4;
+                #endif
             } else /*if (mat == 30020)*/ { // Nether Portal
-                #ifdef FANCY_NETHERPORTAL
-                #include "/lib/materials/specificMaterials/translucents/netherPortal.glsl"
+                #if NETHER_PORTAL_VARIATION > 0
+                    #include "/lib/materials/specificMaterials/translucents/netherPortal.glsl"
                 #endif
             }
         } else {
             if (mat == 31000) { // Water
-                #include "/lib/materials/specificMaterials/translucents/water.glsl"
+                #ifdef SHADER_WATER
+                    #include "/lib/materials/specificMaterials/translucents/water.glsl"
+                #endif
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowIntensity = 0.0;
+                    snowFresnelMult = 0.0;
+                    IPBRMult = 0.0;
+                    snowAlpha = 0.0;
+                #endif
             } else /*if (mat == 31004)*/ { // Ice
                 smoothnessG = pow2(color.g) * color.g;
                 highlightMult = pow2(min1(pow2(color.g) * 1.5)) * 3.5;
 
                 reflectMult = 0.7;
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 0.6;
+                #endif
             }
         }
     }
@@ -50,10 +76,16 @@ if (mat < 31008) {
         if (mat < 31016) {
             if (mat == 31008) { // Glass
                 #include "/lib/materials/specificMaterials/translucents/glass.glsl"
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 0.8;
+                #endif
             } else /*if (mat == 31012)*/ { // Glass Pane
                 if (color.a < 0.001 && abs(NdotU) > 0.95) discard; // Fixing artifacts on connected glass panes
                 #include "/lib/materials/specificMaterials/translucents/glass.glsl"
                 noSmoothLighting = true;
+                #if SEASONS == 1 || SEASONS == 4 
+                    snowAlpha = 0.8;
+                #endif
             }
         } else {
             if (mat == 31016) { // Beacon

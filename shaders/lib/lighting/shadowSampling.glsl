@@ -83,7 +83,7 @@ vec2 shadowOffsets[4] = vec2[4](
 
 vec3 SampleBasicFilteredShadow(vec3 shadowPos, float offset) {
     float shadow = 0.0;
-
+    
     for (int i = 0; i < 4; i++) {
         shadow += shadow2D(shadowtex0, vec3(offset * shadowOffsets[i] + shadowPos.st, shadowPos.z)).x;
     }

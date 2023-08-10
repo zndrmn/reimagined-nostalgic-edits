@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -24,6 +22,10 @@ flat in vec4 glColor;
 	#if SUN_ANGLE != 0
 		flat in vec3 northVec;
 	#endif
+#endif
+
+#ifdef WAVE_EVERYTHING
+	flat in int mat;
 #endif
 
 //Uniforms//
@@ -106,6 +108,10 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	#include "/lib/misc/colorCodedPrograms.glsl"
 #endif
 
+#if defined BIOME_COLORED_NETHER_PORTALS && !defined BORDER_FOG
+	#include "/lib/colors/skyColors.glsl"
+#endif
+
 #ifdef MULTICOLORED_BLOCKLIGHT
 	#include "/lib/lighting/coloredBlocklight.glsl"
 #endif
@@ -147,6 +153,9 @@ void main() {
 	float emission = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
 	vec2 lmCoordM = lmCoord;
 	vec3 shadowMult = vec3(1.0);
+	#ifdef FORCE_GLOWING_PARTICLES
+		emission += 2.0;
+	#endif
 	#ifdef IPBR
 	if (atlasSize.x < 900.0) { // We don't want to detect particles from the block atlas
 		if (color.b > 1.15 * (color.r + color.g) && color.g > color.r * 1.25 && color.g < 0.425 && color.b > 0.75) { // Water Particle
@@ -166,6 +175,9 @@ void main() {
 				emission = clamp(color.r * 8.0, 1.6, 5.0);
 				color.rgb = pow1_5(color.rgb);
 				lmCoordM = vec2(0.0);
+				#if defined NETHER && defined BIOME_COLORED_NETHER_PORTALS
+					if (color.b > color.r * color.r && color.r < color.g * 9.0 && color.g < 0.2) color.rgb = normalize(netherSkyColor) * 0.5; // Nether Portal
+				#endif
 			} else if (color.r > 0.83 && color.g > 0.23 && color.b < 0.4) {
 				// Lava Particles
 				emission = 2.0;
@@ -178,7 +190,27 @@ void main() {
 	}
 	bool noSmoothLighting = false;
 	#else
+		#if defined NETHER && defined BIOME_COLORED_NETHER_PORTALS
+			if (atlasSize.x < 900.0 && max(abs(colorP.r - colorP.b), abs(colorP.b - colorP.g)) < 0.001 && dot(color.rgb, color.rgb) > 0.25 && color.g < 0.5 && (color.b > color.r * 1.1 && color.r > 0.3 || color.r > (color.g + color.b) * 3.0)) {
+				vec3 color2 = pow1_5(color.rgb);
+				if (color2.b > color2.r * color2.r && color2.r < color2.g * 9.0 && color2.g < 0.2) {
+					emission = clamp(color2.r * 8.0, 1.6, 5.0);
+					color.rgb = normalize(netherSkyColor) * 0.5;
+					lmCoordM = vec2(0.0);
+				}
+			}
+		#endif
 	bool noSmoothLighting = true;
+	#endif
+
+	#if MONOTONE_WORLD > 0
+		#if MONOTONE_WORLD == 1
+			color.rgb = vec3(1.0);
+		#elif MONOTONE_WORLD == 2
+			color.rgb = vec3(0.0);
+		#else
+			color.rgb = vec3(0.5);
+		#endif
 	#endif
 
 	#ifdef MULTICOLORED_BLOCKLIGHT
@@ -186,8 +218,8 @@ void main() {
 	#endif
 
 	#ifdef AURORA_INFLUENCE
-		AuroraAmbientColor(ambientColor, viewPos);
-	#endif
+        AuroraAmbientColor(ambientColor, viewPos);
+    #endif
 
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoordM,
 	           noSmoothLighting, false, true, false,
@@ -241,11 +273,19 @@ flat out vec4 glColor;
 	#endif
 #endif
 
+#ifdef WAVE_EVERYTHING
+	flat out int mat;
+#endif
+
 //Uniforms//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 	uniform sampler2D noisetex;
 	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#if defined WAVE_EVERYTHING || defined ATLAS_ROTATION
+	uniform vec3 cameraPosition;
 #endif
 
 //Attributes//
@@ -256,8 +296,12 @@ flat out vec4 glColor;
 
 //Includes//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
@@ -265,6 +309,9 @@ void main() {
 	gl_Position = ftransform();
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.5, vec3(100.0))));
+	#endif
 	lmCoord  = GetLightMapCoordinates();
 
 	glColor = gl_Color;
@@ -285,10 +332,16 @@ void main() {
 		#endif
 	#endif
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

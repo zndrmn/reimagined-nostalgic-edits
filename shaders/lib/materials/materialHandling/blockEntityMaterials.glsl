@@ -8,7 +8,9 @@ if (blockEntityId > 1) {
                     emission = color.g * 4.0;
                 }
             } else if (blockEntityId == 60000) { // End Portal, End Gateway
+                #if END_PORTAL_VARIATION != 2
                     #include "/lib/materials/specificMaterials/others/endPortalEffect.glsl"
+                #endif
             }
         } else {
             if (blockEntityId == 60004) { // Signs
@@ -21,7 +23,7 @@ if (blockEntityId > 1) {
                 #ifdef COATED_TEXTURES
                     noiseFactor = 0.66;
                 #endif
-            } else /*if (blockEntityId == 60008)*/ { // Chest
+            } else if (blockEntityId == 60008) { // Chest
                 noSmoothLighting = true;
 
                 smoothnessG = pow2(color.g);
@@ -29,6 +31,9 @@ if (blockEntityId > 1) {
                 #ifdef COATED_TEXTURES
                     noiseFactor = 0.66;
                 #endif
+                #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
+            // } else { //powered bell
+            //     #include "/lib/materials/specificMaterials/redstoneDisplay.glsl"
             }
         }
     } else {
@@ -42,7 +47,19 @@ if (blockEntityId > 1) {
                 if (color.g > color.r || color.b > color.g)
                     emission = pow2(factor) * 20.0;
                 emission += 0.35;
-
+                #if SEASONS == 1 || SEASONS == 4
+                    snowIntensity = 0.7;
+                    if (dot(normal, upVec) > 0.99) {
+                        #if SNOW_CONDITION < 2 && SNOW_CONDITION != 0
+                            emission = mix(emission, emission * 0.8, isSnowy);
+                        #elif SNOW_CONDITION == 0
+                            emission = mix(emission, emission * 0.8, rainFactor * isSnowy);
+                        #else
+                            emission *= 0.8;
+                        #endif
+                    }
+                #endif
+                
                 #ifdef COATED_TEXTURES
                     noiseFactor = 0.66;
                 #endif

@@ -30,7 +30,7 @@ emission = GetLuminance(color.rgb) * 6.5;
             float columnNoise = 0.0;
         #endif
         #if LAVA_VARIATION == 1 // Adaptive Noise
-        color.rgb += min(pow2(pow2(emission * 0.50)), 0.2) * LAVA_TEMPERATURE * 0.65 + 0.1;
+            color.rgb += min(pow2(pow2(emission * 0.50)), 0.2) * LAVA_TEMPERATURE * 0.65 + 0.1;
             if (mat == 10068 || columnNoise == 1.0) {
                 float noise = 1.0;
                 #ifdef NETHER
@@ -80,7 +80,7 @@ emission = GetLuminance(color.rgb) * 6.5;
                 color.rgb *= smoothstep(0.00, 0.70, noise);
             }
         #elif LAVA_VARIATION == 5 // Dark Islands
-        color.rgb += vec3(min(pow2(pow2(pow2(smoothstep1(emission * 0.5)))), 0.25)) * LAVA_TEMPERATURE * 0.65 + 0.1;
+            color.rgb += vec3(min(pow2(pow2(pow2(smoothstep1(emission * 0.5)))), 0.25)) * LAVA_TEMPERATURE * 0.65 + 0.1;
             if (mat == 10068 || columnNoise == 1.0) {
                 float noise = texture2D(noisetex, lavaPos * 0.01 + wind * 0.01).r;
                 noise -= texture2D(noisetex, lavaPos * 1.1 + wind * 0.05).r * 0.3;

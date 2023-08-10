@@ -16,7 +16,7 @@ vec3 GetWave(in vec3 pos, float waveSpeed) {
     wave.z = sin(wind*0.0224 + d1 + d2 + pos.x - pos.z + pos.y) * magnitude;
     wave.y = sin(wind*0.0015 + d2 + d0 + pos.z + pos.y - pos.y) * magnitude;
 
-    #if defined NO_WAVING_INDOORS
+    #if defined NO_WAVING_INDOORS && !defined WAVE_EVERYTHING
         wave *= clamp(lmCoord.y - 0.87, 0.0, 0.1);
     #else
         wave *= 0.1;
@@ -71,14 +71,14 @@ void DoWave_Water(inout vec3 playerPos, vec3 worldPos) {
 }
 
 void DoWave_Lava(inout vec3 playerPos, vec3 worldPos) {
-    if (fract(worldPos.y + 0.005) > 0.06) {
+	if (fract(worldPos.y + 0.005) > 0.06) {
         float lavaWaveTime = frameTimeCounter * 3.0;
         worldPos.xz *= 14.0;
-
+        
         float wave  = sin(lavaWaveTime * 0.7 + worldPos.x * 0.14 + worldPos.z * 0.07);
               wave += sin(lavaWaveTime * 0.5 + worldPos.x * 0.05 + worldPos.z * 0.10);
 
-        #if defined NETHER && defined WAVIER_LAVA
+        #if defined NETHER && defined WAVIER_LAVA 
             if (worldPos.y > 30 && worldPos.y < 32) wave *= 4.5;
             else wave *= 2.0;
         #endif
@@ -97,7 +97,7 @@ void DoWave(inout vec3 playerPos, int mat) {
             } else if (mat == 10020) { // Upper Layer Waving Foliage
                 DoWave_Foliage(playerPos.xyz, worldPos);
             }
-
+            
             #if defined WAVING_LEAVES || defined WAVING_LAVA
                 else
             #endif
@@ -107,7 +107,7 @@ void DoWave(inout vec3 playerPos, int mat) {
             if (mat == 10008 || mat == 10012) { // Leaves, Vine
                 DoWave_Leaves(playerPos.xyz, worldPos);
             }
-
+            
             #ifdef WAVING_LAVA
                 else
             #endif
@@ -137,7 +137,6 @@ void DoWave(inout vec3 playerPos, int mat) {
         #endif
     #endif
 }
-
 void DoInteractiveWave(inout vec3 playerPos, int mat){
     if (mat == 10004 || mat == 10005 || mat == 10020 || mat == 10017 || mat == 10628 || mat == 10632) { 
         float lPos = clamp(length(playerPos.xyz), 0.0, 1.0);

@@ -35,6 +35,10 @@ if (entityId < 50064) {
                                 }
                             }
                         }
+                    #ifdef SKIN_SPACEAGLE17
+                        if (CheckForColor(color.rgb, vec3(255, 255, 255))) emission = 3.0;
+                    #endif
+                        
                     }
                 } else /*if (entityId == 50020)*/ { // Blaze
                     lmCoordM = vec2(0.9, 0.0);

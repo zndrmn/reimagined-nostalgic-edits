@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -13,6 +11,10 @@
 in vec2 texCoord;
 
 in vec4 glColor;
+
+#ifdef WAVE_EVERYTHING
+	flat in int mat;
+#endif
 
 //Uniforms//
 uniform float viewWidth, viewHeight;
@@ -75,7 +77,7 @@ void main() {
 		ColorCodeProgram(color);
 	#endif
 
-	/* DRAWBUFFERS:01 */
+    /* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(0.0, 0.0, 0.0, 1.0);
 }
@@ -89,14 +91,22 @@ out vec2 texCoord;
 
 out vec4 glColor;
 
+#ifdef WAVE_EVERYTHING
+	flat out int mat;
+#endif
+
 //Uniforms//
 #ifdef TAA
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 	uniform sampler2D noisetex;
 	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#if defined ATLAS_ROTATION || defined WAVE_EVERYTHING
+	uniform vec3 cameraPosition;
 #endif
 
 //Attributes//
@@ -110,8 +120,12 @@ out vec4 glColor;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
@@ -122,11 +136,20 @@ void main() {
 	#endif
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.5, vec3(100.0))));
+	#endif
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

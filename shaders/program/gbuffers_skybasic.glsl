@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -16,6 +14,10 @@ flat in vec4 glColor;
 
 #ifdef OVERWORLD
 	flat in float vanillaStars;
+#endif
+
+#ifdef WAVE_EVERYTHING
+	flat in int mat;
 #endif
 
 //Uniforms//
@@ -41,7 +43,7 @@ uniform mat4 gbufferModelViewInverse;
 #endif
 
 #ifdef TWINKLING_STARS
-	uniform sampler2D noisetex;
+    uniform sampler2D noisetex;
 #endif
 
 //Pipeline Constants//
@@ -66,7 +68,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 #endif
 
 #ifdef CAVE_FOG
-	#include "/lib/atmospherics/fog/caveFactor.glsl"
+    #include "/lib/atmospherics/fog/caveFactor.glsl"
 #endif
 
 #ifdef ATM_COLOR_MULTS
@@ -140,7 +142,7 @@ void main() {
 						ang = (ang + (cos(ang * 3.14159265358979) * -0.5 + 0.5 - ang) / 3.0) * 6.28318530717959;
 						vec2 sunRotationData2 = vec2(cos(sunPathRotation * 0.01745329251994), -sin(sunPathRotation * 0.01745329251994));
 						vec3 rawSunVec2 = (gbufferModelView * vec4(vec3(-sin(ang), cos(ang) * sunRotationData2) * 2000.0, 1.0)).xyz;
-
+					
 						float moonPhaseVdosS = dot(nViewPos, normalize(rawSunVec2.xyz));
 
 						sunMoonMixer *= pow2(1.0 - min1(pow(abs(moonPhaseVdosS), moonPhaseFactor2) * moonPhaseFactor1));
@@ -184,11 +186,19 @@ flat out vec4 glColor;
 	flat out float vanillaStars;
 #endif
 
+#ifdef WAVE_EVERYTHING
+	flat out int mat;
+#endif
+
 //Uniforms//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 	uniform sampler2D noisetex;
 	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#ifdef WAVE_EVERYTHING
+	uniform vec3 cameraPosition;
 #endif
 
 //Attributes//
@@ -199,8 +209,12 @@ flat out vec4 glColor;
 
 //Includes//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
@@ -217,10 +231,16 @@ void main() {
 		vanillaStars = float(glColor.r == glColor.g && glColor.g == glColor.b && glColor.r > 0.0 && glColor.r < 0.51);
 	#endif
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

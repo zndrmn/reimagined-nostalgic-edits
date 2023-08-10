@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -34,6 +32,10 @@ in vec4 glColor;
 #endif
 
 flat in int mat;
+
+#if SEASONS > 0
+	in vec3 midUV;
+#endif
 
 //Uniforms//
 uniform int isEyeInWater;
@@ -168,6 +170,24 @@ void main() {
 		vec3 playerPos = ViewToPlayer(viewPos);
 		float lViewPos = length(viewPos);
 
+	#if SEASONS > 0
+		#if SEASONS == 1 || SEASONS == 4 
+			float snowIntensity = 1.0;
+			float snowTransparentOverwrite = 0.0;
+		#endif
+		#include "/lib/materials/seasons.glsl"
+	#endif
+
+	#if MONOTONE_WORLD > 0
+		#if MONOTONE_WORLD == 1
+			color.rgb = vec3(1.0);
+		#elif MONOTONE_WORLD == 2
+			color.rgb = vec3(0.0);
+		#else
+			color.rgb = vec3(0.5);
+		#endif
+	#endif
+
 	color.rgb = mix(color.rgb, entityColor.rgb, entityColor.a);
 
 		bool noSmoothLighting = atlasSize.x < 600.0; // To fix fire looking too dim
@@ -208,8 +228,8 @@ void main() {
 		#endif
 
 		#ifdef AURORA_INFLUENCE
-			AuroraAmbientColor(ambientColor, viewPos);
-		#endif
+        	AuroraAmbientColor(ambientColor, viewPos);
+    	#endif
 
 		DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 				   noSmoothLighting, false, false, true,
@@ -276,28 +296,35 @@ out vec4 glColor;
 
 flat out int mat;
 
+#if SEASONS > 0
+	out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of a block
+#endif
+
 //Uniforms//
-#if defined FLICKERING_FIX
+#if defined FLICKERING_FIX || defined ATLAS_ROTATION
 	uniform int entityId;
 
 	uniform vec3 cameraPosition;
 
 	uniform mat4 gbufferModelViewInverse;
-#elif defined WORLD_CURVATURE
+#elif defined WORLD_CURVATURE || defined MIRROR_DIMENSION || defined WAVE_EVERYTHING
 	uniform mat4 gbufferModelViewInverse;
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 	uniform sampler2D noisetex;
 #endif
 
 //Attributes//
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM || defined WAVE_EVERYTHING
 	attribute vec4 mc_midTexCoord;
 #endif
 
 #if defined GENERATED_NORMALS || defined CUSTOM_PBR
 	attribute vec4 at_tangent;
+#endif
+#if SEASONS > 0
+	attribute vec3 at_midBlock;
 #endif
 
 //Common Variables//
@@ -306,8 +333,11 @@ flat out int mat;
 
 //Includes//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
@@ -315,11 +345,18 @@ void main() {
 	gl_Position = ftransform();
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.5, vec3(100.0))));
+	#endif
+	
 	lmCoord  = GetLightMapCoordinates();
 
 	lmCoord.x = min(lmCoord.x, 0.9);
 	//Fixes some servers/mods making entities insanely bright, while also slightly reducing the max blocklight on a normal entity
+
+	#if SEASONS > 0
+		midUV = 0.5 - at_midBlock / 64.0;
+	#endif
 
 	glColor = gl_Color;
 
@@ -359,6 +396,14 @@ void main() {
 		if (glColor.a > 0.99) gl_Position.z *= 0.01;
 	#endif
 
+	#ifdef EMIN_BOAT
+		if (entityId == 50076) {
+			vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+			position.y += 1.25;
+			gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
+		}
+	#endif
+
 	#ifdef FLICKERING_FIX
 		if (entityId == 50008 || entityId == 50012) { // Item Frame, Glow Item Frame
 			if (dot(normal, upVec) > 0.99) {
@@ -381,10 +426,16 @@ void main() {
 		#endif
 	#endif
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, entityId);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

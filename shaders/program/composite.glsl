@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -38,7 +36,7 @@ uniform sampler2D depthtex1;
 	uniform mat4 shadowProjection;
 
 	uniform sampler2D noisetex;
-
+	
 	#if LIGHTSHAFT_BEHAVIOUR == 1
 		uniform mat4 shadowModelViewInverse;
 		uniform mat4 shadowProjectionInverse;
@@ -73,7 +71,7 @@ uniform sampler2D depthtex1;
 	uniform sampler2D colortex1;
 #endif
 
-#ifdef AURORA_INFLUENCE
+#if OVERWORLD_BEAMS_CONDITION == 0 || defined AURORA_INFLUENCE
 	uniform int moonPhase;
 #endif
 
@@ -103,7 +101,7 @@ uniform sampler2D depthtex1;
 	const bool colortex9Clear = false;
 #endif
 
-#ifdef LIGHTSHAFTS_ACTIVE
+#if defined NETHER_NOISE || defined BEDROCK_NOISE || defined LIGHTSHAFTS_ACTIVE
 	uniform float blindness;
 	uniform float darknessFactor;
 #endif
@@ -112,7 +110,7 @@ uniform sampler2D depthtex1;
 float SdotU = dot(sunVec, upVec);
 float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
 
-#ifdef LIGHTSHAFTS_ACTIVE
+#if defined LIGHTSHAFTS_ACTIVE || defined NETHER_NOISE || defined BEDROCK_NOISE
 	float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
 	float sunVisibility2 = sunVisibility * sunVisibility;
 	float shadowTimeVar1 = abs(sunVisibility - 0.5) * 2.0;
@@ -170,7 +168,7 @@ float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(S
 		float mask = clamp(2.0 - 2.0 * max(abs(prevCoord.x - 0.5), abs(prevCoord.y - 0.5)), 0.0, 1.0);
 
 		vec2 offset = OffsetDist(dither) * blurstr;
-
+	
 		vec2 sampleZPos = coord + offset;
 		float sampleZ0 = texture2D(depthtex0, sampleZPos).r;
 		float sampleZ1 = texture2D(depthtex1, sampleZPos).r;
@@ -205,6 +203,8 @@ float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(S
 #ifdef LIGHTSHAFTS_ACTIVE
 	#if defined END && defined END_BEAMS
 		#include "/lib/atmospherics/enderBeams.glsl"
+	#elif defined OVERWORLD && defined OVERWORLD_BEAMS
+		#include "/lib/atmospherics/overworldBeams.glsl"
 	#endif
 	#include "/lib/atmospherics/volumetricLight.glsl"
 
@@ -306,7 +306,7 @@ void main() {
 
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
-
+	
 	// Can't use LIGHTSHAFTS_ACTIVE on Optifine
 	#if LIGHTSHAFT_QUALI_DEFINE > 0 && LIGHTSHAFT_BEHAVIOUR > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
 		/* DRAWBUFFERS:04 */

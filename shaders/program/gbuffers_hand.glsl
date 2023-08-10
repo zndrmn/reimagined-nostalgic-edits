@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -195,8 +193,8 @@ void main() {
 		#endif
 
 		#ifdef AURORA_INFLUENCE
-			AuroraAmbientColor(ambientColor, viewPos);
-		#endif
+        	AuroraAmbientColor(ambientColor, viewPos);
+    	#endif
 
 		DoLighting(color, shadowMult, playerPos, viewPos, 0.0, normalM, lmCoordM,
 				   true, false, false, false,
@@ -263,6 +261,10 @@ out vec4 glColor;
 
 //Uniforms//
 
+#ifdef ATLAS_ROTATION
+	uniform vec3 cameraPosition;
+#endif
+
 //Attributes//
 #if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
 	attribute vec4 mc_midTexCoord;
@@ -283,6 +285,9 @@ void main() {
 	gl_Position = ftransform();
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.5, vec3(100.0))));
+	#endif
 
 	lmCoord  = GetLightMapCoordinates();
 

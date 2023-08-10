@@ -9,3 +9,7 @@ emission *= factor0;
 color.r *= 1.15;
 
 maRecolor = vec3(factor0 * min(max0(factor1 * 0.7 - 0.1) * 1.3, 0.5));
+#if SEASONS == 1 || SEASONS == 4 
+    snowIntensity = 0.65;
+    if (dot(normal, upVec) > 0.99) emission *= 0.6;
+#endif

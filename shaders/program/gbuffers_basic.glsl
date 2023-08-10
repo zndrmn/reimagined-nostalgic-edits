@@ -15,6 +15,10 @@ in vec3 normal;
 
 flat in vec4 glColor;
 
+#ifdef WAVE_EVERYTHING
+	flat in int mat;
+#endif
+
 //Uniforms//
 uniform int isEyeInWater;
 uniform int frameCounter;
@@ -144,14 +148,22 @@ out vec3 normal;
 
 flat out vec4 glColor;
 
+#ifdef WAVE_EVERYTHING
+	flat out int mat;
+#endif
+
 //Uniforms//
 #if defined GBUFFERS_LINE || defined TAA
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 	uniform sampler2D noisetex;
 	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#ifdef WAVE_EVERYTHING
+	uniform vec3 cameraPosition;
 #endif
 
 //Attributes//
@@ -165,8 +177,12 @@ flat out vec4 glColor;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
@@ -195,10 +211,16 @@ void main() {
 		gl_Position.xy = TAAJitter(gl_Position.xy, gl_Position.w);
 	#endif
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

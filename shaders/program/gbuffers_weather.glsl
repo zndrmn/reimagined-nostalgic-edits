@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -19,6 +17,10 @@ in vec2 texCoord;
 flat in vec3 upVec, sunVec;
 
 flat in vec4 glColor;
+
+#ifdef WAVE_EVERYTHING
+	flat in int mat;
+#endif
 
 //Uniforms//
 uniform int isEyeInWater;
@@ -90,13 +92,19 @@ flat out vec3 upVec, sunVec;
 
 flat out vec4 glColor;
 
-//Uniforms//
+#ifdef WAVE_EVERYTHING
+	flat out int mat;
+#endif
 
+//Uniforms//
 uniform mat4 gbufferModelViewInverse;
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 	uniform sampler2D noisetex;
-	//uniform mat4 gbufferModelViewInverse;
+#endif
+
+#if defined ATLAS_ROTATION || defined WAVE_EVERYTHING
+	uniform vec3 cameraPosition;
 #endif
 
 //Attributes//
@@ -107,8 +115,12 @@ uniform mat4 gbufferModelViewInverse;
 
 //Includes//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
@@ -118,7 +130,7 @@ void main() {
 
 	/*discarder = 0.0;
 	discarder2 = 1.0;
-
+		
 	if (abs(length(position.xz) - 2.25) < 0.5) {
 		if (position.y > 0.0) {
 			position.xz *= 5.0;
@@ -138,14 +150,23 @@ void main() {
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.5, vec3(100.0))));
+	#endif
 	lmCoord  = GetLightMapCoordinates();
 	
 	upVec = normalize(gbufferModelView[1].xyz);
 	sunVec = GetSunVector();
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

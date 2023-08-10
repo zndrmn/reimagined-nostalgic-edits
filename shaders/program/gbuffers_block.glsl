@@ -18,7 +18,7 @@ in vec3 normal;
 
 in vec4 glColor;
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM || SEASONS == 1 || SEASONS == 4 
 	in vec2 signMidCoordPos;
 	flat in vec2 absMidCoordPos;
 #endif
@@ -31,6 +31,14 @@ in vec4 glColor;
 	in vec3 viewVector;
 
 	in vec4 vTexCoordAM;
+#endif
+
+#if SEASONS > 0
+	in vec3 midUV;
+#endif
+
+#if SEASONS == 1 || SEASONS == 4 
+	flat in ivec2 pixelTexSize;
 #endif
 
 //Uniforms//
@@ -165,6 +173,13 @@ void main() {
 	float lViewPos = length(viewPos);
 	vec3 playerPos = ViewToPlayer(viewPos);
 
+	#if SEASONS == 1 || SEASONS == 4 
+		float snowIntensity = 1.0;
+		float snowTransparentOverwrite = 0.0;
+		float IPBRMult = 1.0;
+		int subsurfaceMode = 0;
+	#endif
+
 	bool noSmoothLighting = false, noDirectionalShading = false;
 	
 	float smoothnessD = 0.0, skyLightFactor = 0.0, materialMask = 0.0;
@@ -179,7 +194,9 @@ void main() {
 		#endif
 
 		if (blockEntityId == 60000) { // End Portal, End Gateway
-			#include "/lib/materials/specificMaterials/others/endPortalEffect.glsl"
+			#if END_PORTAL_VARIATION != 2
+				#include "/lib/materials/specificMaterials/others/endPortalEffect.glsl"
+			#endif
 		} else if (blockEntityId == 60004) { // Signs
 			noSmoothLighting = true;
 			if (glColor.r + glColor.g + glColor.b <= 2.99 || lmCoord.x > 0.999) { // Sign Text
@@ -188,6 +205,20 @@ void main() {
 		} else {	
 			noSmoothLighting = true;
 		}
+	#endif
+
+	#if SEASONS > 0
+		#include "/lib/materials/seasons.glsl"
+	#endif
+
+	#if MONOTONE_WORLD > 0
+		#if MONOTONE_WORLD == 1
+			color.rgb = vec3(1.0);
+		#elif MONOTONE_WORLD == 2
+			color.rgb = vec3(0.0);
+		#else
+			color.rgb = vec3(0.5);
+		#endif
 	#endif
 
 	#ifdef GENERATED_NORMALS
@@ -203,8 +234,8 @@ void main() {
 	#endif
 
 	#ifdef AURORA_INFLUENCE
-		AuroraAmbientColor(ambientColor, viewPos);
-	#endif
+        AuroraAmbientColor(ambientColor, viewPos);
+    #endif
 
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 	           noSmoothLighting, noDirectionalShading, false, false,
@@ -254,7 +285,15 @@ out vec3 normal;
 
 out vec4 glColor;
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if SEASONS > 0	
+	out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of a block
+#endif
+
+#if SEASONS == 1 || SEASONS == 4 
+	flat out ivec2 pixelTexSize;
+#endif
+
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM || SEASONS == 1 || SEASONS == 4 
 	out vec2 signMidCoordPos;
 	flat out vec2 absMidCoordPos;
 #endif
@@ -274,22 +313,26 @@ out vec4 glColor;
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM || defined ATLAS_ROTATION || defined WAVE_EVERYTHING 
 	uniform int blockEntityId;
 
 	uniform vec3 cameraPosition;
 
 	uniform mat4 gbufferModelViewInverse;
-#elif defined WORLD_CURVATURE
+#elif defined WORLD_CURVATURE || defined MIRROR_DIMENSION
 	uniform mat4 gbufferModelViewInverse;
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	uniform sampler2D noisetex;
 #endif
 
+#if SEASONS == 1 || SEASONS == 4 
+	uniform ivec2 atlasSize;
+#endif
+
 //Attributes//
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM
+#if defined GENERATED_NORMALS || defined COATED_TEXTURES || defined POM || SEASONS == 1 || SEASONS == 4 
 	attribute vec4 mc_midTexCoord;
 #endif
 
@@ -309,8 +352,12 @@ attribute vec4 mc_Entity;
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
@@ -321,6 +368,9 @@ void main() {
 	#endif
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.1, vec3(100.0))));
+	#endif
 
 	lmCoord  = GetLightMapCoordinates();
 
@@ -375,10 +425,16 @@ void main() {
 		vTexCoordAM.xy  = min(texCoord, midCoord - texMinMidCoord);
 	#endif
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

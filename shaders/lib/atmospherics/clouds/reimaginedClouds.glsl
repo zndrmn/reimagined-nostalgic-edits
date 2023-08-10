@@ -1,7 +1,7 @@
 #include "/lib/atmospherics/clouds/cloudCoord.glsl"
 
 vec3 cloudRainColor = mix(nightMiddleSkyColor, dayMiddleSkyColor, sunFactor) * 0.7;
-vec3 cloudAmbientColor = mix(ambientColor * (sunVisibility2 * (0.55 + 0.1 * noonFactor) + 0.35), cloudRainColor * 0.5, rainFactor);
+vec3 cloudAmbientColor = mix(ambientColClouds * (sunVisibility2 * (0.55 + 0.1 * noonFactor) + 0.35), cloudRainColor * 0.5, rainFactor);
 vec3 cloudLightColor   = mix(lightColor * (0.9 + 0.2 * noonFactor), cloudRainColor, rainFactor);
 
 const float cloudStretch = CLOUD_STRETCH;
@@ -41,7 +41,7 @@ float InterleavedGradientNoise() {
 
 bool GetCloudNoise(vec3 tracePos, float cloudAltitude) {
     vec2 coord = GetRoundedCloudCoord(ModifyTracePos(tracePos.xyz, cloudAltitude).xz);
-
+    
     float noise = texture2D(colortex3, coord).b;
     float threshold = clamp(abs(cloudAltitude - tracePos.y) / cloudStretch, 0.001, 0.999);
     threshold = pow2(pow2(pow2(threshold)));
@@ -128,11 +128,11 @@ vec4 GetVolumetricClouds(float cloudAltitude, float distanceThreshold, inout flo
                     VdotSM2 += 0.5 * cloudShading + 0.08;
                 cloudShading = VdotSM2 * light * lightMult;
             #endif
-
+            
             #if RAINBOW_CLOUD != 0
                 vec3 colorSample = rainbowColor * cloudAmbientColor + rainbowColor * cloudLightColor * (0.07 + cloudShading);
             #else
-                vec3 colorSample = CLOUD_COLOR_I * cloudAmbientColor + cloudLightColor * (0.18 + cloudShading);
+                vec3 colorSample = cloudAmbientColor + cloudLightColor * (0.07 + cloudShading);
             #endif
             #ifdef AURORA_INFLUENCE
                 AuroraAmbientColor(colorSample, viewPos);

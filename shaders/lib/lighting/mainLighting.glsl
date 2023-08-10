@@ -89,8 +89,8 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         float NdotLM = NdotLmax0 * 0.9999;
 
         #ifndef GBUFFERS_TEXTURED
-                #if defined GBUFFERS_TERRAIN
-                    if (subsurfaceMode != 0) NdotLM = 1.0;
+            #if defined GBUFFERS_TERRAIN
+                if (subsurfaceMode != 0) NdotLM = 1.0;
                 #ifdef SIDE_SHADOWING
                     else
                 #endif
@@ -140,7 +140,7 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                                     bias *= 1.0 - lightmapYM;
                                 }
                             #endif
-
+                            
                             // Fix light leaking in caves
                             if (lightmapYM < 0.999) {
                                 #ifdef GBUFFERS_HAND
@@ -312,10 +312,10 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     } else lightmapXM = pow2(lightmap.x) * lightmap.x * 10.0;
 
     #ifdef RANDOM_BLOCKLIGHT
-        float RandR = texture2D(noisetex, 0.00016 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r * XLIGHT_R;
-        float RandG = texture2D(noisetex, 0.00029 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r * XLIGHT_G;
-        float RandB = texture2D(noisetex, 0.00034 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r * XLIGHT_B;
-        vec3 blocklightCol = vec3(RandR, RandG, RandB) * 0.875;
+		float RandR = texture2D(noisetex, 0.00016 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r * XLIGHT_R;
+		float RandG = texture2D(noisetex, 0.00029 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r * XLIGHT_G;
+		float RandB = texture2D(noisetex, 0.00034 * RANDOM_BLOCKLIGHT_SIZE * (playerPos.xz + cameraPosition.xz)).r * XLIGHT_B;
+		vec3 blocklightCol = vec3(RandR, RandG, RandB) * 0.875;
 	#endif
     
     #ifdef BLOCKLIGHT_FLICKER
@@ -363,7 +363,7 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                            (0.5 + 0.2 * sunFactor + 0.8 * noonFactor) * (1.0 - rainFactor * 0.5);
         #endif
 
-    if (isEyeInWater != 1) {
+        if (isEyeInWater != 1) {
             float lxFactor = (sunVisibility2 * 0.4 + (0.6 - 0.6 * pow2(invNoonFactor))) * (6.0 - 5.0 * rainFactor);
             lxFactor *= lightmapY2 + 2.0 * shadowMult.r;
             lxFactor = max0(lxFactor - emission * 1000000.0);
@@ -457,16 +457,13 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                 vanillaAO = glColor.a;
             #endif
             vanillaAO = vanillaAO * 0.9 + 0.1;
-
+            
             #if VANILLAAO_I != 100
                 #define VANILLAAO_IM VANILLAAO_I * 0.01
                 vanillaAO = pow(vanillaAO, VANILLAAO_IM);
             #endif
         }
     #endif
-
-    // Night Vision
-    vec3 nightVisionLighting = nightVision * vec3(0.5, 0.5, 0.75);
 
     // Light Highlight
     vec3 lightHighlight = vec3(0.0);

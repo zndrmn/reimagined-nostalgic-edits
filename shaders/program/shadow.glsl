@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -28,7 +26,7 @@ uniform vec3 cameraPosition;
 uniform sampler2D tex;
 uniform sampler2D noisetex;
 
-#if WATER_CAUSTIC_STYLE >= 3
+#if WATER_CAUSTIC_STYLE >= 3	
 	uniform sampler2D gaux4;
 #endif
 
@@ -56,7 +54,7 @@ void main() {
 
 	#if SHADOW_QUALITY >= 1
 		vec4 color2 = color1; // Light Shaft Color
-	
+		
 		color2.rgb *= 0.25; // Natural Strength
 
 		if (mat < 31008) {
@@ -99,15 +97,15 @@ void main() {
 
 					// Underwater Light Shafts
 					vec3 worldPosM = worldPos;
-
+					
 					#if WATER_FOG_MULT > 100
 						#define WATER_FOG_MULT_M WATER_FOG_MULT * 0.01;
 						worldPosM *= WATER_FOG_MULT_M;
 					#endif
-
+					
 					vec2 waterWind = vec2(syncedTime * 0.01, 0.0);
 					float waterNoise = texture2D(noisetex, worldPosM.xz * 0.012 - waterWind).g;
-						  waterNoise += texture2D(noisetex, worldPosM.xz * 0.05 + waterWind).g;
+						waterNoise += texture2D(noisetex, worldPosM.xz * 0.05 + waterWind).g;
 
 					float factor = max(2.5 - 0.025 * length(position.xz), 0.8333) * 1.3;
 					waterNoise = pow(waterNoise * 0.5, factor) * factor * 1.3;
@@ -148,7 +146,7 @@ void main() {
     gl_FragData[0] = color1; // Shadow Color
 
 	#if SHADOW_QUALITY >= 1
-		gl_FragData[1] = color2; // Light Shaft Color
+    	gl_FragData[1] = color2; // Light Shaft Color
 	#endif
 }
 
@@ -175,7 +173,7 @@ uniform mat4 gbufferModelViewInverse;
 #if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX
 	uniform vec3 cameraPosition;
 	uniform sampler2D noisetex;
-#elif defined WORLD_CURVATURE
+#elif defined WORLD_CURVATURE || defined MIRROR_DIMENSION
 	uniform sampler2D noisetex;
 #endif
 
@@ -196,11 +194,11 @@ attribute vec4 mc_Entity;
 //Includes//
 #include "/lib/util/spaceConversion.glsl"
 
-#if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX
+#if defined WAVING_ANYTHING_TERRAIN || defined WAVE_EVERYTHING || defined WAVING_WATER_VERTEX
 	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
 #endif
 
@@ -214,7 +212,7 @@ void main() {
 
 	mat = int(mc_Entity.x + 0.5);
 
-	#if defined WORLD_CURVATURE
+	#if defined WORLD_CURVATURE || defined MIRROR_DIMENSION
 		position = shadowModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
 	#else
 		position = shadowModelViewInverse * shadowProjectionInverse * ftransform();
@@ -224,12 +222,19 @@ void main() {
 		position.y += doWorldCurvature(position.xz);
 	#endif
 
-	#if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX
+	#ifdef MIRROR_DIMENSION
+		doMirrorDimension(position);
+	#endif
+
+	#if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX || defined WAVE_EVERYTHING
 		#ifdef NO_WAVING_INDOORS
 			lmCoord = GetLightMapCoordinates();
 		#endif
 
 		DoWave(position.xyz, mat);
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
+		#endif
 	#endif
 
 	#ifdef PERPENDICULAR_TWEAKS
@@ -247,7 +252,7 @@ void main() {
 		position.y += 0.015 * max0(length(position.xyz) - 50.0);
 	}
 
-	#if defined WORLD_CURVATURE
+	#if defined WORLD_CURVATURE || defined MIRROR_DIMENSION
 		gl_Position = gl_ProjectionMatrix * shadowModelView * position;
 	#else
 		gl_Position = shadowProjection * shadowModelView * position;

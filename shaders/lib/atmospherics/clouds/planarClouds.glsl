@@ -4,7 +4,7 @@ float stretchFactor = 2.5;
 float coordFactor = 0.009375;
 
 float CloudNoise(vec2 coord) {
-    float wind = syncedTime * 0.007;
+    float wind = syncedTime * 0.007 * CLOUD_SPEED;
     // #ifdef RAIN_ATMOSPHERE
     //     wind *= rainFactor * 2.0 + 1.0;
     // #endif
@@ -35,7 +35,7 @@ vec4 DrawCloud(vec3 viewPos, float dither, float VdotS, float VdotU) {
         wpos /= (abs(wpos.y) + length(wpos.xz));
 
         vec3 rainbowColor = getRainbowColor(wpos.xz * rainbowCloudDistribution * 0.35, 0.05);
-    #endif
+   #endif
 
     float scatter = max0(pow2(VdotS));
     float dayNightFogBlend = pow(1.0 - nightFactor, 4.0 - VdotS - 3.0 * sunVisibility2);
@@ -58,8 +58,13 @@ vec4 DrawCloud(vec3 viewPos, float dither, float VdotS, float VdotU) {
     if (VdotU > 0.025) {
         vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz);
         for(int i = 0; i < 5; i++) {
-            vec2 planeCoord = wpos.xz * ((cloudHeight + (i + dither) * stretchFactor) / wpos.y) * 0.0085;
-            vec2 coord = cameraPosition.xz * 0.00025 + planeCoord;
+            #if CLOUD_DIRECTION == 1
+                vec2 planeCoord = wpos.xz * ((cloudHeight + (i + dither) * stretchFactor) / wpos.y) * 0.0085;
+                vec2 coord = cameraPosition.xz * 0.00025 + planeCoord;
+            #else
+                vec2 planeCoord = wpos.zx * ((cloudHeight + (i + dither) * stretchFactor) / wpos.y) * 0.0085;
+                vec2 coord = cameraPosition.zx * 0.00025 + planeCoord;
+            #endif
             
             float ang1 = (i + syncedTime * 0.025) * 2.391;
             float ang2 = ang1 + 2.391;

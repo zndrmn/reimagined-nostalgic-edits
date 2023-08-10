@@ -4,6 +4,10 @@
     const float cloudRoundness = 0.35; // for cloud shadows
 #endif
 
+#ifdef FASTER_RAIN_CLOUDS
+    uniform float rainStrength;
+#endif
+
 vec2 GetRoundedCloudCoord(vec2 pos) { // Thanks to SixthSurge
     vec2 coord = pos.xy + 0.5;
     vec2 signCoord = sign(coord);
@@ -15,8 +19,25 @@ vec2 GetRoundedCloudCoord(vec2 pos) { // Thanks to SixthSurge
 }
 
 vec3 ModifyTracePos(vec3 tracePos, float cloudAltitude) {
-    tracePos.x += syncedTime * CLOUD_SPEED;
+    #if CLOUD_DIRECTION == 2
+        tracePos.xz = tracePos.zx;
+    #endif
+
+    #ifdef FASTER_RAIN_CLOUDS
+        const float rainSpeedMultiplier = 7.0;
+        float dryPos = syncedTime * CLOUD_SPEED;
+        float wetPos = dryPos * (rainSpeedMultiplier * rainFactor + 1.0);
+
+        int rainPhase = int(rainStrength > rainFactor) * 2 - 1;    // determines whether the rain begins or ends
+        float rainOffset = max0(mod((wetPos - dryPos) * rainPhase, 5120 * rainFactor)) * rainPhase;
+
+        tracePos.x += dryPos + rainOffset;
+    #else
+        tracePos.x += syncedTime * CLOUD_SPEED;
+    #endif
+    
     tracePos.z += cloudAltitude * 64.0;
+
     tracePos.xz *= CLOUD_WIDTH;
     return tracePos.xyz;
 }

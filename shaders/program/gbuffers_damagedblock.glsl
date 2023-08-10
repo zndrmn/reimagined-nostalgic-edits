@@ -12,6 +12,10 @@ in vec2 texCoord;
 
 flat in vec4 glColor;
 
+#ifdef WAVE_EVERYTHING
+	flat in int mat;
+#endif
+
 //Uniforms//
 uniform sampler2D tex;
 
@@ -48,11 +52,19 @@ out vec2 texCoord;
 
 flat out vec4 glColor;
 
+#ifdef WAVE_EVERYTHING
+	flat out int mat;
+#endif
+
 //Uniforms//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 	uniform sampler2D noisetex;
 	uniform mat4 gbufferModelViewInverse;
+#endif
+
+#if defined ATLAS_ROTATION || defined WAVE_EVERYTHING
+	uniform vec3 cameraPosition;
 #endif
 
 //Attributes//
@@ -63,20 +75,33 @@ flat out vec4 glColor;
 
 //Includes//
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
+#endif
+
+#ifdef WAVE_EVERYTHING
+	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
 //Program//
 void main() {
 	gl_Position = ftransform();
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.5, vec3(100.0))));
+	#endif
 	glColor = gl_Color;
 
-	#if defined WORLD_CURVATURE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
+		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
 		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#endif

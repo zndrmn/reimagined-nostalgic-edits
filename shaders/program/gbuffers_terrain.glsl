@@ -1,8 +1,6 @@
-//////////////////////////////////////////////
-//    Complementary Reimagined by EminGT    //
-//             -- -- with -- --             //
-// Euphoria Patches by isuewo & SpacEagle17 //
-//////////////////////////////////////////////
+////////////////////////////////////////
+// Complementary Reimagined by EminGT with Euphoria Patches by isuewo and SpacEagle17 //
+////////////////////////////////////////
 
 //Common//
 #include "/lib/common.glsl"
@@ -18,6 +16,9 @@ in vec2 signMidCoordPos;
 flat in vec2 absMidCoordPos;
 flat in vec2 midCoord;
 in vec3 midUV;
+#if SEASONS == 1 || SEASONS == 4 
+	flat in ivec2 pixelTexSize;
+#endif
 
 flat in vec3 upVec, sunVec, northVec, eastVec;
 in vec3 normal;
@@ -239,9 +240,20 @@ void main() {
 	vec2 lmCoordM = lmCoord;
 	vec3 shadowMult = vec3(1.0);
 
+	#if SEASONS == 1 || SEASONS == 4 
+		float snowIntensity = 1.0;
+		float snowTransparentOverwrite = 0.0;
+		float snowEmission = 1.0;
+		float IPBRMult = 1.0;
+	#endif
+
 	#ifdef IPBR
 		vec3 maRecolor = vec3(0.0);
 		#include "/lib/materials/materialHandling/terrainMaterials.glsl"
+			#ifdef REFLECTIVE_WORLD
+				smoothnessD = 1.0;
+				smoothnessG = 1.0;
+			#endif
 
 		#ifdef GENERATED_NORMALS
 			if (!noGeneratedNormals) GenerateNormals(normalM, colorP);
@@ -270,18 +282,47 @@ void main() {
 		} else if (mat == 10020) { // Upper Waving Foliage
 			subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
 			DoFoliageColorTweaks(color.rgb, shadowMult, snowMinNdotU, lViewPos);
-		} else if (mat == 10744) { // Cobweb
-			subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
-			centerShadowBias = true;
 		}
+		#if SEASONS == 1 || SEASONS == 4
+			 if (mat == 10048) { // Water Cauldron  
+				vec3 worldPos = playerPos + cameraPosition;
+				vec3 fractPos = fract(worldPos.xyz);
+				vec2 coordM = abs(fractPos.xz - 0.5);
+				if (max(coordM.x, coordM.y) < 0.375 && fractPos.y > 0.3 && NdotU > 0.9) {
+						snowIntensity = 0.0;
+				}
+			} else if (mat == 10124) { // Snowy Variants of Grass Block, Podzol, Mycelium
+				float dotColor = dot(color.rgb, color.rgb);
+				if (dotColor > 1.5) snowIntensity = 0.0; // Snowy Variants:Snowy Part
+			} else if (mat == 10380) snowIntensity = 0.0; // Snow, Snow Block, Powder Snow
+			if (mat == 10592) { // Respawn Anchor:Lit
+				vec2 absCoord = abs(signMidCoordPos);
+				if (NdotU > 0.9 && max(absCoord.x, absCoord.y) < 0.754) snowIntensity = 0.0; // Portal
+			} else if (mat == 10596) snowIntensity = 0.0; // Redstone Wire:Lit
+			if (mat == 10600) snowIntensity = 0.0;// Redstone Wire:Unlit
+					
+ 			if (mat == 10604) snowIntensity = 0.0; // Redstone Torch
+			if (mat == 10700) { // Sculk Shrieker
+				float boneFactor = max0(color.r * 1.25 - color.b);
 
-		#ifdef SNOWY_WORLD
-		else if (mat == 10132) { // Grass Block:Normal
-			if (glColor.b < 0.999) { // Grass Block:Normal:Grass Part
-				snowMinNdotU = min(pow2(pow2(color.g)) * 1.9, 0.1);
-				color.rgb = color.rgb * 0.5 + 0.5 * (color.rgb / glColor.rgb);
+				if (boneFactor < 0.0001) {
+					#if SEASONS == 1 || SEASONS == 4 
+						snowIntensity = 0.0;
+					#endif
+				}
 			}
-		}
+		#endif
+		else if (mat == 10744) { // Cobweb
+				subsurfaceMode = 1, noSmoothLighting = true, noDirectionalShading = true;
+				centerShadowBias = true;
+			}
+		#ifdef SNOWY_WORLD
+			else if (mat == 10132) { // Grass Block:Normal
+				if (glColor.b < 0.999) { // Grass Block:Normal:Grass Part
+					snowMinNdotU = min(pow2(pow2(color.g)) * 1.9, 0.1);
+					color.rgb = color.rgb * 0.5 + 0.5 * (color.rgb / glColor.rgb);
+				}
+			}
 		#endif
 
 		else if (lmCoord.x > 0.99999) lmCoordM.x = 0.95;
@@ -303,6 +344,20 @@ void main() {
 			smoothnessD = mix(smoothnessD, 0.0, snowFactor);
 			emission *= 1.0 - snowFactor * 0.85;
 		}
+	#endif
+
+	#if SEASONS > 0
+		#include "/lib/materials/seasons.glsl"
+	#endif
+
+	#if MONOTONE_WORLD > 0
+		#if MONOTONE_WORLD == 1
+			color.rgb = vec3(1.0);
+		#elif MONOTONE_WORLD == 2
+			color.rgb = vec3(0.0);
+		#else
+			color.rgb = vec3(0.5);
+		#endif
 	#endif
 
 	#if RAIN_PUDDLES >= 1
@@ -359,8 +414,8 @@ void main() {
 	#endif
 
 	#ifdef AURORA_INFLUENCE
-		AuroraAmbientColor(ambientColor, viewPos);
-	#endif
+        AuroraAmbientColor(ambientColor, viewPos);
+    #endif
 
 	DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 				noSmoothLighting, noDirectionalShading, noVanillaAO, centerShadowBias,
@@ -417,6 +472,9 @@ out vec2 signMidCoordPos;
 flat out vec2 absMidCoordPos;
 flat out vec2 midCoord;
 out vec3 midUV; //useful to hardcode something to a specific pixel coordinate of a block
+#if SEASONS == 1 || SEASONS == 4 
+	flat out ivec2 pixelTexSize;
+#endif
 
 flat out vec3 upVec, sunVec, northVec, eastVec;
 out vec3 normal;
@@ -438,7 +496,11 @@ out vec4 glColorRaw;
 	uniform float viewWidth, viewHeight;
 #endif
 
-#if defined WAVING_ANYTHING_TERRAIN || defined WORLD_CURVATURE || defined INTERACTIVE_FOLIAGE
+#if SEASONS == 1 || SEASONS == 4 
+	uniform ivec2 atlasSize;
+#endif
+
+#if defined WAVING_ANYTHING_TERRAIN || defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVE_EVERYTHING || defined ATLAS_ROTATION || defined INTERACTIVE_FOLIAGE
 	uniform vec3 cameraPosition;
 	uniform mat4 gbufferModelViewInverse;
 	uniform sampler2D noisetex;
@@ -463,17 +525,20 @@ vec4 glColor = vec4(1.0);
 	#include "/lib/util/jitter.glsl"
 #endif
 
-#if defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE
+#if defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE || defined WAVE_EVERYTHING
 	#include "/lib/materials/materialMethods/wavingBlocks.glsl"
 #endif
 
-#if defined WORLD_CURVATURE
+#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE
 	#include "/lib/misc/distortWorld.glsl"
 #endif
 
 //Program//
 void main() {
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	#ifdef ATLAS_ROTATION
+		texCoord += texCoord * float(hash33(mod(cameraPosition * 0.1, vec3(100.0))));
+	#endif
 	lmCoord  = GetLightMapCoordinates();
 	midUV = 0.5 - at_midBlock / 64.0;
 
@@ -492,10 +557,17 @@ void main() {
 	signMidCoordPos = sign(texMinMidCoord);
 	absMidCoordPos  = abs(texMinMidCoord);
 
+	#if SEASONS == 1 || SEASONS == 4 
+		pixelTexSize = ivec2(absMidCoordPos * 2.0 * atlasSize);
+	#endif
+
 	mat = int(mc_Entity.x + 0.5);
 
-	#if defined WORLD_CURVATURE || defined WAVING_ANYTHING_TERRAIN || defined INTERACTIVE_FOLIAGE
+	#if defined MIRROR_DIMENSION || defined WORLD_CURVATURE || defined WAVING_ANYTHING_TERRAIN || defined WAVE_EVERYTHING || defined INTERACTIVE_FOLIAGE
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+		#ifdef MIRROR_DIMENSION
+			doMirrorDimension(position);
+		#endif
 		#ifdef WORLD_CURVATURE
 			position.y += doWorldCurvature(position.xz);
 		#endif
@@ -505,6 +577,9 @@ void main() {
 		#ifdef INTERACTIVE_FOLIAGE
 			DoInteractiveWave(position.xyz, mat);
 		#endif
+		#ifdef WAVE_EVERYTHING
+			DoWaveEverything(position.xyz, mat);
+		#endif
 		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	#else
 		gl_Position = ftransform();
@@ -513,7 +588,7 @@ void main() {
 			// G8FL735 Fixes Optifine-Iris parity. Optifine has 0.9 gl_Color.rgb on a lot of versions
 			glColorRaw.rgb = min(glColorRaw.rgb, vec3(0.9));
 		#endif
-
+	
 		#ifdef FLICKERING_FIX
 			//if (mat == 10256) gl_Position.z -= 0.00001; // Iron Bars
 		#endif

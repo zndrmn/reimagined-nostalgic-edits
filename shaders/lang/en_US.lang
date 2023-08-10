@@ -80,6 +80,10 @@ option.RP_MODE.comment=§7----------§r. Changes many internal calculations to d
     value.RP_MODE.3=§elabPBR (RP Required)
 
 ############  Performance  ############
+############  Performance  ############
+############  Performance  ############
+############  Performance  ############
+############  Performance  ############
 
 screen.PERFORMANCE_SETTINGS=§bPerformance Settings§r
 screen.PERFORMANCE_SETTINGS.comment=§7------------------§r. Settings that directly relate to the performance, and get changed by the different shader profiles.
@@ -168,6 +172,8 @@ screen.PERFORMANCE_SETTINGS.comment=§7------------------§r. Settings that dire
 ############     Camera     ############
 ############     Camera     ############
 ############     Camera     ############
+############     Camera     ############
+############     Camera     ############
 
 screen.CAMERA_SETTINGS=Camera
 screen.CAMERA_SETTINGS.comment=§7------§r. Settings that relate to the view/camera.
@@ -248,6 +254,96 @@ screen.CAMERA_SETTINGS.comment=§7------§r. Settings that relate to the view/ca
         value.CHROMA_ABERRATION.7=7 §c[-]
         value.CHROMA_ABERRATION.8=8 §c[-]
 
+############    Lighting    ############
+############    Lighting    ############
+############    Lighting    ############
+############    Lighting    ############
+############    Lighting    ############
+
+screen.LIGHTING_SETTINGS=Lighting
+screen.LIGHTING_SETTINGS.comment=§7------§r. Settings that are related to lighting.
+
+############   Light Multi   ############
+
+    screen.LIGHT_COLOR_SETTINGS=Lighting Color Multipliers
+    screen.LIGHT_COLOR_SETTINGS.comment=Enables customization of lighting colors that are seen on all surfaces.
+        option.LIGHT_COLOR_MULTS=Color Multipliers §e[-]§r
+        option.LIGHT_COLOR_MULTS.comment=Enables customization of lighting colors that are seen on all surfaces.
+
+        screen.MORNING_LIGHT_MULTS=Sunrise/Sunset Time
+            option.LIGHT_MORNING_R=Lighting Red Multiplier
+            option.LIGHT_MORNING_G=Lighting Green Multiplier
+            option.LIGHT_MORNING_B=Lighting Blue Multiplier
+            option.LIGHT_MORNING_I=Lighting Intensity Multiplier
+        screen.NOON_LIGHT_MULTS=Noon Time
+            option.LIGHT_NOON_R=Lighting Red Multiplier
+            option.LIGHT_NOON_G=Lighting Green Multiplier
+            option.LIGHT_NOON_B=Lighting Blue Multiplier
+            option.LIGHT_NOON_I=Lighting Intensity Multiplier
+        screen.NIGHT_LIGHT_MULTS=Night Time
+            option.LIGHT_NIGHT_R=Lighting Red Multiplier
+            option.LIGHT_NIGHT_G=Lighting Green Multiplier
+            option.LIGHT_NIGHT_B=Lighting Blue Multiplier
+            option.LIGHT_NIGHT_I=Lighting Intensity Multiplier
+        screen.RAIN_LIGHT_MULTS=Rainy/Snowy Weather
+            option.LIGHT_RAIN_R=Lighting Red Multiplier
+            option.LIGHT_RAIN_G=Lighting Green Multiplier
+            option.LIGHT_RAIN_B=Lighting Blue Multiplier
+            option.LIGHT_RAIN_I=Lighting Intensity Multiplier
+        screen.NETHER_LIGHT_MULTS=The Nether Dimension
+            option.LIGHT_NETHER_R=Lighting Red Multiplier
+            option.LIGHT_NETHER_G=Lighting Green Multiplier
+            option.LIGHT_NETHER_B=Lighting Blue Multiplier
+            option.LIGHT_NETHER_I=Lighting Intensity Multiplier
+        screen.END_LIGHT_MULTS=The End Dimension
+            option.LIGHT_END_R=Lighting Red Multiplier
+            option.LIGHT_END_G=Lighting Green Multiplier
+            option.LIGHT_END_B=Lighting Blue Multiplier
+            option.LIGHT_END_I=Lighting Intensity Multiplier
+
+############    Lighting    ############
+
+    option.AMBIENT_MULT=Shadow Light Multiplier
+    option.AMBIENT_MULT.comment=Determines the amount of ambient lighting seen in shadows. §c[-]§r Drastically changing this setting can break the lighting balance.
+
+        screen.BLOCKLIGHT_COLOR_SETTINGS=Blocklight Color
+        screen.BLOCKLIGHT_COLOR_SETTINGS.comment=Adjusts the color emited from light source blocks.
+            option.XLIGHT_R=Blocklight Red Multiplier
+            option.XLIGHT_G=Blocklight Green Multiplier
+            option.XLIGHT_B=Blocklight Blue Multiplier
+
+    option.HELD_LIGHTING_MODE=Dynamic Handheld Lighting
+    option.HELD_LIGHTING_MODE.comment=Allows handheld light sources to cast light onto the scene.
+        value.HELD_LIGHTING_MODE.0=§cOff
+        value.HELD_LIGHTING_MODE.1=Subtle
+        value.HELD_LIGHTING_MODE.2=Normal
+
+    option.SSAO_I=Edge Shadow Intensity (SSAO)
+    option.SSAO_I.comment=Determines the strength of Screen-Space Ambient Occlusion (SSAO) which adds extra ambient shadowing to the edges of the scene. §e[*]§r This setting won't work if SSAO is disabled in "Performance Settings".
+        value.SSAO_I.0=§cOff
+    option.VANILLAAO_I=Edge Shadow Intensity (Vanilla)
+    option.VANILLAAO_I.comment=Determines the strength of Minecraft's ambient occlusion which adds extra ambient shadowing to the edges of the scene.
+        value.VANILLAAO_I.0=§cOff
+
+    option.MINIMUM_LIGHT_MODE=Cave Lighting
+    option.MINIMUM_LIGHT_MODE.comment=Adds extra lighting to areas that don't have skylight. §a[+]§r "Default" option determines the lighting according to the "Brightness" slider in Video Settings.
+        value.MINIMUM_LIGHT_MODE.0=Very Dark
+        value.MINIMUM_LIGHT_MODE.1=Dark
+        value.MINIMUM_LIGHT_MODE.2=Default §a[+]
+        value.MINIMUM_LIGHT_MODE.3=Bright
+        value.MINIMUM_LIGHT_MODE.4=Very Bright
+
+    option.PIXEL_SHADOW=Pixelated Shadows
+    option.PIXEL_SHADOW.comment=Modifies the world coordinates on a grid to make shadows pixelated. §e[*]§r This setting does not affect performance.
+        value.PIXEL_SHADOW.0=Off
+        value.PIXEL_SHADOW.8=8x8 §e[*]
+        value.PIXEL_SHADOW.16=16x16 §e[*]
+        value.PIXEL_SHADOW.32=32x32 §e[*]
+        value.PIXEL_SHADOW.64=64x64 §e[*]
+        value.PIXEL_SHADOW.128=128x128 §e[*]
+
+############   Atmosphere   ############
+############   Atmosphere   ############
 ############   Atmosphere   ############
 ############   Atmosphere   ############
 ############   Atmosphere   ############
@@ -259,7 +355,7 @@ screen.ATMOSPHERE_SETTINGS.comment=§7----------§r. Settings that relate to the
 
     screen.ATM_COLOR_SETTINGS=Atmosphere Color Multipliers
     screen.ATM_COLOR_SETTINGS.comment=Enables customization of atmosphere colors that are mostly seen in the sky and fog.
-        option.ATM_COLOR_MULTS=Atmosphere Color Multipliers §e[*]§r
+        option.ATM_COLOR_MULTS=Color Multipliers §e[*]§r
         option.ATM_COLOR_MULTS.comment=Enables customization of atmosphere colors that are mostly seen in the sky and fog.
 
         screen.MORNING_ATM_MULTS=Sunrise/Sunset Time
@@ -293,12 +389,7 @@ screen.ATMOSPHERE_SETTINGS.comment=§7----------§r. Settings that relate to the
             option.ATM_END_B=Atmosphere Blue Multiplier
             option.ATM_END_I=Atmosphere Intensity Multiplier
 
-############   Atmosphere   ############
-
-    option.NIGHT_STAR_AMOUNT=Night Star Amount
-    option.NIGHT_STAR_AMOUNT.comment=Determines the amount of stars in the night sky.
-        value.NIGHT_STAR_AMOUNT.2=Medium
-        value.NIGHT_STAR_AMOUNT.3=High
+############  Fog Settings  ############
 
     screen.FOG_SETTINGS=Fog Settings
     screen.FOG_SETTINGS.comment=Settings that relate to the various types of fog.
@@ -328,8 +419,7 @@ screen.ATMOSPHERE_SETTINGS.comment=§7----------§r. Settings that relate to the
         option.LIGHTSHAFT_NIGHT_I=Light Shaft Night Multiplier
         option.LIGHTSHAFT_RAIN_I=Light Shaft Rain Multiplier
 
-    option.WEATHER_TEX_OPACITY=Weather Texture Opacity
-    option.WEATHER_TEX_OPACITY.comment=Adjusts the opacity of the rainfall/snowfall weather textures.
+############     Clouds     ############
 
     screen.CLOUD_SETTINGS=Clouds
     screen.CLOUD_SETTINGS.comment=Settings that relate to the clouds.
@@ -353,8 +443,17 @@ screen.ATMOSPHERE_SETTINGS.comment=§7----------§r. Settings that relate to the
         option.CLOUD_SHADOWS=Cloud Shadows
         option.CLOUD_SHADOWS.comment=Enables shadows that are cast from the clouds. §e[*]§r Cloud shadows will be randomly generated if Cloud Style is set to "Fantasy".
 
-    option.NIGHT_NEBULA_I=Night Nebula Brightness
-    option.NIGHT_NEBULA_I.comment=Adjusts the brightness of Night Nebulae.
+############   Atmosphere   ############
+
+    option.WEATHER_TEX_OPACITY=Weather Texture Opacity
+    option.WEATHER_TEX_OPACITY.comment=Adjusts the opacity of the rainfall/snowfall weather textures.
+
+    option.SUN_MOON_STYLE_DEFINE=Sun/Moon Style
+    option.SUN_MOON_STYLE_DEFINE.comment=Determines the style of sun/moon. §e[*]§r This setting might interact incorrectly with some resource packs due to the limitations of sun/moon/skybox differentiation.
+        value.SUN_MOON_STYLE_DEFINE.-1=Default Style
+        value.SUN_MOON_STYLE_DEFINE.1=Reimagined
+        value.SUN_MOON_STYLE_DEFINE.2=Fantasy
+        value.SUN_MOON_STYLE_DEFINE.3=Fantasy - Smaller
 
     option.SUN_ANGLE=Sun/Moon Angle
     option.SUN_ANGLE.comment=Adjusts the angle of sun/moon relative to the world during noon. §a[+]§r Reimagined's lighting model is specially designed to make the "0" sun angle work just as well as others.
@@ -388,15 +487,10 @@ screen.ATMOSPHERE_SETTINGS.comment=§7----------§r. Settings that relate to the
     option.SUN_MOON_HORIZON=Sun/Moon Horizon
     option.SUN_MOON_HORIZON.comment=Prevents the sun/moon from appearing below the horizon line.
 
-    option.SUN_MOON_STYLE_DEFINE=Sun/Moon Style
-    option.SUN_MOON_STYLE_DEFINE.comment=Determines the style of sun/moon. §e[*]§r This setting might interact incorrectly with some resource packs due to the limitations of sun/moon/skybox differentiation.
-        value.SUN_MOON_STYLE_DEFINE.-1=Default Style
-        value.SUN_MOON_STYLE_DEFINE.1=Reimagined
-        value.SUN_MOON_STYLE_DEFINE.2=Fantasy
-        value.SUN_MOON_STYLE_DEFINE.3=Fantasy - Smaller
-
-    option.NIGHT_NEBULA=Night Nebulae
-    option.NIGHT_NEBULA.comment=Adds galaxy-style nebulae to the night sky. The nebulae are procedurally generated, and they will look different every night. §c[-]§r This effect can impact performance. §e[*]§r "Nebulae" isn't a typo, it's the plural of Nebula =D
+    option.NIGHT_STAR_AMOUNT=Night Star Amount
+    option.NIGHT_STAR_AMOUNT.comment=Determines the amount of stars in the night sky.
+        value.NIGHT_STAR_AMOUNT.2=Medium
+        value.NIGHT_STAR_AMOUNT.3=High
 
     option.AURORA_STYLE_DEFINE=Aurora Borealis Style
     option.AURORA_STYLE_DEFINE.comment=Determines the style of northern lights that appear in the night sky.
@@ -413,6 +507,13 @@ screen.ATMOSPHERE_SETTINGS.comment=§7----------§r. Settings that relate to the
         value.AURORA_CONDITION.3=Full Moon in Snowy Biome
         value.AURORA_CONDITION.4=Full Moon or Snowy Biome
 
+    option.NIGHT_NEBULA=Night Nebulae
+    option.NIGHT_NEBULA.comment=Adds galaxy-style nebulae to the night sky. The nebulae are procedurally generated, and they will look different every night. §c[-]§r This effect can impact performance. §e[*]§r "Nebulae" isn't a typo, it's the plural of Nebula =D
+    option.NIGHT_NEBULA_I=Night Nebula Brightness
+    option.NIGHT_NEBULA_I.comment=Adjusts the brightness of Night Nebulae.
+
+############   Materials   ############
+############   Materials   ############
 ############   Materials   ############
 ############   Materials   ############
 ############   Materials   ############
@@ -603,92 +704,8 @@ screen.MATERIAL_SETTINGS.comment=§7--------§r. Settings that are related to th
         option.NO_WAVING_INDOORS=No Waving in Closed Areas
         option.NO_WAVING_INDOORS.comment=Prevents blocks from waving in closed areas using skylight. §c[-]§r This setting being enabled can cause problems with some resource packs or mods.
 
-############    Lighting    ############
-############    Lighting    ############
-############    Lighting    ############
-
-screen.LIGHTING_SETTINGS=Lighting
-screen.LIGHTING_SETTINGS.comment=§7------§r. Settings that are related to lighting.
-
-############   Light Multi   ############
-
-    screen.LIGHT_COLOR_SETTINGS=Lighting Color Multipliers
-    screen.LIGHT_COLOR_SETTINGS.comment=Enables customization of lighting colors that are seen on all surfaces.
-        option.LIGHT_COLOR_MULTS=§eLighting Color Multipliers
-        option.LIGHT_COLOR_MULTS.comment=Enables customization of lighting colors that are seen on all surfaces.
-
-        screen.MORNING_LIGHT_MULTS=Sunrise/Sunset Time
-            option.LIGHT_MORNING_R=Lighting Red Multiplier
-            option.LIGHT_MORNING_G=Lighting Green Multiplier
-            option.LIGHT_MORNING_B=Lighting Blue Multiplier
-            option.LIGHT_MORNING_I=Lighting Intensity Multiplier
-        screen.NOON_LIGHT_MULTS=Noon Time
-            option.LIGHT_NOON_R=Lighting Red Multiplier
-            option.LIGHT_NOON_G=Lighting Green Multiplier
-            option.LIGHT_NOON_B=Lighting Blue Multiplier
-            option.LIGHT_NOON_I=Lighting Intensity Multiplier
-        screen.NIGHT_LIGHT_MULTS=Night Time
-            option.LIGHT_NIGHT_R=Lighting Red Multiplier
-            option.LIGHT_NIGHT_G=Lighting Green Multiplier
-            option.LIGHT_NIGHT_B=Lighting Blue Multiplier
-            option.LIGHT_NIGHT_I=Lighting Intensity Multiplier
-        screen.RAIN_LIGHT_MULTS=Rainy/Snowy Weather
-            option.LIGHT_RAIN_R=Lighting Red Multiplier
-            option.LIGHT_RAIN_G=Lighting Green Multiplier
-            option.LIGHT_RAIN_B=Lighting Blue Multiplier
-            option.LIGHT_RAIN_I=Lighting Intensity Multiplier
-        screen.NETHER_LIGHT_MULTS=The Nether Dimension
-            option.LIGHT_NETHER_R=Lighting Red Multiplier
-            option.LIGHT_NETHER_G=Lighting Green Multiplier
-            option.LIGHT_NETHER_B=Lighting Blue Multiplier
-            option.LIGHT_NETHER_I=Lighting Intensity Multiplier
-        screen.END_LIGHT_MULTS=The End Dimension
-            option.LIGHT_END_R=Lighting Red Multiplier
-            option.LIGHT_END_G=Lighting Green Multiplier
-            option.LIGHT_END_B=Lighting Blue Multiplier
-            option.LIGHT_END_I=Lighting Intensity Multiplier
-
-############    Lighting    ############
-
-    option.AMBIENT_MULT=Shadow Light Multiplier
-    option.AMBIENT_MULT.comment=Determines the amount of ambient lighting seen in shadows. §c[-]§r Drastically changing this setting can break the lighting balance.
-
-        screen.BLOCKLIGHT_COLOR_SETTINGS=Blocklight Color
-        screen.BLOCKLIGHT_COLOR_SETTINGS.comment=Adjusts the color emited from light source blocks.
-            option.XLIGHT_R=Blocklight Red Multiplier
-            option.XLIGHT_G=Blocklight Green Multiplier
-            option.XLIGHT_B=Blocklight Blue Multiplier
-
-    option.HELD_LIGHTING_MODE=Dynamic Handheld Lighting
-    option.HELD_LIGHTING_MODE.comment=Allows handheld light sources to cast light onto the scene.
-        value.HELD_LIGHTING_MODE.0=§cOff
-        value.HELD_LIGHTING_MODE.1=Subtle
-        value.HELD_LIGHTING_MODE.2=Normal
-
-    option.SSAO_I=Edge Shadow Intensity (SSAO)
-    option.SSAO_I.comment=Determines the strength of Screen-Space Ambient Occlusion (SSAO) which adds extra ambient shadowing to the edges of the scene. §e[*]§r This setting won't work if SSAO is disabled in "Performance Settings".
-        value.SSAO_I.0=§cOff
-    option.VANILLAAO_I=Edge Shadow Intensity (Vanilla)
-    option.VANILLAAO_I.comment=Determines the strength of Minecraft's ambient occlusion which adds extra ambient shadowing to the edges of the scene.
-        value.VANILLAAO_I.0=§cOff
-
-    option.MINIMUM_LIGHT_MODE=Cave Lighting
-    option.MINIMUM_LIGHT_MODE.comment=Adds extra lighting to areas that don't have skylight. §a[+]§r "Default" option determines the lighting according to the "Brightness" slider in Video Settings.
-        value.MINIMUM_LIGHT_MODE.0=Very Dark
-        value.MINIMUM_LIGHT_MODE.1=Dark
-        value.MINIMUM_LIGHT_MODE.2=Default §a[+]
-        value.MINIMUM_LIGHT_MODE.3=Bright
-        value.MINIMUM_LIGHT_MODE.4=Very Bright
-
-    option.PIXEL_SHADOW=Pixelated Shadows
-    option.PIXEL_SHADOW.comment=Modifies the world coordinates on a grid to make shadows pixelated. §e[*]§r This setting does not affect performance.
-        value.PIXEL_SHADOW.0=Off
-        value.PIXEL_SHADOW.8=8x8 §e[*]
-        value.PIXEL_SHADOW.16=16x16 §e[*]
-        value.PIXEL_SHADOW.32=32x32 §e[*]
-        value.PIXEL_SHADOW.64=64x64 §e[*]
-        value.PIXEL_SHADOW.128=128x128 §e[*]
-
+############     Other     ############
+############     Other     ############
 ############     Other     ############
 ############     Other     ############
 ############     Other     ############
@@ -741,214 +758,213 @@ screen.OTHER_SETTINGS.comment=§7-----§r. Settings that don't fit into any othe
     option.COLOR_CODED_PROGRAMS=Color Coded Programs §c[-]§r
     option.COLOR_CODED_PROGRAMS.comment=Shows which shader programs are being used to render geometry. §c[-]§r This option is only for development purposes and shouldn't be used for gameplay. §e[*]§r Color values can be found in shaders\lib\misc\colorCodedPrograms.glsl
 
+#option.CLOUD_HIGH_QUALITY=High Quality Clouds §e[*]§r
+#option.CLOUD_HIGH_QUALITY.comment=Reduces noise and improves the integrity of the Reimagined Clouds. §e[*]§r This setting only works when the Cloud Style is set to "Reimagined" or "Double Reimagined". §c[-]§r This option can impact performance especially with double layer clouds.
+#value.CLOUD_HIGH_QUALITY.1=Off
+#value.CLOUD_HIGH_QUALITY.2=On §c[-]
 
-option.CLOUD_HIGH_QUALITY=High Quality Clouds §e[*]§r
-option.CLOUD_HIGH_QUALITY.comment=Reduces noise and improves the integrity of the Reimagined Clouds. §e[*]§r This setting only works when the Cloud Style is set to "Reimagined" or "Double Reimagined". §c[-]§r This option can impact performance especially with double layer clouds.
-value.CLOUD_HIGH_QUALITY.1=Off
-value.CLOUD_HIGH_QUALITY.2=On §c[-]
-
-
-####### Euphoria Patches #######
+############    Euphoria    ############
+############    Euphoria    ############
+############    Euphoria    ############
+############    Euphoria    ############
+############    Euphoria    ############
 
 screen.EUPHORIA_SETTINGS=Euphoria Patches Settings
 screen.EUPHORIA_SETTINGS.comment=§7----------------------§r. Settings that are added by Euphoria Patches.
 
-    screen.EUPHORIA_ATMOSPHERE=Atmosphere
-	    screen.AURORA_BOREALIS=Aurora Borealis
-	    screen.AURORA_BOREALIS.comment=Settings that relate to the Aurora Borealis.
-		    screen.AURORA_COLOR_SETTINGS=Aurora Color Settings
-		    screen.AURORA_COLOR_SETTINGS.comment=Settings that relate to the color of the Aurora Borealis.
-        screen.CLOUDS=Clouds
-        screen.CLOUDS.comment=Fluffy things in the sky.
-        screen.END_BEAMS_SETTINGS=Ender Beam Settings
-        screen.END_BEAMS_SETTINGS.comment=Settings that relate to the Ender Beams.
-        screen.STAR_SETTINGS=Star Settings
-        screen.STAR_SETTINGS.comment=Settings that relate to the Stars.
+############   Blocklight   ############
+############   Blocklight   ############
 
-    screen.BLOCKLIGHT=Blocklight
-    screen.BLOCKLIGHT.comment=Settings that relate to blocklight color.
+screen.BLOCKLIGHT=Blocklight
+screen.BLOCKLIGHT.comment=Settings that relate to blocklight color.
 
-    screen.EUPHORIA_MATERIAL=Materials
-    screen.EUPHORIA_MATERIAL.comment=Settings that relate to materials.
+    option.MULTICOLORED_BLOCKLIGHT=Multi-Colored Blocklight
+    option.MULTICOLORED_BLOCKLIGHT.comment=Enables screen space multi-colored blocklight. §e[*]§rOnly works on 1.16.5 and above, non-Mac devices.
+    option.MCBL_INFLUENCE=Multi-Colored Blocklight Influence
+    option.MCBL_INFLUENCE.comment=Controls how much the multi-colored blocklight affects the default blocklight color.
+    option.BLOCKLIGHT_FLICKER=Blocklight Flickering
+    option.BLOCKLIGHT_FLICKER.comment=Adds flickering effect to blocklight.
+    option.BLOCKLIGHT_FLICKER_STRENGTH=Blocklight Flickering Strength
+    option.BLOCKLIGHT_FLICKER_STRENGTH.comment=Determines how noticable blocklight flicker is going to be.
+    option.RANDOM_BLOCKLIGHT=Random Colored Blocklight
+    option.RANDOM_BLOCKLIGHT_SIZE=Random Colored Blocklight Size
 
-    screen.EUPHORIA_OTHER_SETTINGS=Other
+############   Atmosphere   ############
+############   Atmosphere   ############
 
-option.AURORA_COLOR_PRESET=Color Preset
-option.AURORA_COLOR_PRESET.comment=Choose between default preset/custom colored auroras.\n§e[*]§r Monthly Preset changes the preset every in-game month.\n§a[*]§r Complementary Reimagined is the default preset.
-value.AURORA_COLOR_PRESET.0=Custom Preset
-value.AURORA_COLOR_PRESET.1=Monthly Preset §e[*]§r
-value.AURORA_COLOR_PRESET.2=Reimagined §a[*]§r
-value.AURORA_COLOR_PRESET.3=Legacy
-value.AURORA_COLOR_PRESET.4=Euphoria Patches
-value.AURORA_COLOR_PRESET.5=Nostalgic Edits
-value.AURORA_COLOR_PRESET.6=Galactic Lights
-value.AURORA_COLOR_PRESET.7=Mythical Lights
-#value.AURORA_COLOR_PRESET.8=Amethyst Lights
-#value.AURORA_COLOR_PRESET.9=Malachite Lights
+screen.EUPHORIA_ATMOSPHERE=Atmosphere
 
-option.RGB_AURORA=RGB Aurora
-option.RGB_AURORA.comment=Be an Epic Gamer with §4R§2G§9B §rAuroras.
+############     Aurora     ############
 
-option.AURORA_UP_R=Upper Section - Red
-option.AURORA_UP_G=Upper Section - Green
-option.AURORA_UP_B=Upper Section - Blue
-option.AURORA_UP_I=Upper Section - Intensity
+    screen.AURORA_BOREALIS=Aurora Borealis
+    screen.AURORA_BOREALIS.comment=Settings that relate to the Aurora Borealis.
+        screen.AURORA_COLOR_SETTINGS=Aurora Color Settings
+        screen.AURORA_COLOR_SETTINGS.comment=Settings that relate to the color of the Aurora Borealis.
+            option.AURORA_COLOR_PRESET=Color Preset
+            option.AURORA_COLOR_PRESET.comment=Choose between default preset/custom colored auroras.\n§e[*]§r Monthly Preset changes the preset every in-game month.\n§a[*]§r Complementary Reimagined is the default preset.
+                value.AURORA_COLOR_PRESET.0=Custom Preset
+                value.AURORA_COLOR_PRESET.1=Monthly Preset §e[*]§r
+                value.AURORA_COLOR_PRESET.2=Reimagined §a[*]§r
+                value.AURORA_COLOR_PRESET.3=Legacy
+                value.AURORA_COLOR_PRESET.4=Euphoria Patches
+                value.AURORA_COLOR_PRESET.5=Nostalgic Edits
+                value.AURORA_COLOR_PRESET.6=Galactic Lights
+                value.AURORA_COLOR_PRESET.7=Mythical Lights
+            option.RGB_AURORA=RGB Aurora
+            option.RGB_AURORA.comment=Be an Epic Gamer with §4R§2G§9B §rAuroras.
+            option.AURORA_UP_R=Upper Section - Red
+            option.AURORA_UP_G=Upper Section - Green
+            option.AURORA_UP_B=Upper Section - Blue
+            option.AURORA_DOWN_R=Lower Section - Red
+            option.AURORA_DOWN_G=Lower Section - Green
+            option.AURORA_DOWN_B=Lower Section - Blue
 
-option.AURORA_DOWN_R=Lower Section - Red
-option.AURORA_DOWN_G=Lower Section - Green
-option.AURORA_DOWN_B=Lower Section - Blue
-option.AURORA_DOWN_I=Lower Section - Intensity
+        option.AURORA_UP_I=Upper Section - Intensity
+        option.AURORA_INFLUENCE=Aurora Influence
+        option.AURORA_INFLUENCE.comment=Makes the Aurora color affect the clouds and the terrain.
+        option.AURORA_DOWN_I=Lower Section - Intensity
 
-option.AURORA_SIZE=Aurora Density
-option.AURORA_SIZE.comment=Density controls the apparent height and the size of the Aurora.
+        option.AURORA_CLOUD_INFLUENCE_INTENSITY=Cloud Influence Intensity
+        option.AURORA_CLOUD_INFLUENCE_INTENSITY.comment=Change the intensity the aurora affects the clouds.
+            value.AURORA_CLOUD_INFLUENCE_INTENSITY.0.00=Off
 
-option.AURORA_DRAW_DISTANCE=Aurora Draw Distance
-option.AURORA_DRAW_DISTANCE.comment=Draw Distance controls the distance boundary of the Aurora.
+        option.AURORA_SIZE=Aurora Density
+        option.AURORA_SIZE.comment=Density controls the apparent height and the size of the Aurora.
 
-option.AURORA_INFLUENCE=Aurora Influence
-option.AURORA_INFLUENCE.comment=Makes the Aurora color affect the clouds and the terrain.
+        option.AURORA_TERRAIN_INFLUENCE_INTENSITY=Terrain Influence Intensity
+        option.AURORA_TERRAIN_INFLUENCE_INTENSITY.comment=Change the intensity the aurora affects the terrain.
+            value.AURORA_TERRAIN_INFLUENCE_INTENSITY.0.00=Off
 
-option.AURORA_CLOUD_INFLUENCE_INTENSITY=Cloud Influence Intensity
-option.AURORA_CLOUD_INFLUENCE_INTENSITY.comment=Change the intensity the aurora affects the clouds.
-value.AURORA_CLOUD_INFLUENCE_INTENSITY.0.00=Off
+        option.AURORA_DRAW_DISTANCE=Aurora Draw Distance
+        option.AURORA_DRAW_DISTANCE.comment=Draw Distance controls the distance boundary of the Aurora.
 
-option.AURORA_TERRAIN_INFLUENCE_INTENSITY=Terrain Influence Intensity
-option.AURORA_TERRAIN_INFLUENCE_INTENSITY.comment=Change the intensity the aurora affects the terrain.
-value.AURORA_TERRAIN_INFLUENCE_INTENSITY.0.00=Off
+############     Clouds     ############
 
-option.BLOCKLIGHT_PROFILE=Blocklight profile
-option.BLOCKLIGHT_PROFILE.comment=Change between the blocklight presets from Reimagined and your own custom blocklight colors.
-value.BLOCKLIGHT_PROFILE.0=Reimagined
-value.BLOCKLIGHT_PROFILE.1=Custom
-option.BLOCKLIGHT_R=Blocklight - Red
-option.BLOCKLIGHT_G=Blocklight - Green
-option.BLOCKLIGHT_B=Blocklight - Blue
-option.BLOCKLIGHT_I=Blocklight - Intensity
-option.BLOCKLIGHT_SATURATION=Blocklight - Saturation
-option.RANDOM_BLOCKLIGHT=Random Colored Blocklight
-option.RANDOM_BLOCKLIGHT_SIZE=Random Colored Blocklight Size
+    screen.CLOUDS=Clouds
+    screen.CLOUDS.comment=Fluffy things in the sky.
+        option.CLOUD_FOG_THRESHOLD_1=Cloud Fog Threshold
+        option.CLOUD_FOG_THRESHOLD_2=Cloud Fog Threshold §e[*]§r
 
-option.BLOCKLIGHT_FLICKER=Blocklight Flickering
-option.BLOCKLIGHT_FLICKER.comment=Adds flickering effect to blocklight.
-option.BLOCKLIGHT_FLICKER_STRENGTH=Blocklight Flickering Strength
-option.BLOCKLIGHT_FLICKER_STRENGTH.comment=Determines how noticable blocklight flicker is going to be.
+        option.RAINBOW_CLOUD=Rainbow Clouds
+            value.RAINBOW_CLOUD.0=Off
+            value.RAINBOW_CLOUD.1=10% Coverage
+            value.RAINBOW_CLOUD.2=20% Coverage
+            value.RAINBOW_CLOUD.3=30% Coverage
+            value.RAINBOW_CLOUD.4=40% Coverage
+            value.RAINBOW_CLOUD.5=50% Coverage
+            value.RAINBOW_CLOUD.6=60% Coverage
+            value.RAINBOW_CLOUD.7=70% Coverage
+            value.RAINBOW_CLOUD.8=80% Coverage
+            value.RAINBOW_CLOUD.9=90% Coverage
+            value.RAINBOW_CLOUD.10=100% Coverage
 
-option.MULTICOLORED_BLOCKLIGHT=Multi-Colored Blocklight
-option.MULTICOLORED_BLOCKLIGHT.comment=Enables screen space multi-colored blocklight. §e[*]§rOnly works on 1.16.5 and above, non-Mac devices.
-option.MCBL_INFLUENCE=Multi-Colored Blocklight Influence
-option.MCBL_INFLUENCE.comment=Controls how much the multi-colored blocklight affects the default blocklight color.
+        option.CLOUD_STRETCH=Cloud Height
+        option.CLOUD_COLOR_I=Cloud Color Intensity
+        option.CLOUD_WIDTH=Cloud Width
+        option.CLOUD_SPEED=Cloud Speed
+        option.CLOUD_TRANSPARENCY=Cloud Transparency
 
-option.CLOUD_FOG_THRESHOLD_1=Cloud Fog Threshold
-option.CLOUD_FOG_THRESHOLD_2=Cloud Fog Threshold §e[*]§r
-option.CLOUD_WIDTH=Cloud Width
-option.CLOUD_STRETCH=Cloud Height
-option.CLOUD_SPEED=Cloud Speed
-option.CLOUD_TRANSPARENCY=Cloud Transparency
-option.CLOUD_MINECRAFT_TEXTURE=Minecraft Cloud Texture
-option.CLOUD_COLOR_I=Cloud Color Intensity
+############  Ender Beams  ############
 
-option.RAINBOW_CLOUD=Rainbow Clouds
-value.RAINBOW_CLOUD.0=Off
-value.RAINBOW_CLOUD.1=10% Coverage
-value.RAINBOW_CLOUD.2=20% Coverage
-value.RAINBOW_CLOUD.3=30% Coverage
-value.RAINBOW_CLOUD.4=40% Coverage
-value.RAINBOW_CLOUD.5=50% Coverage
-value.RAINBOW_CLOUD.6=60% Coverage
-value.RAINBOW_CLOUD.7=70% Coverage
-value.RAINBOW_CLOUD.8=80% Coverage
-value.RAINBOW_CLOUD.9=90% Coverage
-value.RAINBOW_CLOUD.10=100% Coverage
+    screen.END_BEAMS_SETTINGS=Ender Beam Settings
+    screen.END_BEAMS_SETTINGS.comment=Settings that relate to the Ender Beams.
+        option.END_BEAMS=Ender Beams
+        option.END_BEAMS.comment=Setting which enables nebula like beams in the End.
+        option.BEAMS_NEAR_PLAYER=End Beams Near Player
+        option.BEAMS_NEAR_PLAYER.comment=Enables or disables end beams near the player.
+        option.E_BEAMS_AMBIENT_INFLUENCE=Ambient Color Influence
+        option.E_BEAMS_AMBIENT_INFLUENCE.comment=The beams will have the ambient color at 0.00 and the user defined color at 1.00. Doesn't apply to Dragon Ender Beams.
+        option.E_BEAM_I=Ender Beams - Intensity
+        option.E_DRAGON_BEAM_I=Dragon Ender Beams - Intensity
+        option.E_DRAGON_BEAM_I.comment=The Ender Beam color during the dragon fight - Intensity.
+        option.E_BEAM_R=Ender Beams - Red
+        option.E_DRAGON_BEAM_R=Dragon Ender Beams - Red
+        option.E_DRAGON_BEAM_R.comment=The Ender Beam color during the dragon fight - Red.
+        option.E_BEAM_G=Ender Beams - Green
+        option.E_DRAGON_BEAM_G=Dragon Ender Beams - Green
+        option.E_DRAGON_BEAM_G.comment=The Ender Beam color during the dragon fight - Green.
+        option.E_BEAM_B=Ender Beams - Blue
+        option.E_DRAGON_BEAM_B=Dragon Ender Beams - Blue
+        option.E_DRAGON_BEAM_B.comment=The Ender Beam color during the dragon fight - Blue.
 
-option.END_BEAMS=Ender Beams
-option.END_BEAMS.comment=Setting which enables nebula like beams in the End.
-option.E_BEAMS_AMBIENT_INFLUENCE=Ambient Color Influence
-option.E_BEAMS_AMBIENT_INFLUENCE.comment=The beams will have the ambient color at 0.00 and the user defined color at 1.00. Doesn't apply to Dragon Ender Beams.
-option.E_BEAM_R=Ender Beams - Red
-option.E_BEAM_G=Ender Beams - Green
-option.E_BEAM_B=Ender Beams - Blue
-option.E_BEAM_I=Ender Beams - Intensity
-option.E_DRAGON_BEAM_R=Dragon Ender Beams - Red
-option.E_DRAGON_BEAM_R.comment=The Ender Beam color during the dragon fight - Red.
-option.E_DRAGON_BEAM_G=Dragon Ender Beams - Green
-option.E_DRAGON_BEAM_G.comment=The Ender Beam color during the dragon fight - Green.
-option.E_DRAGON_BEAM_B=Dragon Ender Beams - Blue
-option.E_DRAGON_BEAM_B.comment=The Ender Beam color during the dragon fight - Blue.
-option.E_DRAGON_BEAM_I=Dragon Ender Beams - Intensity
-option.E_DRAGON_BEAM_I.comment=The Ender Beam color during the dragon fight - Intensity.
-option.BEAMS_NEAR_PLAYER=End Beams Near Player
-option.BEAMS_NEAR_PLAYER.comment=Enables or disables end beams near the player.
+############     Stars     ############
 
-option.END_STARS=End Stars
-option.END_STARS.comment=Enable or disable the stars in the End.
-option.END_STAR_BRIGHTNESS=End Star Brightness
-option.END_STAR_SIZE=End Star Size
-option.END_STAR_AMOUNT=End Star Amount
-value.END_STAR_AMOUNT.0=Low
-value.END_STAR_AMOUNT.1=Normal
-value.END_STAR_AMOUNT.2=High
-value.END_STAR_AMOUNT.3=Very High
+    screen.STAR_SETTINGS=Star Settings
+    screen.STAR_SETTINGS.comment=Settings that relate to the Stars.
+        option.END_STARS=End Stars
+        option.END_STARS.comment=Enable or disable the stars in the End.
 
-option.GREEN_BLUE_SCREEN=Green & Blue Screen
-option.GREEN_BLUE_SCREEN.comment=Changes lime concrete, lime wool, blue concrete and blue wool to green and blue screens. §e[*]§r Pro tip: Put light sources under lime or blue carpets for lighting. §e[*]§r RP Support option must be set to Integrated PBR+
-value.GREEN_BLUE_SCREEN.0=Off
-value.GREEN_BLUE_SCREEN.1=§aGreen
-value.GREEN_BLUE_SCREEN.2=§9Blue
-value.GREEN_BLUE_SCREEN.3=§aGreen§r/§9Blue
+        option.END_STAR_AMOUNT=End Star Amount
+            value.END_STAR_AMOUNT.0=Low
+            value.END_STAR_AMOUNT.1=Normal
+            value.END_STAR_AMOUNT.2=High
+            value.END_STAR_AMOUNT.3=Very High
 
-option.RAIN_ATMOSPHERE=Rain Atmosphere
-option.RAIN_ATMOSPHERE.comment=Adds more atmospheric effects while raining.
+        option.MORE_STARS_END=More End Stars
+        option.MORE_STARS_END.comment=Overwrites Reimagined's star amount and sets it to a higher one. Applies to End
+        option.END_STAR_BRIGHTNESS=End Star Brightness
+        option.END_TWINKLING_STARS=Twinkling End Stars
+        option.END_TWINKLING_STARS.comment=Make the stars twinkle at you.
+        option.END_STAR_SIZE=End Star Size
+        option.MORE_STARS_OVERWORLD=More Overworld Stars
+        option.MORE_STARS_OVERWORLD.comment=Overwrites Reimagined's star amount and sets it to a higher one. Applies to Overworld
+        option.STAR_BRIGHTNESS=Star Brightness
+        option.STAR_BRIGHTNESS.comment=Setting to adjust the star brightness.
+        option.TWINKLING_STARS=Twinkling Overworld Stars
+        option.TWINKLING_STARS.comment=Make the stars twinkle at you.
+        option.STAR_SIZE=Star Size
+        option.STAR_SIZE.comment=Change the size of your stars.
 
-option.RAIN_PARTICLE_TRANSPARENCY=Rain Transparency
-option.SNOW_PARTICLE_TRANSPARENCY=Snow Transparency
+############   Materials   ############
+############   Materials   ############
 
-option.SSS_SNOW_ICE=Snow and Ice SSS
-option.SSS_SNOW_ICE.comment=Adds subsurface scattering to snow and ice blocks.
+screen.EUPHORIA_MATERIAL=Materials
+screen.EUPHORIA_MATERIAL.comment=Settings that relate to materials.
 
-option.STAR_BRIGHTNESS=Star Brightness
-option.STAR_BRIGHTNESS.comment=Setting to adjust the star brightness.
+    option.LAVA_VARIATION=Lava Preset
+    option.LAVA_VARIATION.comment=Hot presets in your area. Choose Now! §e[*]§r RP Support option must be set to Integrated PBR+
+        value.LAVA_VARIATION.0=Reimagined
+        value.LAVA_VARIATION.1=Dark Islands
+        value.LAVA_VARIATION.2=Sunshine
+        value.LAVA_VARIATION.3=Blushing Hotness
+        value.LAVA_VARIATION.4=Molten Cheese
 
-option.MORE_STARS_OVERWORLD=More Overworld Stars
-option.MORE_STARS_OVERWORLD.comment=Overwrites Reimagined's star amount and sets it to a higher one. Applies to Overworld
-option.MORE_STARS_END=More End Stars
-option.MORE_STARS_END.comment=Overwrites Reimagined's star amount and sets it to a higher one. Applies to End
+    option.GREEN_BLUE_SCREEN=Green & Blue Screen
+    option.GREEN_BLUE_SCREEN.comment=Changes lime concrete, lime wool, blue concrete and blue wool to green and blue screens. §e[*]§r Pro tip: Put light sources under lime or blue carpets for lighting. §e[*]§r RP Support option must be set to Integrated PBR+
+        value.GREEN_BLUE_SCREEN.0=Off
+        value.GREEN_BLUE_SCREEN.1=§aGreen
+        value.GREEN_BLUE_SCREEN.2=§9Blue
+        value.GREEN_BLUE_SCREEN.3=§aGreen§r/§9Blue
 
-option.TWINKLING_STARS=Twinkling Overworld Stars
-option.TWINKLING_STARS.comment=Make the stars twinkle at you.
-option.END_TWINKLING_STARS=Twinkling End Stars
-option.END_TWINKLING_STARS.comment=Make the stars twinkle at you.
+    option.WAVIER_LAVA=Wavier Lava
+    option.WAVIER_LAVA.comment=Makes the Waving Lava Texture option more extreme in the nether.
+    option.SSS_SNOW_ICE=Snow and Ice SSS
+    option.SSS_SNOW_ICE.comment=Adds subsurface scattering to snow and ice blocks.
 
-option.STAR_SIZE=Star Size
-option.STAR_SIZE.comment=Change the size of your stars.
+    option.LAVA_COLUMN_NOISE=Noisy Flowing Lava
+    option.LAVA_COLUMN_NOISE.comment=Make the Lava Preset also apply to downward flowing lava, for example the lava columns in the Nether. Blushing Hotness Preset is unaffected.
+    option.INTERACTIVE_FOLIAGE=Interactive Foliage
+    option.INTERACTIVE_FOLIAGE.comment=Makes Foliage bend away from the player when in first person.
+    option.LAVA_TEMPERATURE=Lava Temperature
+    option.LAVA_TEMPERATURE.comment=Change the temperature of lava, make it more red or white. §e[*]§r RP Support option must be set to Integrated PBR+
+    option.WAVE_SPEED=Foliage Waving Speed
+    option.WAVE_SPEED.comment=Waving Speed for foliage and leaves.
 
-option.LAVA_VARIATION=Lava Preset
-option.LAVA_VARIATION.comment=Hot presets in your area. Choose Now! §e[*]§r RP Support option must be set to Integrated PBR+
-value.LAVA_VARIATION.0=Reimagined
-value.LAVA_VARIATION.1=Dark Islands
-value.LAVA_VARIATION.2=Sunshine
-value.LAVA_VARIATION.3=Blushing Hotness
-value.LAVA_VARIATION.4=Molten Cheese
+############     Other     ############
+############     Other     ############
 
-option.WAVIER_LAVA=Wavier Lava
-option.WAVIER_LAVA.comment=Makes the Waving Lava Texture option more extreme in the nether.
-option.LAVA_COLUMN_NOISE=Noisy Flowing Lava
-option.LAVA_COLUMN_NOISE.comment=Make the Lava Preset also apply to downward flowing lava, for example the lava columns in the Nether. Blushing Hotness Preset is unaffected.
-option.LAVA_TEMPERATURE=Lava Temperature
-option.LAVA_TEMPERATURE.comment=Change the temperature of lava, make it more red or white. §e[*]§r RP Support option must be set to Integrated PBR+
+screen.EUPHORIA_OTHER_SETTINGS=Other
 
-option.LETTERBOXING=Letterboxing
-option.LETTERBOXING.comment=Adds black bars to the top and bottom of the window.
-option.ASPECT_RATIO=Letterboxing Aspect Ratio
-option.ASPECT_RATIO.comment=Change the ratio between the width and height of the cropped image.
-option.EXCLUDE_ENTITIES=Exclude Entities
-option.EXCLUDE_ENTITIES.comment=Change whether entities should be excluded from Letterboxing or not.
+    option.WORLD_CURVATURE=World Curvature
+    option.LETTERBOXING=Letterboxing
+    option.LETTERBOXING.comment=Adds black bars to the top and bottom of the window.
+    option.OVERWORLD_CURVATURE_SIZE=Overworld Curvature Size
+    option.EXCLUDE_ENTITIES=Exclude Entities
+    option.EXCLUDE_ENTITIES.comment=Change whether entities should be excluded from Letterboxing or not.
+    option.NETHER_CURVATURE_SIZE=Nether Curvature Size
+    option.ASPECT_RATIO=Letterboxing Aspect Ratio
+    option.ASPECT_RATIO.comment=Change the ratio between the width and height of the cropped image.
+    option.END_CURVATURE_SIZE=End Curvature Size
 
-option.INTERACTIVE_FOLIAGE=Interactive Foliage
-option.INTERACTIVE_FOLIAGE.comment=Makes Foliage bend away from the player when in first person.
-option.WAVE_SPEED=Foliage Waving Speed
-option.WAVE_SPEED.comment=Waving Speed for foliage and leaves.
-
-option.WORLD_CURVATURE=World Curvature
-option.OVERWORLD_CURVATURE_SIZE=Overworld Curvature Size
-option.NETHER_CURVATURE_SIZE=Nether Curvature Size
-option.END_CURVATURE_SIZE=End Curvature Size
+#option.RAIN_ATMOSPHERE=Rain Atmosphere
+#option.RAIN_ATMOSPHERE.comment=Adds more atmospheric effects while raining.

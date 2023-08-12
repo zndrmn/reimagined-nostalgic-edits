@@ -37,9 +37,7 @@
 
     vec3 rainNC = vec3(0.20, 0.12, 0.10) / 1.0;
     vec3 nightColFactor      = mix(vec3(0.0, 0.20, 0.46) + skyColor, rainNC + 20.0 * rainNC * skyColor, rainFactor);
-    //vec3 nightUpSkyColor     = nightColFactor / 2.9;
-    //vec3 nightUpSkyColor     = mix(nightColFactor, vec3(0.02, 0.25, 0.48), vec3(0.0)) / 2.1;
-    vec3 nightUpSkyColor     = nightColFactor * vec3(0.0, 0.45, 0.32);
+    vec3 nightUpSkyColor     = nightColFactor * vec3(0.0, 0.39, 0.26);
     vec3 nightMiddleSkyColor = nightColFactor * vec3(0.0, 0.38, 0.21);
     vec3 nightDownSkyColor   = nightMiddleSkyColor;
 
